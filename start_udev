@@ -27,7 +27,7 @@
 [ -f /etc/udev/udev.conf ] && . /etc/udev/udev.conf
 
 
-. /etc/init.d/functions
+. /etc/rc.d/init.d/functions
 
 prog=udev
 sysfs_dir=/sys
@@ -67,24 +67,30 @@ mount_udev() {
 
 
 grep -q " ${udev_root%/} " /proc/mounts || { 
-	STRING=$"Mounting... tmpfs at $udev_root: "
-	echo -n "$STRING "; 
-	mount_udev && success $"$STRING" || failure $"$STRING"; 
+	echo -n "Mouting tmpfs at $udev_root"
+	if (mount_udev); then
+	    deltext
+	    ok
+	else
+	    deltext
+	    fail
+	fi
 }
  
 
-STRING=$"Making extra nodes: "
-echo -n "$STRING "
-make_extra_nodes && success $"$STRING" || failure $"$STRING"
-echo
+echo -n "Making extra nodes"
+if (make_extra_nodes); then
+    deltext
+    ok
+else
+    deltext
+    fail
+fi
 
 export ACTION=add
 export UDEV_NO_SLEEP=1
-STRING=$"Starting udev: "
 # propagate $udev_root from /sys
-echo -n "$STRING "
 rm -f $udev_root/.udev.tdb
-/sbin/udevstart && success $"$STRING" || failure $"$STRING"
-echo
+run_cmd "Starting udev" /sbin/udevstart
 
 exit 0
