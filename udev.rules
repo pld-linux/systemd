@@ -110,7 +110,7 @@ KERNEL="fd[0-9]", 	SYMLINK="floppy%e"
 
 KERNEL="hd[a-z]", PROGRAM="/bin/cat /proc/ide/%k/media", RESULT="cdrom", SYMLINK="cdrom%e"
 
-KERNEL="hd[a-z]", PROGRAM="/bin/cat /proc/ide/%k/media", RESULT="floppy", SYMLINK="floppy%e
+KERNEL="hd[a-z]", PROGRAM="/bin/cat /proc/ide/%k/media", RESULT="floppy", SYMLINK="floppy%e"
 
 KERNEL="hd[a-z]", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k DVD", SYMLINK="dvd%e"
 KERNEL="sr*", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k DVD", SYMLINK="dvd%e"
