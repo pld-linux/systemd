@@ -69,3 +69,10 @@ KERNEL="sr*", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k DVD-R", SYMLINK="dvdw
 # rename sr* to scd*
 KERNEL="sr*", NAME="scd%n"
 
+# Locate zaptel in its own directory
+KERNEL="zap[0-9]", NAME="zap/%n"
+KERNEL="zapctl", NAME="zap/ctl"
+KERNEL="zapchannel", NAME="zap/channel"
+KERNEL="zaptimer", NAME="zap/timer"
+KERNEL="zappseudo", NAME="zap/pseudo"
+
