@@ -113,9 +113,9 @@ scsi_replay () {
                         export DEVPATH
                         export ACTION=add
                         $HOTPLUG scsi_device
-                        SEQNUM=$(($SEQNUM + 1)
+                        SEQNUM=$(($SEQNUM + 1))
                         $HOTPLUG scsi 
-                        SEQNUM=$(($SEQNUM + 1)
+                        SEQNUM=$(($SEQNUM + 1))
                 done
         done
         return 0
