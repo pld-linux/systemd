@@ -7,6 +7,7 @@
 # create a symlink named after the device map name
 # note devmap_name comes with extras/multipath
 KERNEL="dm-[0-9]*", PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK="%c"
+KERNEL="device-mapper", NAME="mapper/control"
 
 # DRI devices always go into a subdirectory (as per the LSB spec)
 KERNEL="card*",		NAME="dri/card%n"
@@ -28,6 +29,60 @@ KERNEL="ts*",		NAME="input/%k"
 
 BUS="usb", KERNEL="lp[0-9]*", NAME="usb/%k"
 
+# fb devices
+KERNEL="fb[0-9]*", NAME="fb/%n", SYMLINK="%k"
+
+# floppy devices
+KERNEL="fd[0-9]*", NAME="floppy/%n", SYMLINK="%k"
+
+# i2c devices
+KERNEL="i2c-[0-9]*", NAME="i2c/%n", SYMLINK="%k"
+
+# misc devices
+KERNEL="rtc",     NAME="misc/%k", SYMLINK="%k"
+KERNEL="psaux",   NAME="misc/%k", SYMLINK="%k"
+KERNEL="agpgart", NAME="misc/%k", SYMLINK="%k"
+KERNEL="rtc",     NAME="misc/%k", SYMLINK="%k"
+KERNEL="psaux",   NAME="misc/%k", SYMLINK="%k"
+KERNEL="uinput",  NAME="misc/%k", SYMLINK="%k"
+
+# pty devices
+KERNEL="pty[p-za-e][0-9a-f]*", NAME="pty/m%n", SYMLINK="%k"
+KERNEL="tty[p-za-e][0-9a-f]*", NAME="tty/s%n", SYMLINK="%k"
+
+# ramdisk devices
+KERNEL="ram[0-9]*", NAME="rd/%n", SYMLINK="%k"
+
+# sound devices
+KERNEL="adsp",       NAME="sound/adsp"        SYMLINK="%k"
+KERNEL="audio",      NAME="sound/audio",      SYMLINK="%k"
+KERNEL="dsp",        NAME="sound/dsp",        SYMLINK="%k"
+KERNEL="mixer",      NAME="sound/mixer",      SYMLINK="%k"
+KERNEL="sequencer",  NAME="sound/sequencer",  SYMLINK="%k"
+KERNEL="sequencer2", NAME="sound/sequencer2", SYMLINK="%k"
+
+# tty devices
+KERNEL="tty[0-9]*",    NAME="vc/%n",  SYMLINK="%k"
+KERNEL="ttyS[0-9]*",   NAME="tts/%n", SYMLINK="%k"
+KERNEL="ttyUSB[0-9]*", NAME="tts/USB%n"
+
+# vc devices
+KERNEL="vcs",        NAME="vcc/0",   SYMLINK="%k"
+KERNEL="vcs[0-9]*",  NAME="vcc/%n",  SYMLINK="%k"
+KERNEL="vcsa",       NAME="vcc/a0",  SYMLINK="%k"
+KERNEL="vcsa[0-9]*", NAME="vcc/a%n", SYMLINK="%k"
+
+# v4l devices
+KERNEL="video[0-9]*", NAME="v4l/video%n"
+KERNEL="radio[0-9]*", NAME="v4l/radio%n"
+KERNEL="vbi[0-9]*",   NAME="v4l/vbi%n"
+KERNEL="vtx[0-9]*",   NAME="v4l/vtx%n"
+
+# CAPI devices
+KERNEL="capi",          NAME="capi20", SYMLINK="isdn/capi20"
+KERNEL="capi[0-9]*",    NAME="capi/%n"
+
+
 KERNEL="microcode",     SYMLINK="cpu/0/%k"
 KERNEL="ram1", 		SYMLINK="ram"
 KERNEL="video0",	SYMLINK="video"
@@ -46,8 +101,6 @@ KERNEL="vbi0",		SYMLINK="vbi"
 KERNEL="null",		SYMLINK="XOR"
 
 KERNEL="tun",		NAME="net/%k"
-
-KERNEL="device-mapper",	NAME="mapper/control"
 
 # old compat symlinks with enumeration
 KERNEL="sr*",  		SYMLINK="cdrom%e"
