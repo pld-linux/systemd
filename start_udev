@@ -60,9 +60,8 @@ make_extra_nodes () {
 }
 
 mount_udev() {
-    	[ -e "/selinux/enforce" ] && mountopt=",fscontext=system_u:object_r:device_t"
-	mount -n -o mode=0755${mountopt} \
-		-t tmpfs none "$udev_root"
+    	mount -n -o fscontext=system_u:object_r:device_t,mode=0755 -t tmpfs none "$udev_root" 2> /dev/null || \
+		mount -n -o mode=0755 -t tmpfs none "$udev_root" 2> /dev/null
 	return $?
 }
 
