@@ -47,57 +47,95 @@ make_extra_nodes () {
 
 	if [ -x $MAKEDEV ]; then
 		$MAKEDEV -x $( 
-			for i in 0 1 2 3 4 5 6 7; do echo fd$i; done
 			for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
 			    echo cpu/$i/microcode;
 			done;
-			for i in 0 1 2 3 4 5 6 7; do echo loop$i; done
-			for i in 0 1 2 3; do echo lp$i; echo par$i;done
-			echo net/tun ppp;
+			for i in 1 2 3 4 5 6; do echo tty$i;done;
+			for i in 0 1 2 3 4 5 6 7; do echo loop$i; done;
+			for i in 0 1 2 3; do echo lp$i; echo par$i;done;
+			echo net/tun ppp console null zero;
 		);
 		[ -a /dev/MAKEDEV ] || ln -s $MAKEDEV /dev/MAKEDEV;
+		cp -a /etc/udev/devices/* /dev/ >/dev/null 2>&1 || :
 	fi
 }
 
-mount_udev() {
-    	mount -n -o fscontext=system_u:object_r:device_t,mode=0755 -t tmpfs none "$udev_root" 2> /dev/null || \
-		mount -n -o mode=0755 -t tmpfs none "$udev_root" 2> /dev/null
-	return $?
+# we cannot use /usr/bin/find here
+find_d () {
+        where=$1
+        what=$2
+        found=""
+        for f in $where/*; do
+                if [ -d "$f" -a ! -L "$f" ]; then
+			if [ "$f" != "${f%%$what}" ];then 
+			        # make sure we are at the path end
+			        # we have no dirname and basename
+				rest="${f#*$what}"
+				[ "${rest##*/}" = "$rest" ] && found="$found $f"
+			fi
+                        found="$found $(find_d $f $what)"
+                fi
+        done
+        echo "$found"
 }
 
-
-grep -q " ${udev_root%/} " /proc/mounts || { 
-	echo -n "Mouting tmpfs at $udev_root"
-	if (mount_udev); then
-	    deltext
-	    ok
-	else
-	    deltext
-	    fail
-	fi
+# we cannot use /usr/bin/find here
+find_f () {
+	where=$1
+	what=$2
+	found=""
+	for f in $where/*; do
+		if [ -d "$f" -a ! -L "$f" ]; then
+			found="$found $(find_f $f $what)"
+		elif [ -e "$f" ]; then 
+			[ "$f" != "${f%$what}" ] && found="$found $f"
+		fi
+	done
+	echo "$found"
 }
- 
 
-echo -n "Making extra nodes"
-if (make_extra_nodes); then
-    deltext
-    ok
-else
-    deltext
-    fail
-fi
+# call hotplug with the scsi devices
+scsi_replay () {
+        HOTPLUG=$(cat /proc/sys/kernel/hotplug)
+        [ -z "$HOTPLUG" ] && return 1
+
+        scsi_hosts=$(find_d /sys/devices host\*)
+        SEQNUM=1
+
+        for host in $scsi_hosts; do
+                [ -d $host ] || continue
+                devs=$(find_f $host type)
+                for dev in $devs;do
+                        [ -f $dev ] || continue
+                        export SEQNUM
+                        DEVPATH=${dev%/type}
+                        DEVPATH=${DEVPATH#/sys}
+                        export DEVPATH
+                        export ACTION=add
+                        $HOTPLUG scsi_device
+                        SEQNUM=$(($SEQNUM + 1)
+                        $HOTPLUG scsi 
+                        SEQNUM=$(($SEQNUM + 1)
+                done
+        done
+        return 0
+}
 
 export ACTION=add
 export UDEV_NO_SLEEP=1
+prog=udev
+ret=0
+nls "Starting udev"
 # propagate $udev_root from /sys
+grep -q "none ${udev_root%/} " /proc/mounts || { 
+	mount -n -o mode=0755 -t tmpfs none "$udev_root"
+	ret=$(($ret + $?))
+}
+make_extra_nodes
+scsi_replay >/dev/null 2>&1
+ret=$(($ret + $?))
 rm -f $udev_root/.udev.tdb
-
-nls "Starting udev" 
-/sbin/udevstart
-if [ $? -eq 0 ] ; then
-	ok
-else
-	fail
-fi
-
+/sbin/udevstart 
+ret=$(($ret + $?))
+[ $ret -eq 0 ] && ok || fail
 exit 0
