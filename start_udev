@@ -1,0 +1,90 @@
+#!/bin/sh
+#
+# start_udev
+#
+# script to initialize /dev by using udev.
+#
+# Copyright (C) 2004 Greg Kroah-Hartman <greg@kroah.com>
+#
+# Released under the GPL v2 only.
+#
+# This needs to be run at the earliest possible point in the boot 
+# process.
+#
+# Based on the udev init.d script
+#
+# Thanks go out to the Gentoo developers for proving 
+# that this is possible to do.
+#
+# Yes, it's very verbose, feel free to turn off all of the echo calls,
+# they were there to make me feel better that everything was working
+# properly during development...
+#
+# don't use udev if sysfs is not mounted.
+[ ! -d $sysfs_dir/class ] || exit 1
+[ -r /proc/mounts ] || exit 1
+[ -x /sbin/udev ] || exit 1
+[ -f /etc/udev/udev.conf ] && . /etc/udev/udev.conf
+
+
+. /etc/init.d/functions
+
+prog=udev
+sysfs_dir=/sys
+bin=/sbin/udev
+udevd=/sbin/udevd
+MAKEDEV="/sbin/MAKEDEV"
+
+make_extra_nodes () {
+	ln -snf /proc/self/fd $udev_root/fd
+	ln -snf /proc/self/fd/0 $udev_root/stdin
+	ln -snf /proc/self/fd/1 $udev_root/stdout
+	ln -snf /proc/self/fd/2 $udev_root/stderr
+	ln -snf /proc/kcore $udev_root/core
+
+	[ -d $udev_root/pts ] || (mkdir $udev_root/pts;chmod 0755 $udev_root/pts)
+	[ -d $udev_root/shm ] || (mkdir $udev_root/shm;chmod 0755 $udev_root/shm)
+
+	if [ -x $MAKEDEV ]; then
+		$MAKEDEV -x $( 
+			for i in 0 1 2 3 4 5 6 7; do echo fd$i; done
+			for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+			    echo cpu/$i/microcode;
+			done;
+			for i in 0 1 2 3 4 5 6 7; do echo loop$i; done
+			for i in 0 1 2 3; do echo lp$i; echo par$i;done
+			echo net/tun ppp;
+		);
+		[ -a /dev/MAKEDEV ] || ln -s $MAKEDEV /dev/MAKEDEV;
+	fi
+}
+
+mount_udev() {
+	mount -n -o fscontext=system_u:object_r:device_t,mode=0755 \
+		-t tmpfs none "$udev_root"
+	return $?
+}
+
+
+grep -q " ${udev_root%/} " /proc/mounts || { 
+	STRING=$"Mounting... tmpfs at $udev_root: "
+	echo -n "$STRING "; 
+	mount_udev && success $"$STRING" || failure $"$STRING"; 
+}
+ 
+
+STRING=$"Making extra nodes: "
+echo -n "$STRING "
+make_extra_nodes && success $"$STRING" || failure $"$STRING"
+echo
+
+export ACTION=add
+export UDEV_NO_SLEEP=1
+STRING=$"Starting udev: "
+# propagate $udev_root from /sys
+echo -n "$STRING "
+rm -f $udev_root/.udev.tdb
+/sbin/udevstart && success $"$STRING" || failure $"$STRING"
+echo
+
+exit 0
