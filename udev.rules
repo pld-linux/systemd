@@ -47,6 +47,8 @@ KERNEL="null",		NAME="%k", SYMLINK="XOR"
 
 KERNEL="tun",          NAME="net/%k"
 
+KERNEL="device-mapper", NAME="mapper/control"
+
 # old compat symlinks with enumeration
 KERNEL="sr*", NAME="scd%n", SYMLINK="cdrom%e"
 KERNEL="scd*", NAME="%k", SYMLINK="cdrom%e"
