@@ -30,7 +30,6 @@
 . /etc/rc.d/init.d/functions
 
 prog=udev
-sysfs_dir=/sys
 bin=/sbin/udev
 udevd=/sbin/udevd
 MAKEDEV="/sbin/MAKEDEV"
@@ -52,11 +51,18 @@ make_extra_nodes () {
 			done;
 			for i in 1 2 3 4 5 6; do echo tty$i;done;
 			for i in 0 1 2 3 4 5 6 7; do echo loop$i; done;
-			for i in 0 1 2 3; do echo lp$i; echo par$i;done;
+			for i in 0 1 2 3; do echo lp$i; echo parport$i;done;
 			echo net/tun ppp console null zero;
 		);
 		[ -a /dev/MAKEDEV ] || ln -s $MAKEDEV /dev/MAKEDEV;
 		cp -a /etc/udev/devices/* /dev/ >/dev/null 2>&1 || :
+	fi
+}
+
+kill_udevd() {
+	if [ -x /sbin/pidof ]; then
+		pid=`/sbin/pidof -x udevd`
+		[ -n "$pid" ] && kill $pid
 	fi
 }
 
@@ -121,6 +127,34 @@ scsi_replay () {
         return 0
 }
 
+ide_scan() {
+	if [ ! -d /proc/ide ]; then
+		return 1
+	fi
+	for i in /proc/ide/*/media; do
+		read media < "$i"
+		case "$media" in
+			disk)
+				module=ide-disk
+			;;
+			cdrom)
+				module=ide-cd
+			;;
+			tape)
+				module=ide-tape
+			;;
+			floppy)
+				module=ide-floppy
+			;;
+			*)
+				module=ide-generic
+			;;
+		esac
+		/sbin/modprobe $module
+	done
+	return 0
+}
+
 export ACTION=add
 export UDEV_NO_SLEEP=1
 prog=udev
@@ -131,10 +165,13 @@ grep -q "none ${udev_root%/} " /proc/mounts || {
 	mount -n -o mode=0755 -t tmpfs none "$udev_root"
 	ret=$(($ret + $?))
 }
+rm -f $udev_root/.udev.tdb
 make_extra_nodes
+kill_udevd >/dev/null 2>&1
 scsi_replay >/dev/null 2>&1
 ret=$(($ret + $?))
-rm -f $udev_root/.udev.tdb
+kill_udevd >/dev/null 2>&1
+ide_scan >/dev/null 2>&1
 /sbin/udevstart 
 ret=$(($ret + $?))
 [ $ret -eq 0 ] && ok || fail
