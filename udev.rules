@@ -6,7 +6,7 @@
 
 # create a symlink named after the device map name
 # note devmap_name comes with extras/multipath
-#KERNEL="dm-[0-9]*", PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK="%c"
+KERNEL="dm-[0-9]*", PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK="%c"
 
 # DRI devices always go into a subdirectory (as per the LSB spec)
 KERNEL="card*",		NAME="dri/card%n"
