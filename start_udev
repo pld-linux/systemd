@@ -91,6 +91,13 @@ export ACTION=add
 export UDEV_NO_SLEEP=1
 # propagate $udev_root from /sys
 rm -f $udev_root/.udev.tdb
-run_cmd "Starting udev" /sbin/udevstart
+
+nls "Starting udev" 
+/sbin/udevstart
+if [ $? -eq 0 ] ; then
+	ok
+else
+	fail
+fi
 
 exit 0
