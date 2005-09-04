@@ -17,16 +17,16 @@ KERNEL=="vcsa*",                NAME="%k", GROUP="tty",			OPTIONS="last_rule"
 KERNEL=="tty",                  NAME="%k", GROUP="tty", MODE="0666",	OPTIONS="last_rule"
 KERNEL=="tty[0-9]",             NAME="%k", GROUP="tty",			OPTIONS="last_rule"
 KERNEL=="tty[0-9][0-9]",        NAME="%k", GROUP="tty",			OPTIONS="last_rule"
-KERNEL=="console",		NAME="%k", GROUP="tty", MODE="0600"
-KERNEL=="ptmx",			NAME="%k", GROUP="tty", MODE="0666"
+KERNEL=="console",		NAME="%k", GROUP="console", MODE="0660"
+KERNEL=="ptmx",			NAME="%k", GROUP="tty",	MODE="0666"
 
 # tty devices
-KERNEL=="ttyS[0-9]*",	NAME="tts/%n", SYMLINK+="%k", GROUP="tty"
-KERNEL=="ttyUSB[0-9]*",	NAME="tts/USB%n", GROUP="tty", MODE="0660"
-KERNEL=="ippp0",	NAME="%k", GROUP="tty"
-KERNEL=="isdn*"		NAME="%k", GROUP="tty"
-KERNEL=="dcbri*",	NAME="%k", GROUP="tty"
-KERNEL=="ircomm*",	NAME="%k", GROUP="tty"
+KERNEL=="ttyS[0-9]*",	NAME="tts/%n", SYMLINK+="%k", GROUP="ttyS"
+KERNEL=="ttyUSB[0-9]*",	NAME="tts/USB%n", GROUP="ttyS", MODE="0660"
+KERNEL=="ippp0",	NAME="%k",
+KERNEL=="isdn*"		NAME="%k",
+KERNEL=="dcbri*",	NAME="%k",
+KERNEL=="ircomm*",	NAME="%k", GROUP="ttyS"
 
 # all block devices
 SUBSYSTEM=="block", GROUP="disk"
@@ -35,10 +35,10 @@ SUBSYSTEM=="block", GROUP="disk"
 BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
 BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
 BUS=="scsi",	KERNEL="scd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
-ENV{ID_CDROM}=="?*",		SYMLINK+="cdrom%e", GROUP="cdrom"
-ENV{ID_CDROM_CD_RW}=="?*",	SYMLINK+="cdrw%e"
-ENV{ID_CDROM_DVD}=="?*",	SYMLINK+="dvd%e"
-ENV{ID_CDROM_DVD_R}=="?*",	SYMLINK+="dvdrw%e"
+ENV{ID_CDROM}=="?*",		SYMLINK+="cdrom%e",	GROUP="disk"
+ENV{ID_CDROM_CD_RW}=="?*",	SYMLINK+="cdrw%e",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD}=="?*",	SYMLINK+="dvd%e",	GROUP="disk"
+ENV{ID_CDROM_DVD_R}=="?*",	SYMLINK+="dvdrw%e",	GROUP="cdwrite"
 
 # disk devices
 KERNEL=="sd*",		NAME="%k", GROUP="disk"
@@ -62,13 +62,13 @@ SUBSYSTEM=="sound", GROUP="audio"
 KERNEL=="controlC[0-9]*",	NAME="snd/%k"
 KERNEL=="hw[CD0-9]*",		NAME="snd/%k"
 KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k"
-KERNEL=="midiC[D0-9]*",		NAME="snd/%k"
+KERNEL=="midiC[D0-9]*",		NAME="snd/%k"	
 KERNEL=="timer",		NAME="snd/%k"
 KERNEL=="seq",			NAME="snd/%k"
 
 # capi devices
-KERNEL=="capi",		NAME="capi20", SYMLINK+="isdn/capi20", GROUP="dialout"
-KERNEL=="capi*",	NAME="capi/%n", GROUP="dialout"
+KERNEL=="capi",		NAME="capi20", SYMLINK+="isdn/capi20"
+KERNEL=="capi*",	NAME="capi/%n"
 
 # cpu devices
 KERNEL=="cpu[0-9]*",	NAME="cpu/%n/cpuid"
@@ -79,7 +79,7 @@ KERNEL=="microcode",	NAME="cpu/microcode"
 KERNEL=="dm-[0-9]*",	OPTIONS="ignore_device"
 # create a symlink named after the device map name
 # note devmap_name comes with extras/multipath
-#KERNEL=="dm-[0-9]*",	PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK+="%c"
+KERNEL=="dm-[0-9]*",	PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK+="%c"
 KERNEL=="device-mapper",	NAME="mapper/control"
 
 # fb devices
@@ -95,7 +95,7 @@ KERNEL=="i2c-[0-9]*",	NAME="i2c/%n", SYMLINK+="%k"
 KERNEL=="mice",		NAME="input/%k", MODE="0644"
 KERNEL=="mouse*",	NAME="input/%k", MODE="0644"
 KERNEL=="event*",	NAME="input/%k", MODE="0600"
-KERNEL=="js*",		NAME="input/%k", MODE="664"
+KERNEL=="js*",		NAME="input/%k", MODE="664", GROUP="sys"
 KERNEL=="ts*",		NAME="input/%k", MODE="0600"
 
 # loop devices
@@ -158,11 +158,11 @@ KERNEL=="sequencer",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
 KERNEL=="sequencer[0-9]*",	NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
 
 # memory devices
-KERNEL=="random",	NAME="%k", MODE="0666"
-KERNEL=="urandom",	NAME="%k", MODE="0444"
-KERNEL=="mem",		NAME="%k", MODE="0640"
-KERNEL=="kmem",		NAME="%k", MODE="0640"
-KERNEL=="port",		NAME="%k", MODE="0640"
+KERNEL=="random",	NAME="%k", MODE="0644"
+KERNEL=="urandom",	NAME="%k", MODE="0644"
+KERNEL=="mem",		NAME="%k", MODE="0640", GROUP="kmem"
+KERNEL=="kmem",		NAME="%k", MODE="0640", GROUP="kmem"
+KERNEL=="port",		NAME="%k", MODE="0640", GROUP="kmem"
 KERNEL=="full",		NAME="%k", MODE="0666"
 KERNEL=="null",		NAME="%k", MODE="0666"
 KERNEL=="zero",		NAME="%k", MODE="0666"
@@ -170,7 +170,7 @@ KERNEL=="zero",		NAME="%k", MODE="0666"
 # usb devices
 KERNEL=="hiddev*",		NAME="usb/%k"
 KERNEL=="auer*",		NAME="usb/%k"
-KERNEL=="legousbtower*",	NAME="usb/%k", GROUP="usb"
+KERNEL=="legousbtower*",	NAME="usb/%k"
 KERNEL=="dabusb*",		NAME="usb/%k"
 BUS=="usb", KERNEL=="lp[0-9]*",	NAME="usb/%k", GROUP="lp"
 
@@ -191,7 +191,7 @@ KERNEL=="zappseudo",	NAME="zap/pseudo"
 KERNEL=="zap[0-9]*",	NAME="zap/%n"
 
 # pilot/palm devices
-KERNEL=="pilot",	NAME="%k", GROUP="uucp"
+KERNEL=="pilot",	NAME="%k"
 
 # jaz devices
 KERNEL=="jaz*",		NAME="%k", GROUP="disk"
@@ -209,15 +209,15 @@ KERNEL=="irlpt",	NAME="%k", GROUP="lp"
 KERNEL=="usblp",	NAME="%k", GROUP="lp"
 KERNEL=="lp*",		NAME="%k", GROUP="lp"
 
-# tape devices
-KERNEL=="ht*",		NAME="%k", GROUP="tape"
-KERNEL=="nht*",		NAME="%k", GROUP="tape"
-KERNEL=="pt*",		NAME="%k", GROUP="tape"
-KERNEL=="npt*",		NAME="%k", GROUP="tape"
-KERNEL=="st*",		NAME="%k", GROUP="tape"
-KERNEL=="nst*",		NAME="%k", GROUP="tape"
-KERNEL=="osst*",	NAME="%k", GROUP="tape"
-KERNEL=="nosst*",	NAME="%k", GROUP="tape"
+# disk devices
+KERNEL=="ht*",		NAME="%k", GROUP="disk"
+KERNEL=="nht*",		NAME="%k", GROUP="disk"
+KERNEL=="pt*",		NAME="%k", GROUP="disk"
+KERNEL=="npt*",		NAME="%k", GROUP="disk"
+KERNEL=="st*",		NAME="%k", GROUP="disk"
+KERNEL=="nst*",		NAME="%k", GROUP="disk"
+KERNEL=="osst*",	NAME="%k", GROUP="disk"
+KERNEL=="nosst*",	NAME="%k", GROUP="disk"
 
 # diskonkey devices
 KERNEL=="diskonkey*",	NAME="%k", GROUP="disk"
@@ -232,15 +232,15 @@ KERNEL=="kbd",		NAME="%k", MODE="0664"
 KERNEL=="sonypi",	NAME="%k", MODE="0666"
 
 # packet devices
-KERNEL=="pktcdvd",		NAME="pktcdvd/control", GROUP="cdrw", MODE="0660"
-KERNEL=="pktcdvd[0-9]*",	NAME="pktcdvd/pktcdvd%n", GROUP="cdrw", MODE="0660"
+KERNEL=="pktcdvd",		NAME="pktcdvd/control",		GROUP="cdwrite", MODE="0660"
+KERNEL=="pktcdvd[0-9]*",	NAME="pktcdvd/pktcdvd%n",	GROUP="cdwrite", MODE="0660"
 
 # infiniband devices
 KERNEL=="umad*",	NAME="infiniband/%k"
 KERNEL=="issm*",	NAME="infiniband/%k"
 
 # tpm devices
-KERNEL=="tpm*",	NAME="%k", OWNER="tss", GROUP="tss", MODE="0600"
+KERNEL=="tpm*",	NAME="%k", OWNER="tss", MODE="0600"
 
 #######################################
 # Persistant block device stuff - begin
