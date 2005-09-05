@@ -8,7 +8,6 @@
 # file that can be run before this one.
 #
 
-
 # console
 KERNEL=="pty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
 KERNEL=="tty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
@@ -295,9 +294,6 @@ SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'X=%k X=$${X#usbdev} B=$${X%%%%.*} D
 # be backward compatible for a while with the /etc/dev.d and /etc/hotplug.d/ systems
 # run /etc/hotplug.d/ stuff only if we came from a hotplug event, not for udevstart
 ENV{UDEVD_EVENT}=="1", RUN+="/sbin/udev_run_hotplugd"
-
-# always run /etc/dev.d/ stuff for now.
-RUN+="/sbin/udev_run_devd"
 
 # debugging monitor
 RUN+="socket:/org/kernel/udev/monitor"
