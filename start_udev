@@ -19,13 +19,16 @@
 # Yes, it's very verbose, feel free to turn off all of the echo calls,
 # they were there to make me feel better that everything was working
 # properly during development...
-#
+
+# default value, if no config present.
+udev_root="/dev/"
+
 # don't use udev if sysfs is not mounted.
+# FIXME: this check is broken?
 [ ! -d $sysfs_dir/class ] || exit 1
 [ -r /proc/mounts ] || exit 1
 [ -x /sbin/udev ] || exit 1
 [ -f /etc/udev/udev.conf ] && . /etc/udev/udev.conf
-
 
 . /etc/rc.d/init.d/functions
 
@@ -165,7 +168,7 @@ grep -q "none ${udev_root%/} " /proc/mounts || {
 	mount -n -o mode=0755 -t tmpfs none "$udev_root"
 	ret=$(($ret + $?))
 }
-rm -f $udev_root/.udev.tdb
+rm -rf $udev_root/.udev.tdb
 make_extra_nodes
 kill_udevd >/dev/null 2>&1
 scsi_replay >/dev/null 2>&1
