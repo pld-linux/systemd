@@ -22,9 +22,9 @@
 
 # default value, if no config present.
 udev_root="/dev/"
+sysfs_dir="/sys"
 
 # don't use udev if sysfs is not mounted.
-sysfs_dir=/sys
 [ -d $sysfs_dir/class ] || exit 1
 [ -r /proc/mounts ] || exit 1
 [ -x /sbin/udev ] || exit 1
