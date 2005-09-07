@@ -24,8 +24,8 @@
 udev_root="/dev/"
 
 # don't use udev if sysfs is not mounted.
-# FIXME: this check is broken?
-[ ! -d $sysfs_dir/class ] || exit 1
+sysfs_dir=/sys
+[ -d $sysfs_dir/class ] || exit 1
 [ -r /proc/mounts ] || exit 1
 [ -x /sbin/udev ] || exit 1
 [ -f /etc/udev/udev.conf ] && . /etc/udev/udev.conf
