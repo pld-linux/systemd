@@ -44,8 +44,9 @@ make_extra_nodes () {
 	ln -snf /proc/self/fd/2 $udev_root/stderr
 	ln -snf /proc/kcore $udev_root/core
 
-	[ -d $udev_root/pts ] || (mkdir $udev_root/pts;chmod 0755 $udev_root/pts)
-	[ -d $udev_root/shm ] || (mkdir $udev_root/shm;chmod 0755 $udev_root/shm)
+	[ -d $udev_root/pts ] || mkdir -m 0755 $udev_root/pts
+	[ -d $udev_root/shm ] || mkdir -m 0755 $udev_root/shm
+	[ -a /dev/MAKEDEV ] || ln -s $MAKEDEV /dev/MAKEDEV
 
 	if [ -x $MAKEDEV ]; then
 		$MAKEDEV -x $( 
@@ -97,16 +98,15 @@ find_f () {
 		if [ -d "$f" -a ! -L "$f" ]; then
 			found="$found $(find_f $f $what)"
 		elif [ -e "$f" ]; then 
-			[ "$f" != "${f%$what}" ] && found="$found $f"
+			[ "$where/" = "${f%$what}" ] && found="$found $f"
 		fi
 	done
-	echo "$found"
+	[ -n "$found" ] && echo "$found"
 }
 
 # call hotplug with the scsi devices
 scsi_replay () {
-        HOTPLUG=$(cat /proc/sys/kernel/hotplug)
-        [ -z "$HOTPLUG" ] && return 1
+        HOTPLUG="/sbin/udevsend"
 
         scsi_hosts=$(find_d /sys/devices host\*)
         SEQNUM=1
@@ -116,15 +116,10 @@ scsi_replay () {
                 devs=$(find_f $host type)
                 for dev in $devs;do
                         [ -f $dev ] || continue
-                        export SEQNUM
-                        DEVPATH=${dev%/type}
+			DEVPATH=${dev%/type}
                         DEVPATH=${DEVPATH#/sys}
-                        export DEVPATH
-                        export ACTION=add
-                        $HOTPLUG scsi_device
-                        SEQNUM=$(($SEQNUM + 1))
-                        $HOTPLUG scsi 
-                        SEQNUM=$(($SEQNUM + 1))
+                        /bin/env -i DEVPATH="$DEVPATH" SUBSYSTEM=scsi_device ACTION=add $HOTPLUG scsi_device
+                        /bin/env -i DEVPATH="$DEVPATH" ACTION=add SUBSYSTEM=scsi $HOTPLUG scsi
                 done
         done
         return 0
@@ -159,23 +154,42 @@ ide_scan() {
 }
 
 export ACTION=add
-export UDEV_NO_SLEEP=1
 prog=udev
 ret=0
 nls "Starting udev"
-# propagate $udev_root from /sys
-grep -q "none ${udev_root%/} " /proc/mounts || { 
-	mount -n -o mode=0755 -t tmpfs none "$udev_root"
-	ret=$(($ret + $?))
+
+# mount the tmpfs on ${udev_root%/}, if not already done
+LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/mounts && {
+        if LANG=C fgrep -q "none ${udev_root%/}/pts " /proc/mounts; then
+                PTSDIR=$(mktemp -d)
+                mount --move $udev_root/pts "$PTSDIR"
+        fi
+        if LANG=C fgrep -q "none ${udev_root%/}/shm " /proc/mounts; then
+                SHMDIR=$(mktemp -d)
+                mount --move $udev_root/shm "$SHMDIR"
+        fi
+        mount -n -o mode=0755 -t tmpfs none "$udev_root"
+        mkdir -m 0755 $udev_root/pts
+        mkdir -m 0755 $udev_root/shm
+        if [ -n "$PTSDIR" ]; then
+                mount --move "$PTSDIR" $udev_root/pts
+                rmdir "$PTSDIR"
+        fi
+        if [ -n "$SHMDIR" ]; then
+                mount --move "$SHMDIR" $udev_root/shm
+                rmdir "$SHMDIR"
+        fi
+
+        ret=$(( $ret + $? ))
 }
+
 rm -rf $udev_root/.udev.tdb
 make_extra_nodes
-kill_udevd >/dev/null 2>&1
-scsi_replay >/dev/null 2>&1
-ret=$(($ret + $?))
-kill_udevd >/dev/null 2>&1
-ide_scan >/dev/null 2>&1
+kill_udevd > "$udev_root/null" 2>&1
+scsi_replay > "$udev_root/null" 2>&1
+ret=$(( $ret + $? ))
+ide_scan > "$udev_root/null" 2>&1
 /sbin/udevstart 
-ret=$(($ret + $?))
+ret=$(( $ret + $? ))
 [ $ret -eq 0 ] && ok || fail
 exit 0
