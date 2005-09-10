@@ -23,6 +23,7 @@
 # default value, if no config present.
 udev_root="/dev/"
 sysfs_dir="/sys"
+udev_db="/dev/.udevdb"
 
 # don't use udev if sysfs is not mounted.
 [ -d $sysfs_dir/class ] || exit 1
@@ -183,7 +184,7 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 	ret=$(( $ret + $? ))
 }
 
-rm -rf $udev_root/.udev.tdb
+rm -fr "$udev_db"
 make_extra_nodes
 kill_udevd > "$udev_root/null" 2>&1
 scsi_replay > "$udev_root/null" 2>&1
