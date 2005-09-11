@@ -47,7 +47,6 @@ make_extra_nodes () {
 
 	[ -d $udev_root/pts ] || mkdir -m 0755 $udev_root/pts
 	[ -d $udev_root/shm ] || mkdir -m 0755 $udev_root/shm
-	[ -a /dev/MAKEDEV ] || ln -s $MAKEDEV /dev/MAKEDEV
 
 	if [ -x $MAKEDEV ]; then
 		$MAKEDEV -x $( 
@@ -59,7 +58,7 @@ make_extra_nodes () {
 			for i in 0 1 2 3; do echo lp$i; echo parport$i;done;
 			echo net/tun ppp console null zero;
 		);
-		[ -a /dev/MAKEDEV ] || ln -s $MAKEDEV /dev/MAKEDEV;
+		[ -a /dev/MAKEDEV ] || ln -sf "$MAKEDEV" /dev/MAKEDEV;
 		cp -a /etc/udev/devices/* /dev/ >/dev/null 2>&1 || :
 	fi
 }
