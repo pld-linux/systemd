@@ -26,6 +26,7 @@ KERNEL=="ippp0",	NAME="%k",
 KERNEL=="isdn*"		NAME="%k",
 KERNEL=="dcbri*",	NAME="%k",
 KERNEL=="ircomm*",	NAME="%k", GROUP="ttyS"
+KERNEL=="rfcomm[0-9]*", NAME="%k", GROUP="ttyS", MODE="0664"
 
 # all block devices
 SUBSYSTEM=="block", GROUP="disk"
