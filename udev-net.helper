@@ -1,0 +1,117 @@
+#!/bin/sh
+#
+# Kernel NET hotplug params include:
+#	
+#	ACTION=%s [register or unregister]
+#	INTERFACE=%s
+
+. /etc/sysconfig/network-scripts/network-functions
+
+mesg() {
+    /usr/bin/logger -t $(basename $0)"[$$]" "$@"
+}
+
+debug_mesg() {
+    :
+}
+
+# returns true if device is either wireless, usbnet or is named eth* and supports ethtool
+ethernet_check() {
+    [ -d /sys/class/net/$1/wireless/ ] && return 0
+    [[ "$1" == bnep* ]] && return 0
+    # eagle-usb/firewire create a fake ethX interface
+    if [ -x /usr/sbin/ethtool ] && ! /usr/sbin/ethtool $1 > /dev/null 2>&1;
+	then return 1;
+    fi
+    return 0;
+}
+
+if [ "$INTERFACE" = "" ]; then
+    mesg Bad NET invocation: \$INTERFACE is not set
+    exit 1
+fi
+
+export IN_HOTPLUG=1
+
+case $ACTION in
+add|register)
+    case $INTERFACE in
+	# interfaces that are registered after being "up" (?)
+	ppp*|ippp*|isdn*|plip*|lo*|irda*|dummy*|ipsec*|tun*|tap*)
+	    debug_mesg assuming $INTERFACE is already up
+	    exit 0
+	    ;;
+	# interfaces that are registered then brought up
+	*)
+	    # NOTE:  network configuration relies on administered state,
+	    # we can't do much here without distro-specific knowledge
+	    # such as whether/how to invoke DHCP, set up bridging, etc.
+
+	    # Run ifrename as needed - Jean II
+	    # Remap interface names based on MAC address. This workaround
+	    # the dreaded configuration problem "all my cards are 'eth0'"...
+	    # This needs to be done before ifup otherwise ifup will get
+	    # confused by the name changed and because iface need to be
+	    # down to change its name.
+	    if [ -x /sbin/ifrename ] && [ -r /etc/iftab ]; then
+		debug_mesg invoke ifrename for $INTERFACE
+		NEWNAME=`/sbin/ifrename -i $INTERFACE`
+		if [ -n "$NEWNAME" ]; then
+		    debug_mesg iface $INTERFACE is remapped to $NEWNAME
+		    INTERFACE=$NEWNAME
+		fi;
+	    fi
+
+	    # conform to network service (AUTOMATIC_IFCFG)
+	    [ -r /etc/sysconfig/network ] && . /etc/sysconfig/network
+
+	    # don't do anything for non ethernet devices
+	    ethernet_check $INTERFACE || exit 0;
+
+	    # automatically create an interface file
+	    CFG=/etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+	    if [ "$AUTOMATIC_IFCFG" != no -a ! -r $CFG ]; then
+		debug_mesg creating config file for $INTERFACE
+		cat > $CFG <<EOF
+DEVICE=$INTERFACE
+BOOTPROTO=dhcp
+ONBOOT=yes
+EOF
+	    fi
+
+	    if [ ! -f /var/lock/subsys/network ] || [ ! -r $CFG ]; then
+		# Don't do anything if the network is stopped or interface isn't configured
+		exit 0
+	    fi
+
+	    if [ -x /sbin/ifup ]; then
+		debug_mesg invoke ifup $INTERFACE
+		exec /sbin/ifup $INTERFACE daemon
+	    fi
+	    ;;
+    esac
+    mesg $1 $ACTION event not handled
+    ;;
+
+remove|unregister)
+    case $INTERFACE in
+	# interfaces that are unregistered after being "down" (?)
+	ppp*|ippp*|isdn*|plip*|lo*|irda*|dummy*|ipsec*|tun*|tap*)
+	    debug_mesg assuming $INTERFACE is already down
+	    exit 0
+	    ;;
+	*)
+	    if [ -x /sbin/ifdown ]; then
+		debug_mesg invoke ifdown $INTERFACE
+		exec /sbin/ifdown $INTERFACE daemon
+	    fi
+	    ;;
+    esac
+    mesg $1 $ACTION event not handled
+    ;;
+
+*)
+    debug_mesg NET $ACTION event for $INTERFACE not supported
+    exit 1 ;;
+
+esac
