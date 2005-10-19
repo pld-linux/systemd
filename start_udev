@@ -184,12 +184,23 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 }
 
 rm -fr "$udev_db"
+
 make_extra_nodes
+
 kill_udevd > "$udev_root/null" 2>&1
+
 scsi_replay > "$udev_root/null" 2>&1
+
 ret=$(( $ret + $? ))
+
 ide_scan > "$udev_root/null" 2>&1
-/sbin/udevstart 
+
+echo /sbin/udevsend > /proc/sys/kernel/hotplug
+
+/sbin/udevstart
+
+/sbin/udevd --daemon
+
 ret=$(( $ret + $? ))
 [ $ret -eq 0 ] && ok || fail
 exit 0
