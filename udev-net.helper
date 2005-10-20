@@ -5,7 +5,7 @@
 #	ACTION=%s [register or unregister]
 #	INTERFACE=%s
 
-. /etc/sysconfig/network-scripts/network-functions
+. /etc/sysconfig/network-scripts/functions.network
 
 mesg() {
     /usr/bin/logger -t $(basename $0)"[$$]" "$@"
