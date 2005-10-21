@@ -86,7 +86,7 @@ EOF
 
 	    if [ -x /sbin/ifup ]; then
 		debug_mesg invoke ifup $INTERFACE
-		exec /sbin/ifup $INTERFACE daemon
+		exec /sbin/ifup $INTERFACE hotplug
 	    fi
 	    ;;
     esac
