@@ -217,6 +217,8 @@ set_hotplug_handler
 
 /sbin/udevd --daemon
 
+/sbin/udev_input_coldplug start
+
 ret=$(( $ret + $? ))
 [ $ret -eq 0 ] && ok || fail
 exit 0
