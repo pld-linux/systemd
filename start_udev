@@ -24,6 +24,7 @@
 udev_root="/dev/"
 sysfs_dir="/sys"
 udev_db="/dev/.udevdb"
+udevd_timeout=8
 
 # don't use udev if sysfs is not mounted.
 [ -d $sysfs_dir/class ] || exit 1
@@ -201,7 +202,6 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 
 rm -fr "$udev_db"
 
-make_extra_nodes
 
 kill_udevd > "$udev_root/null" 2>&1
 
@@ -211,12 +211,29 @@ ret=$(( $ret + $? ))
 
 ide_scan > "$udev_root/null" 2>&1
 
-set_hotplug_handler
-
-/sbin/udevstart
-
+# Starting the hotplug events dispatcher
 /sbin/udevd --daemon
 
+# Making extra nodes
+make_extra_nodes
+
+# Setting default hotplug handler
+set_hotplug_handler
+
+# Synthesizing the initial hotplug events
+/sbin/udevsynthesize
+
+# wait for the udev/udevd childs to finish
+while [ $(cat /proc/[0-9]*/status 2> /dev/null | \
+    grep -c -E '^Name:[[:space:]]*udevd?$') -gt 1 ]; do
+    sleep 1
+    udevd_timeout=$(($udevd_timeout - 1))
+    if [ $udevd_timeout -eq 0 ]; then
+	break
+    fi
+done
+
+# Start workaround for broken Linux input subsystem
 /sbin/udev_input_coldplug start
 
 ret=$(( $ret + $? ))
