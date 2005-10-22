@@ -221,11 +221,10 @@ make_extra_nodes
 set_hotplug_handler
 
 # Synthesizing the initial hotplug events
-/sbin/udevsynthesize
+/sbin/${UDEV_STARTER}
 
 # wait for the udev/udevd childs to finish
-while [ $(cat /proc/[0-9]*/status 2> /dev/null | \
-    grep -c -E '^Name:[[:space:]]*udevd?$') -gt 1 ]; do
+while [ "$(grep -c -E '^Name:[[:space:]]*udevd?$' /proc/[0-9]*/status)" -gt 1 ]; do
     sleep 1
     udevd_timeout=$(($udevd_timeout - 1))
     if [ $udevd_timeout -eq 0 ]; then
