@@ -249,4 +249,4 @@ SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'X=%k X=$${X#usbdev} B=$${X%%%%.*} D
 RUN+="socket:/org/kernel/udev/monitor"
 
 # debug events to /events, but not on default udev_log="err"
-ENV{UDEV_LOG}=="[4-9]", RUN+="/sbin/udeveventrecorder"
+ENV{UDEV_LOG}=="[4-9]", RUN+="/sbin/eventrecorder.sh"
