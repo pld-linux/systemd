@@ -60,8 +60,8 @@ make_extra_nodes () {
 			echo net/tun ppp console null zero;
 		);
 		[ -a /dev/MAKEDEV ] || ln -sf "$MAKEDEV" /dev/MAKEDEV;
-		cp -a /etc/udev/devices/* /dev/ >/dev/null 2>&1 || :
 	fi
+	cp -a /etc/udev/devices/* /dev/ >/dev/null 2>&1 || :
 }
 
 kill_udevd() {
