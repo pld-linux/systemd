@@ -23,7 +23,6 @@
 # default value, if no config present.
 udev_root="/dev/"
 sysfs_dir="/sys"
-udev_db="/dev/.udevdb"
 udevd_timeout=8
 
 # don't use udev if sysfs is not mounted.
@@ -61,7 +60,7 @@ make_extra_nodes () {
 		);
 		[ -a /dev/MAKEDEV ] || ln -sf "$MAKEDEV" /dev/MAKEDEV;
 	fi
-	cp -a /etc/udev/devices/* /dev/ >/dev/null 2>&1 || :
+	cp -a /lib/udev/devices/* /dev/ >/dev/null 2>&1 || :
 }
 
 kill_udevd() {
@@ -199,8 +198,6 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 
 	ret=$(( $ret + $? ))
 }
-
-rm -fr "$udev_db"
 
 
 kill_udevd > "$udev_root/null" 2>&1
