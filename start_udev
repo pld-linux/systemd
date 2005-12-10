@@ -231,7 +231,7 @@ while [ "$(cat /proc/[0-9]*/status 2> /dev/null | \
 done
 
 # Start workaround for broken Linux input subsystem
-/sbin/udev_input_coldplug start
+/lib/udev/udev_input_coldplug start
 
 ret=$(( $ret + $? ))
 [ $ret -eq 0 ] && ok || fail
