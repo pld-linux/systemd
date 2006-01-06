@@ -222,10 +222,9 @@ set_hotplug_handler
 # Synthesizing the initial hotplug events
 /sbin/${UDEV_STARTER}
 
-# wait for the udev/udevd childs to finish
-while [ "$(cat /proc/[0-9]*/status 2> /dev/null | \
-        grep -c -E '^Name:[[:space:]]*udevd?$')" -gt 1 ]; do
-    sleep 1
+# wait for /dev to be fully populated
+while [ -d /dev/.udev/queue/ ]; do
+    sleep 0.2
     udevd_timeout=$(($udevd_timeout - 1))
     if [ $udevd_timeout -eq 0 ]; then
 	break
