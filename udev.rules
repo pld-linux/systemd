@@ -8,6 +8,10 @@
 # file that can be run before this one.
 #
 
+# workaround for devices which do not report media changes         
+BUS=="ide", KERNEL=="hd[a-z]", SYSFS{removable}=="1", \
+       ENV{ID_MODEL}=="IOMEGA_ZIP*",   NAME="%k", OPTIONS+="all_partitions"
+       
 # console
 KERNEL=="pty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
 KERNEL=="tty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
@@ -54,19 +58,19 @@ KERNEL=="rd*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k
 
 # dri devices
 SUBSYSTEM=="graphics"	GROUP="video"
-KERNEL=="card*",	NAME="dri/card%n", GROUP="video"
-KERNEL=="nvidia*",	NAME="%k", GROUP="video"
-KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
 KERNEL=="3dfx*",	NAME="%k", GROUP="video"
+KERNEL=="card*",	NAME="dri/card%n", GROUP="video"
+KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
+KERNEL=="nvidia*",	NAME="%k", GROUP="video"
 
 # alsa devices
 SUBSYSTEM="snd",		GROUP="audio"
 KERNEL=="controlC[0-9]*",	NAME="snd/%k"
 KERNEL=="hw[CD0-9]*",		NAME="snd/%k"
+KERNEL=="midiC[D0-9]*",		NAME="snd/%k"
 KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k"
-KERNEL=="midiC[D0-9]*",		NAME="snd/%k"	
-KERNEL=="timer",		NAME="snd/%k"
 KERNEL=="seq",			NAME="snd/%k"
+KERNEL=="timer",		NAME="snd/%k"
 
 # capi devices
 KERNEL=="capi",		NAME="capi20", SYMLINK+="isdn/capi20"
@@ -94,12 +98,13 @@ KERNEL=="fd[0-9]*",	NAME="floppy/%n", SYMLINK+="%k", GROUP="floppy"
 KERNEL=="i2c-[0-9]*",	NAME="i2c/%n", SYMLINK+="%k"
 
 # input devices
-KERNEL=="mice",		NAME="input/%k", MODE="0644"
-KERNEL=="mouse*",	NAME="input/%k", MODE="0644"
 KERNEL=="event*",	NAME="input/%k", MODE="0600"
 KERNEL=="js*",		NAME="input/%k", MODE="664", GROUP="sys"
-KERNEL=="ts*",		NAME="input/%k", MODE="0600"
 KERNEL=="lirc0",	NAME="%k", SYMLINK+="lirc"
+KERNEL=="mice",		NAME="input/%k", MODE="0644"
+KERNEL=="mouse*",	NAME="input/%k", MODE="0644"
+KERNEL=="ts*",		NAME="input/%k", MODE="0600"
+KERNEL=="uinput",	NAME="input/%k"
 
 # loop devices
 KERNEL=="loop[0-9]*",	NAME="loop/%n", SYMLINK+="%k", GROUP="disk"
@@ -114,10 +119,12 @@ SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="02
 
 # misc devices
 KERNEL=="agpgart",	NAME="misc/%k", SYMLINK+="%k"
+KERNEL=="cdemu[0-9]*",		NAME="cdemu/%n"
+KERNEL=="hw_random",	NAME="hwrng"
+KERNEL=="inotify",	NAME="misc/%k", SYMLINK+="%k", MODE="0666"
 KERNEL=="psaux",	NAME="misc/%k", SYMLINK+="%k"
 KERNEL=="rtc",		NAME="misc/%k", SYMLINK+="%k", MODE="0664"
 KERNEL=="uinput",	NAME="misc/%k", SYMLINK+="%k"
-KERNEL=="inotify",	NAME="misc/%k", SYMLINK+="%k", MODE="0666"
 
 # netlink devices
 KERNEL=="route",	NAME="netlink/%k"
@@ -172,10 +179,13 @@ KERNEL=="null",		NAME="%k", MODE="0666", SYMLINK+="drzewo"
 KERNEL=="zero",		NAME="%k", MODE="0666"
 
 # usb devices
-KERNEL=="hiddev*",		NAME="usb/%k"
-KERNEL=="auer*",		NAME="usb/%k"
-KERNEL=="legousbtower*",	NAME="usb/%k"
-KERNEL=="dabusb*",		NAME="usb/%k"
+BUS=="usb",		KERNEL=="auer[0-9]*",	NAME="usb/%k"                             
+BUS=="usb",		KERNEL=="cpad[0-9]*",	NAME="usb/%k"                                
+BUS=="usb",		KERNEL=="dabusb*",	NAME="usb/%k"                                
+BUS=="usb",		KERNEL=="hiddev*",	NAME="usb/%k"                                
+BUS=="usb".		KERNEL=="legousbtower*",	NAME="usb/%k"                                
+BUS=="usb",		KERNEL=="lp[0-9]*",	NAME="usb/%k"                        
+BUS=="usb",		KERNEL=="ttyUSB*", 	SYSFS{product}=="Palm Handheld*", SYMLINK+="pilot"
 
 # v4l devices
 SUBSYSTEM=="video4linux",	GROUP="video"
@@ -188,7 +198,8 @@ KERNEL=="radio0",	SYMLINK+="radio"
 KERNEL=="vbi0",		SYMLINK+="vbi"
 
 # dvb devices
-KERNEL=="dvb*", PROGRAM="/lib/udev/dvb.sh %k", NAME="%c", GROUP="video", MODE="0660"
+KERNEL=="dvb*",  PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s $${K%%%%.*} $${K#*.}", \
+			NAME="%c", GROUP="video", MODE="0660"
 
 # Asterisk Zaptel devices
 KERNEL=="zapctl",	NAME="zap/ctl"
@@ -238,18 +249,21 @@ KERNEL=="kbd",		NAME="%k", MODE="0664"
 KERNEL=="sonypi",	NAME="%k", MODE="0666"
 
 # packet devices
-KERNEL=="pktcdvd",		NAME="pktcdvd/control",		GROUP="cdwrite", MODE="0660"
 KERNEL=="pktcdvd[0-9]*",	NAME="pktcdvd/pktcdvd%n",	GROUP="cdwrite", MODE="0660"
+KERNEL=="pktcdvd",		NAME="pktcdvd/control",		GROUP="cdwrite", MODE="0660"
 
 # infiniband devices
-KERNEL=="umad*",	NAME="infiniband/%k"
 KERNEL=="issm*",	NAME="infiniband/%k"
+KERNEL=="ucm*",		NAME="infiniband/%k"
+KERNEL=="umad*",	NAME="infiniband/%k"
+KERNEL=="uverbs*",	NAME="infiniband/%k"
 
 # tpm devices
-KERNEL=="tpm*",	NAME="%k", OWNER="tss", MODE="0600"
+KERNEL=="tpm*",		NAME="%k", OWNER="tss", MODE="0600"
 
 # usbfs-like device nodes
-SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'X=%k X=$${X#usbdev} B=$${X%%%%.*} D=$${X#*.}; echo bus/usb/$$B/$$D'", SYMLINK+="%c"
+SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
+			SYMLINK+="%c"
 
 # debugging monitor
 RUN+="socket:/org/kernel/udev/monitor"
