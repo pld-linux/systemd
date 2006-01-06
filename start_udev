@@ -167,9 +167,11 @@ set_hotplug_handler() {
 export ACTION=add
 prog=udev
 ret=0
-nls "Starting udev"
+show "Starting udev"
+busy
 
 if ! supported_kernel; then
+    fail
     echo "udev requires a kernel >= 2.6.x, not started."
     exit 0                                                
 fi
