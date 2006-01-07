@@ -57,20 +57,30 @@ KERNEL=="ida*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%
 KERNEL=="rd*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
 
 # dri devices
-SUBSYSTEM=="graphics"	GROUP="video"
-KERNEL=="3dfx*",	NAME="%k", GROUP="video"
-KERNEL=="card*",	NAME="dri/card%n", GROUP="video"
-KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
-KERNEL=="nvidia*",	NAME="%k", GROUP="video"
+SUBSYSTEM=="graphics",	KERNEL=="3dfx*",	NAME="%k", GROUP="video"
+SUBSYSTEM=="graphics",	KERNEL=="card*",	NAME="dri/card%n", GROUP="video"
+SUBSYSTEM=="graphics",	KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
+SUBSYSTEM=="graphics",	KERNEL=="nvidia*",	NAME="%k", GROUP="video"
 
 # alsa devices
-SUBSYSTEM="snd",		GROUP="audio"
-KERNEL=="controlC[0-9]*",	NAME="snd/%k"
-KERNEL=="hw[CD0-9]*",		NAME="snd/%k"
-KERNEL=="midiC[D0-9]*",		NAME="snd/%k"
-KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k"
-KERNEL=="seq",			NAME="snd/%k"
-KERNEL=="timer",		NAME="snd/%k"
+SUBSYSTEM="snd",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="snd",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="snd",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="snd",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="snd",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="snd",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
+
+# sound devices
+SUBSYSTEM="sound",	KERNEL=="adsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="adsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="audio",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="audio[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="dsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="dsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="mixer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="mixer[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="sequencer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="sequencer[0-9]*",	NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
 
 # capi devices
 KERNEL=="capi",		NAME="capi20", SYMLINK+="isdn/capi20"
@@ -155,19 +165,6 @@ KERNEL=="video1394*",	NAME="video1394/%n",	GROUP="video"
 KERNEL=="raw[0-9]*",	NAME="raw/%k", GROUP="disk"
 KERNEL=="ram*",		NAME="%k", GROUP="disk"
 
-# sound devices
-SUBSYSTEM=="sound",		GROUP="audio"
-KERNEL=="adsp",			NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="adsp[0-9]*",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="audio",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="audio[0-9]*",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="dsp",			NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="dsp[0-9]*",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="mixer",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="mixer[0-9]*",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="sequencer",		NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-KERNEL=="sequencer[0-9]*",	NAME="sound/%k", SYMLINK+="%k", GROUP="audio"
-
 # memory devices
 KERNEL=="random",	NAME="%k", MODE="0644"
 KERNEL=="urandom",	NAME="%k", MODE="0644"
@@ -178,24 +175,26 @@ KERNEL=="full",		NAME="%k", MODE="0666"
 KERNEL=="null",		NAME="%k", MODE="0666", SYMLINK+="drzewo"
 KERNEL=="zero",		NAME="%k", MODE="0666"
 
-# usb devices
-BUS=="usb",		KERNEL=="auer[0-9]*",	NAME="usb/%k"                             
-BUS=="usb",		KERNEL=="cpad[0-9]*",	NAME="usb/%k"                                
-BUS=="usb",		KERNEL=="dabusb*",	NAME="usb/%k"                                
-BUS=="usb",		KERNEL=="hiddev*",	NAME="usb/%k"                                
-BUS=="usb".		KERNEL=="legousbtower*",	NAME="usb/%k"                                
-BUS=="usb",		KERNEL=="lp[0-9]*",	NAME="usb/%k"                        
+# misc usb devices
+BUS=="usb",		KERNEL=="auer[0-9]*",	NAME="usb/%k"
+BUS=="usb",		KERNEL=="cpad[0-9]*",	NAME="usb/%k"
+BUS=="usb",		KERNEL=="dabusb*",	NAME="usb/%k"
+BUS=="usb",		KERNEL=="hiddev*",	NAME="usb/%k"
+BUS=="usb".		KERNEL=="legousbtower*",	NAME="usb/%k"
 BUS=="usb",		KERNEL=="ttyUSB*", 	SYSFS{product}=="Palm Handheld*", SYMLINK+="pilot"
 
+# usbfs-like device nodes
+SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
+			SYMLINK+="%c", GROUP="usb", MODE="0664"
+
 # v4l devices
-SUBSYSTEM=="video4linux",	GROUP="video"
-KERNEL=="video[0-9]*",	NAME="v4l/video%n", SYMLINK+="video%n", GROUP="video"
-KERNEL=="radio[0-9]*",	NAME="v4l/radio%n", GROUP="video"
-KERNEL=="vbi[0-9]*",	NAME="v4l/vbi%n", SYMLINK+="vbi%n", GROUP="video"
-KERNEL=="vtx[0-9]*",	NAME="v4l/vtx%n", GROUP="video"
-KERNEL=="video0",	SYMLINK+="video"
-KERNEL=="radio0",	SYMLINK+="radio"
-KERNEL=="vbi0",		SYMLINK+="vbi"
+SUBSYSTEM=="video4linux",	KERNEL=="video[0-9]*",	NAME="v4l/video%n", SYMLINK+="video%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="radio[0-9]*",	NAME="v4l/radio%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="vbi[0-9]*",	NAME="v4l/vbi%n", SYMLINK+="vbi%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="vtx[0-9]*",	NAME="v4l/vtx%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="video0",	SYMLINK+="video"
+SUBSYSTEM=="video4linux",	KERNEL=="radio0",	SYMLINK+="radio"
+SUBSYSTEM=="video4linux",	KERNEL=="vbi0",		SYMLINK+="vbi"
 
 # dvb devices
 KERNEL=="dvb*",  PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s $${K%%%%.*} $${K#*.}", \
@@ -260,10 +259,6 @@ KERNEL=="uverbs*",	NAME="infiniband/%k"
 
 # tpm devices
 KERNEL=="tpm*",		NAME="%k", OWNER="tss", MODE="0600"
-
-# usbfs-like device nodes
-SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
-			SYMLINK+="%c"
 
 # debugging monitor
 RUN+="socket:/org/kernel/udev/monitor"
