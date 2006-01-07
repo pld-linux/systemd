@@ -63,12 +63,12 @@ SUBSYSTEM=="graphics",	KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
 SUBSYSTEM=="graphics",	KERNEL=="nvidia*",	NAME="%k", GROUP="video"
 
 # alsa devices
-SUBSYSTEM="snd",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="snd",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="snd",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="snd",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="snd",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="snd",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
 
 # sound devices
 SUBSYSTEM="sound",	KERNEL=="adsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
