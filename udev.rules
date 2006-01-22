@@ -128,7 +128,7 @@ SUBSYSTEM=="aoe", KERNEL=="err",	NAME="etherd/%k", GROUP="disk", MODE="0440"
 SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
 
 # misc devices
-KERNEL=="agpgart",	NAME="misc/%k", SYMLINK+="%k"
+KERNEL=="agpgart",	NAME="misc/%k", SYMLINK+="%k", MODE="660", GROUP="video"
 KERNEL=="cdemu[0-9]*",		NAME="cdemu/%n"
 KERNEL=="hw_random",	NAME="hwrng"
 KERNEL=="inotify",	NAME="misc/%k", SYMLINK+="%k", MODE="0666"
