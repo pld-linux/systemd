@@ -39,27 +39,16 @@ udevd=/sbin/udevd
 MAKEDEV="/sbin/MAKEDEV"
 
 make_extra_nodes () {
-	ln -snf /proc/self/fd $udev_root/fd
-	ln -snf /proc/self/fd/0 $udev_root/stdin
-	ln -snf /proc/self/fd/1 $udev_root/stdout
-	ln -snf /proc/self/fd/2 $udev_root/stderr
-	ln -snf /proc/kcore $udev_root/core
-
-	[ -d $udev_root/pts ] || mkdir -m 0755 $udev_root/pts
-	[ -d $udev_root/shm ] || mkdir -m 0755 $udev_root/shm
-
-	if [ -x $MAKEDEV ]; then
-		$MAKEDEV -x $( 
-			for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
-			    echo cpu/$i/microcode;
-			done;
-			for i in 1 2 3 4 5 6; do echo tty$i;done;
-			for i in 0 1 2 3 4 5 6 7; do echo loop$i; done;
-			for i in 0 1 2 3; do echo lp$i; echo parport$i;done;
-			echo net/tun ppp console null zero;
-		);
-		[ -a /dev/MAKEDEV ] || ln -sf "$MAKEDEV" /dev/MAKEDEV;
-	fi
+	grep '^[^#]' /etc/udev/links.conf | \
+	while read type name arg1; do
+	    [ "$type" -a "$name" -a ! -e "$udev_root/$name" -a ! -L "/dev/$name" ] ||continue
+	    case "$type" in
+    		L) ln -s $arg1 $udev_root/$name ;;
+	        D) mkdir -p $udev_root/$name ;;
+    		M) mknod --mode=600 $udev_root/$name $arg1 ;;
+	        *) echo "links.conf: unparseable line ($type $name $arg1)" ;;
+	    esac
+	done
 	cp -a /lib/udev/devices/* /dev/ >/dev/null 2>&1 || :
 }
 
