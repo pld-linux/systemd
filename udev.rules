@@ -1,131 +1,267 @@
+#
+# PLD Linux Distribution udev rules
+#
 # There are a number of modifiers that are allowed to be used in some of the
 # fields.  See the udev man page for a full description of them.
 #
-# See the udev.rules.examples file for more examples of how to create rules
+# Try not to modify this file, if you wish to change things, create a new rule
+# file that can be run before this one.
 #
 
-# create a symlink named after the device map name
-# note devmap_name comes with extras/multipath
-KERNEL="dm-[0-9]*", PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK="%c"
-KERNEL="device-mapper", NAME="mapper/control"
-
-# DRI devices always go into a subdirectory (as per the LSB spec)
-KERNEL="card*",		NAME="dri/card%n"
-
-# alsa devices
-KERNEL="controlC[0-9]*", NAME="snd/%k"
-KERNEL="hw[CD0-9]*",     NAME="snd/%k"
-KERNEL="pcm[CD0-9cp]*",  NAME="snd/%k"
-KERNEL="midi[CD0-9]*",   NAME="snd/%k"
-KERNEL="timer",          NAME="snd/%k"
-KERNEL="seq",            NAME="snd/%k"
-
-# input devices
-KERNEL="mice",		NAME="input/%k"
-KERNEL="mouse*",	NAME="input/%k"
-KERNEL="event*",	NAME="input/%k"
-KERNEL="js*",		NAME="input/%k"
-KERNEL="ts*",		NAME="input/%k"
-
-BUS="usb", KERNEL="lp[0-9]*", NAME="usb/%k"
-
-# fb devices
-KERNEL="fb[0-9]*", NAME="fb/%n", SYMLINK="%k"
-
-# floppy devices
-KERNEL="fd[0-9]*", NAME="floppy/%n", SYMLINK="%k"
-
-# i2c devices
-KERNEL="i2c-[0-9]*", NAME="i2c/%n", SYMLINK="%k"
-
-# misc devices
-KERNEL="rtc",     NAME="misc/%k", SYMLINK="%k"
-KERNEL="psaux",   NAME="misc/%k", SYMLINK="%k"
-KERNEL="agpgart", NAME="misc/%k", SYMLINK="%k"
-KERNEL="rtc",     NAME="misc/%k", SYMLINK="%k"
-KERNEL="psaux",   NAME="misc/%k", SYMLINK="%k"
-KERNEL="uinput",  NAME="misc/%k", SYMLINK="%k"
-
-# pty devices
-KERNEL="pty[p-za-e][0-9a-f]*", NAME="pty/m%n", SYMLINK="%k"
-KERNEL="tty[p-za-e][0-9a-f]*", NAME="tty/s%n", SYMLINK="%k"
-
-# ramdisk devices
-KERNEL="ram[0-9]*", NAME="rd/%n", SYMLINK="%k"
-
-# sound devices
-KERNEL="adsp",       NAME="sound/adsp"        SYMLINK="%k"
-KERNEL="audio",      NAME="sound/audio",      SYMLINK="%k"
-KERNEL="dsp",        NAME="sound/dsp",        SYMLINK="%k"
-KERNEL="mixer",      NAME="sound/mixer",      SYMLINK="%k"
-KERNEL="sequencer",  NAME="sound/sequencer",  SYMLINK="%k"
-KERNEL="sequencer2", NAME="sound/sequencer2", SYMLINK="%k"
+# workaround for devices which do not report media changes         
+BUS=="ide", KERNEL=="hd[a-z]", SYSFS{removable}=="1", \
+       ENV{ID_MODEL}=="IOMEGA_ZIP*",   NAME="%k", OPTIONS+="all_partitions"
+       
+# console
+KERNEL=="pty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
+KERNEL=="tty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
+KERNEL=="vcs*",                 NAME="%k", GROUP="tty",			OPTIONS="last_rule"
+KERNEL=="vcsa*",                NAME="%k", GROUP="tty",			OPTIONS="last_rule"
+KERNEL=="tty",                  NAME="%k", GROUP="tty", MODE="0666",	OPTIONS="last_rule"
+KERNEL=="tty[0-9]",             NAME="%k", GROUP="tty",			OPTIONS="last_rule"
+KERNEL=="tty[0-9][0-9]",        NAME="%k", GROUP="tty",			OPTIONS="last_rule"
+KERNEL=="console",		NAME="%k", GROUP="console", MODE="0660"
+KERNEL=="ptmx",			NAME="%k", GROUP="tty",	MODE="0666"
 
 # tty devices
-KERNEL="tty[0-9]*",    NAME="vc/%n",  SYMLINK="%k"
-KERNEL="ttyS[0-9]*",   NAME="tts/%n", SYMLINK="%k"
-KERNEL="ttyUSB[0-9]*", NAME="tts/USB%n"
+KERNEL=="ttyS[0-9]*",	NAME="tts/%n", SYMLINK+="%k", GROUP="ttyS"
+KERNEL=="ttyUSB[0-9]*",	NAME="tts/USB%n", GROUP="ttyS", MODE="0660"
+KERNEL=="ippp0",	NAME="%k",
+KERNEL=="isdn*"		NAME="%k",
+KERNEL=="dcbri*",	NAME="%k",
+KERNEL=="ircomm*",	NAME="%k", GROUP="ttyS"
+KERNEL=="rfcomm[0-9]*", NAME="%k", GROUP="ttyS", MODE="0664"
 
-# vc devices
-KERNEL="vcs",        NAME="vcc/0",   SYMLINK="%k"
-KERNEL="vcs[0-9]*",  NAME="vcc/%n",  SYMLINK="%k"
-KERNEL="vcsa",       NAME="vcc/a0",  SYMLINK="%k"
-KERNEL="vcsa[0-9]*", NAME="vcc/a%n", SYMLINK="%k"
+# all block devices
+SUBSYSTEM=="block", GROUP="disk"
+
+# cdrom symlinks and other good cdrom naming
+BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
+BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
+BUS=="scsi",	KERNEL="scd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
+ENV{ID_CDROM}=="?*",		SYMLINK+="cdrom%e",	GROUP="disk"
+ENV{ID_CDROM_CD_RW}=="?*",	SYMLINK+="cdrw%e",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD}=="?*",	SYMLINK+="dvd%e",	GROUP="disk"
+ENV{ID_CDROM_DVD_R}=="?*",	SYMLINK+="dvdrw%e",	GROUP="cdwrite"
+
+# disk devices
+KERNEL=="sd*",		NAME="%k", GROUP="disk"
+KERNEL=="dasd*",	NAME="%k", GROUP="disk"
+KERNEL=="ataraid*",	NAME="%k", GROUP="disk"
+
+# compaq smart array
+KERNEL=="cciss*",	PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
+KERNEL=="ida*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
+
+# mylex
+KERNEL=="rd*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
+
+# dri devices
+SUBSYSTEM=="graphics",	KERNEL=="3dfx*",	NAME="%k", GROUP="video"
+SUBSYSTEM=="graphics",	KERNEL=="card*",	NAME="dri/card%n", GROUP="video"
+SUBSYSTEM=="graphics",	KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
+SUBSYSTEM=="graphics",	KERNEL=="nvidia*",	NAME="%k", GROUP="video"
+
+# alsa devices
+SUBSYSTEM="sound",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
+
+# sound devices
+SUBSYSTEM="sound",	KERNEL=="adsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="adsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="audio",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="audio[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="dsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="dsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="mixer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="mixer[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="sequencer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM="sound",	KERNEL=="sequencer[0-9]*",	NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+
+# capi devices
+KERNEL=="capi",		NAME="capi20", SYMLINK+="isdn/capi20"
+KERNEL=="capi*",	NAME="capi/%n"
+
+# cpu devices
+KERNEL=="cpu[0-9]*",	NAME="cpu/%n/cpuid"
+KERNEL=="msr[0-9]*",	NAME="cpu/%n/msr"
+KERNEL=="microcode",	NAME="cpu/microcode"
+
+# dm devices (ignore them)
+KERNEL=="dm-[0-9]*",	OPTIONS="ignore_device"
+# create a symlink named after the device map name
+# note devmap_name comes with multipath-tools package and it has it's own .rules file
+#KERNEL=="dm-[0-9]*",	PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK+="%c"
+KERNEL=="device-mapper",	NAME="mapper/control"
+
+# fb devices
+KERNEL=="fb[0-9]*",	NAME="fb/%n", SYMLINK+="%k", GROUP="video"
+
+# floppy devices
+KERNEL=="fd[0-9]*",	NAME="floppy/%n", SYMLINK+="%k", GROUP="floppy"
+
+# i2c devices
+KERNEL=="i2c-[0-9]*",	NAME="i2c/%n", SYMLINK+="%k"
+
+# input devices
+KERNEL=="event*",	NAME="input/%k", MODE="0600"
+KERNEL=="js*",		NAME="input/%k", MODE="664", GROUP="sys"
+KERNEL=="lirc0",	NAME="%k", SYMLINK+="lirc"
+KERNEL=="mice",		NAME="input/%k", MODE="0644"
+KERNEL=="mouse*",	NAME="input/%k", MODE="0644"
+KERNEL=="ts*",		NAME="input/%k", MODE="0600"
+KERNEL=="uinput",	NAME="input/%k"
+
+# loop devices
+KERNEL=="loop[0-9]*",	NAME="loop/%n", SYMLINK+="%k", GROUP="disk"
+
+# md block devices
+KERNEL=="md[0-9]*",	NAME="md/%n", SYMLINK+="%k", GROUP="disk"
+
+# aoe char devices,
+SUBSYSTEM=="aoe", KERNEL=="discover",	NAME="etherd/%k", GROUP="disk", MODE="0220"
+SUBSYSTEM=="aoe", KERNEL=="err",	NAME="etherd/%k", GROUP="disk", MODE="0440"
+SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
+
+# misc devices
+KERNEL=="agpgart",	NAME="misc/%k", SYMLINK+="%k", MODE="660", GROUP="video"
+KERNEL=="cdemu[0-9]*",		NAME="cdemu/%n"
+KERNEL=="hw_random",	NAME="hwrng"
+KERNEL=="inotify",	NAME="misc/%k", SYMLINK+="%k", MODE="0666"
+KERNEL=="psaux",	NAME="misc/%k", SYMLINK+="%k"
+KERNEL=="rtc",		NAME="misc/%k", SYMLINK+="%k", MODE="0664"
+KERNEL=="uinput",	NAME="misc/%k", SYMLINK+="%k"
+
+# netlink devices
+KERNEL=="route",	NAME="netlink/%k"
+KERNEL=="skip",		NAME="netlink/%k"
+KERNEL=="usersock",	NAME="netlink/%k"
+KERNEL=="fwmonitor",	NAME="netlink/%k"
+KERNEL=="tcpdiag",	NAME="netlink/%k"
+KERNEL=="nflog",	NAME="netlink/%k"
+KERNEL=="xfrm",		NAME="netlink/%k"
+KERNEL=="arpd",		NAME="netlink/%k"
+KERNEL=="route6",	NAME="netlink/%k"
+KERNEL=="ip6_fw",	NAME="netlink/%k"
+KERNEL=="dnrtmsg",	NAME="netlink/%k"
+KERNEL=="tap*",		NAME="netlink/%k"
+
+# network devices
+KERNEL=="tun",		NAME="net/%k"
+
+# ramdisk devices
+KERNEL=="ram[0-9]*",	NAME="rd/%n", SYMLINK+="%k"
+
+# IEEE1394 (firewire) devices (must be before raw devices below)
+KERNEL=="raw1394",	NAME="%k",		GROUP="video"
+KERNEL=="dv1394*",	NAME="dv1394/%n",	GROUP="video"
+KERNEL=="video1394*",	NAME="video1394/%n",	GROUP="video"
+
+# raw devices
+KERNEL=="raw[0-9]*",	NAME="raw/%k", GROUP="disk"
+KERNEL=="ram*",		NAME="%k", GROUP="disk"
+
+# memory devices
+KERNEL=="random",	NAME="%k", MODE="0644"
+KERNEL=="urandom",	NAME="%k", MODE="0644"
+KERNEL=="mem",		NAME="%k", MODE="0640", GROUP="kmem"
+KERNEL=="kmem",		NAME="%k", MODE="0640", GROUP="kmem"
+KERNEL=="port",		NAME="%k", MODE="0640", GROUP="kmem"
+KERNEL=="full",		NAME="%k", MODE="0666"
+KERNEL=="null",		NAME="%k", MODE="0666", SYMLINK+="drzewo"
+KERNEL=="zero",		NAME="%k", MODE="0666"
+
+# misc usb devices
+BUS=="usb",		KERNEL=="auer[0-9]*",	NAME="usb/%k"
+BUS=="usb",		KERNEL=="cpad[0-9]*",	NAME="usb/%k"
+BUS=="usb",		KERNEL=="dabusb*",	NAME="usb/%k"
+BUS=="usb",		KERNEL=="hiddev*",	NAME="usb/%k"
+BUS=="usb".		KERNEL=="legousbtower*",	NAME="usb/%k"
+BUS=="usb",		KERNEL=="ttyUSB*", 	SYSFS{product}=="Palm Handheld*", SYMLINK+="pilot"
+
+# usbfs-like device nodes
+SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
+			SYMLINK+="%c", GROUP="usb", MODE="0664"
 
 # v4l devices
-KERNEL="video[0-9]*", NAME="v4l/video%n"
-KERNEL="radio[0-9]*", NAME="v4l/radio%n"
-KERNEL="vbi[0-9]*",   NAME="v4l/vbi%n"
-KERNEL="vtx[0-9]*",   NAME="v4l/vtx%n"
+SUBSYSTEM=="video4linux",	KERNEL=="video[0-9]*",	NAME="v4l/video%n", SYMLINK+="video%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="radio[0-9]*",	NAME="v4l/radio%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="vbi[0-9]*",	NAME="v4l/vbi%n", SYMLINK+="vbi%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="vtx[0-9]*",	NAME="v4l/vtx%n", GROUP="video"
+SUBSYSTEM=="video4linux",	KERNEL=="video0",	SYMLINK+="video"
+SUBSYSTEM=="video4linux",	KERNEL=="radio0",	SYMLINK+="radio"
+SUBSYSTEM=="video4linux",	KERNEL=="vbi0",		SYMLINK+="vbi"
 
-# CAPI devices
-KERNEL="capi",          NAME="capi20", SYMLINK="isdn/capi20"
-KERNEL="capi[0-9]*",    NAME="capi/%n"
+# dvb devices
+KERNEL=="dvb*",  PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s $${K%%%%.*} $${K#*.}", \
+			NAME="%c", GROUP="video", MODE="0660"
 
+# Asterisk Zaptel devices
+KERNEL=="zapctl",	NAME="zap/ctl"
+KERNEL=="zaptimer",	NAME="zap/timer"
+KERNEL=="zapchannel",	NAME="zap/channel"
+KERNEL=="zappseudo",	NAME="zap/pseudo"
+KERNEL=="zap[0-9]*",	NAME="zap/%n"
 
-KERNEL="microcode",     SYMLINK="cpu/0/%k"
-KERNEL="ram1", 		SYMLINK="ram"
-KERNEL="video0",	SYMLINK="video"
-KERNEL="radio0",	SYMLINK="radio"
-KERNEL="audio0",	SYMLINK="audio"
-KERNEL="dsp0",		SYMLINK="dsp"
-KERNEL="fb0",		SYMLINK="fb"
-KERNEL="qft0",		SYMLINK="ftape"
-KERNEL="isdnctrl0",	SYMLINK="isdnctrl"
-KERNEL="mixer0",	SYMLINK="mixer"
-KERNEL="ram0",		SYMLINK="ramdisk"
-KERNEL="sbpcd0",	SYMLINK="sbpcd"
-KERNEL="radio0",	SYMLINK="radio"
-KERNEL="tty0",		SYMLINK="systty"
-KERNEL="vbi0",		SYMLINK="vbi"
-KERNEL="null",		SYMLINK="XOR"
+# pilot/palm devices
+KERNEL=="pilot",	NAME="%k"
 
-KERNEL="tun",		NAME="net/%k"
+# jaz devices
+KERNEL=="jaz*",		NAME="%k", GROUP="disk"
 
-# old compat symlinks with enumeration
-KERNEL="sr*",  		SYMLINK="cdrom%e"
-KERNEL="scd*", 		SYMLINK="cdrom%e"
-KERNEL="pcd*", 		SYMLINK="cdrom%e"
-KERNEL="fd[0-9]", 	SYMLINK="floppy%e"
+# zip devices
+KERNEL=="pocketzip*",	NAME="%k", GROUP="disk"
+KERNEL=="zip*",		NAME="%k", GROUP="disk"
 
-KERNEL="hd[a-z]", PROGRAM="/bin/cat /proc/ide/%k/media", RESULT="cdrom", SYMLINK="cdrom%e"
+# ls120 devices
+KERNEL=="ls120",	NAME="%k", GROUP="disk"
 
-KERNEL="hd[a-z]", PROGRAM="/bin/cat /proc/ide/%k/media", RESULT="floppy", SYMLINK="floppy%e"
+# printer devices
+SUBSYSTEM=="usb",	KERNEL=="lp*", ACTION=="add", NAME="usb/%k", SYMLINK+="usb%k", GROUP="lp"
+SUBSYSTEM=="printer",	KERNEL=="lp*", ACTION=="add", NAME="%k", GROUP="lp"
+KERNEL=="irlpt*",	NAME="%k", GROUP="lp"
 
-KERNEL="hd[a-z]", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k DVD", SYMLINK="dvd%e"
-KERNEL="sr*", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k DVD", SYMLINK="dvd%e"
-KERNEL="hd[a-z]", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k CD-R", SYMLINK="cdwriter%e"
-KERNEL="sr*", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k CD-R", SYMLINK="cdwriter%e"
-KERNEL="hd[a-z]", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k DVD-R", SYMLINK="dvdwriter%e"
-KERNEL="sr*", PROGRAM="/etc/udev/scripts/check-cdrom.sh %k DVD-R", SYMLINK="dvdwriter%e"
+# disk devices
+KERNEL=="ht*",		NAME="%k", GROUP="disk"
+KERNEL=="nht*",		NAME="%k", GROUP="disk"
+KERNEL=="pt*",		NAME="%k", GROUP="disk"
+KERNEL=="npt*",		NAME="%k", GROUP="disk"
+KERNEL=="st*",		NAME="%k", GROUP="disk"
+KERNEL=="nst*",		NAME="%k", GROUP="disk"
+KERNEL=="osst*",	NAME="%k", GROUP="disk"
+KERNEL=="nosst*",	NAME="%k", GROUP="disk"
 
-# rename sr* to scd*
-KERNEL="sr*", NAME="scd%n"
+# diskonkey devices
+KERNEL=="diskonkey*",	NAME="%k", GROUP="disk"
 
-# Locate zaptel in its own directory
-KERNEL="zap[0-9]", NAME="zap/%n"
-KERNEL="zapctl", NAME="zap/ctl"
-KERNEL="zapchannel", NAME="zap/channel"
-KERNEL="zaptimer", NAME="zap/timer"
-KERNEL="zappseudo", NAME="zap/pseudo"
+# rem_ide devices
+KERNEL=="microdrive*",	NAME="%k", GROUP="disk"
 
+# kbd devices
+KERNEL=="kbd",		NAME="%k", MODE="0664"
+
+# Sony Vaio Jogdial sonypi device
+KERNEL=="sonypi",	NAME="%k", MODE="0666"
+
+# packet devices
+KERNEL=="pktcdvd[0-9]*",	NAME="pktcdvd/pktcdvd%n",	GROUP="cdwrite", MODE="0660"
+KERNEL=="pktcdvd",		NAME="pktcdvd/control",		GROUP="cdwrite", MODE="0660"
+
+# infiniband devices
+KERNEL=="issm*",	NAME="infiniband/%k"
+KERNEL=="ucm*",		NAME="infiniband/%k"
+KERNEL=="umad*",	NAME="infiniband/%k"
+KERNEL=="uverbs*",	NAME="infiniband/%k"
+
+# tpm devices
+KERNEL=="tpm*",		NAME="%k", OWNER="tss", MODE="0600"
+
+# debugging monitor
+RUN+="socket:/org/kernel/udev/monitor"
+
+# debug events to /events, but not on default udev_log="err"
+#ENV{UDEV_LOG}=="[4-9]", RUN+="/lib/udev/eventrecorder.sh"
