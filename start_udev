@@ -19,13 +19,17 @@
 # Yes, it's very verbose, feel free to turn off all of the echo calls,
 # they were there to make me feel better that everything was working
 # properly during development...
-#
+
+# default value, if no config present.
+udev_root="/dev/"
+sysfs_dir="/sys"
+udevd_timeout=8
+
 # don't use udev if sysfs is not mounted.
-[ ! -d $sysfs_dir/class ] || exit 1
+[ -d $sysfs_dir/class ] || exit 1
 [ -r /proc/mounts ] || exit 1
 [ -x /sbin/udev ] || exit 1
 [ -f /etc/udev/udev.conf ] && . /etc/udev/udev.conf
-
 
 . /etc/rc.d/init.d/functions
 
@@ -35,28 +39,17 @@ udevd=/sbin/udevd
 MAKEDEV="/sbin/MAKEDEV"
 
 make_extra_nodes () {
-	ln -snf /proc/self/fd $udev_root/fd
-	ln -snf /proc/self/fd/0 $udev_root/stdin
-	ln -snf /proc/self/fd/1 $udev_root/stdout
-	ln -snf /proc/self/fd/2 $udev_root/stderr
-	ln -snf /proc/kcore $udev_root/core
-
-	[ -d $udev_root/pts ] || (mkdir $udev_root/pts;chmod 0755 $udev_root/pts)
-	[ -d $udev_root/shm ] || (mkdir $udev_root/shm;chmod 0755 $udev_root/shm)
-
-	if [ -x $MAKEDEV ]; then
-		$MAKEDEV -x $( 
-			for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
-			    echo cpu/$i/microcode;
-			done;
-			for i in 1 2 3 4 5 6; do echo tty$i;done;
-			for i in 0 1 2 3 4 5 6 7; do echo loop$i; done;
-			for i in 0 1 2 3; do echo lp$i; echo parport$i;done;
-			echo net/tun ppp console null zero;
-		);
-		[ -a /dev/MAKEDEV ] || ln -s $MAKEDEV /dev/MAKEDEV;
-		cp -a /etc/udev/devices/* /dev/ >/dev/null 2>&1 || :
-	fi
+	grep '^[^#]' /etc/udev/links.conf | \
+	while read type name arg1; do
+	    [ "$type" -a "$name" -a ! -e "$udev_root/$name" -a ! -L "/dev/$name" ] ||continue
+	    case "$type" in
+    		L) ln -s $arg1 $udev_root/$name ;;
+	        D) mkdir -p $udev_root/$name ;;
+    		M) mknod --mode=600 $udev_root/$name $arg1 ;;
+	        *) echo "links.conf: unparseable line ($type $name $arg1)" ;;
+	    esac
+	done
+	cp -a /lib/udev/devices/* /dev/ >/dev/null 2>&1 || :
 }
 
 kill_udevd() {
@@ -68,21 +61,21 @@ kill_udevd() {
 
 # we cannot use /usr/bin/find here
 find_d () {
-        where=$1
-        what=$2
-        found=""
-        for f in $where/*; do
-                if [ -d "$f" -a ! -L "$f" ]; then
+	where=$1
+	what=$2
+	found=""
+	for f in $where/*; do
+		if [ -d "$f" -a ! -L "$f" ]; then
 			if [ "$f" != "${f%%$what}" ];then 
-			        # make sure we are at the path end
-			        # we have no dirname and basename
+				# make sure we are at the path end
+				# we have no dirname and basename
 				rest="${f#*$what}"
 				[ "${rest##*/}" = "$rest" ] && found="$found $f"
 			fi
-                        found="$found $(find_d $f $what)"
-                fi
-        done
-        echo "$found"
+			found="$found $(find_d $f $what)"
+		fi
+	done
+	echo "$found"
 }
 
 # we cannot use /usr/bin/find here
@@ -94,37 +87,31 @@ find_f () {
 		if [ -d "$f" -a ! -L "$f" ]; then
 			found="$found $(find_f $f $what)"
 		elif [ -e "$f" ]; then 
-			[ "$f" != "${f%$what}" ] && found="$found $f"
+			[ "$where/" = "${f%$what}" ] && found="$found $f"
 		fi
 	done
-	echo "$found"
+	[ -n "$found" ] && echo "$found"
 }
 
 # call hotplug with the scsi devices
 scsi_replay () {
-        HOTPLUG=$(cat /proc/sys/kernel/hotplug)
-        [ -z "$HOTPLUG" ] && return 1
+	HOTPLUG="/sbin/udevsend"
 
-        scsi_hosts=$(find_d /sys/devices host\*)
-        SEQNUM=1
+	scsi_hosts=$(find_d /sys/devices host\*)
+	SEQNUM=1
 
-        for host in $scsi_hosts; do
-                [ -d $host ] || continue
-                devs=$(find_f $host type)
-                for dev in $devs;do
-                        [ -f $dev ] || continue
-                        export SEQNUM
-                        DEVPATH=${dev%/type}
-                        DEVPATH=${DEVPATH#/sys}
-                        export DEVPATH
-                        export ACTION=add
-                        $HOTPLUG scsi_device
-                        SEQNUM=$(($SEQNUM + 1))
-                        $HOTPLUG scsi 
-                        SEQNUM=$(($SEQNUM + 1))
-                done
-        done
-        return 0
+	for host in $scsi_hosts; do
+		[ -d $host ] || continue
+		devs=$(find_f $host type)
+		for dev in $devs;do
+			[ -f $dev ] || continue
+			DEVPATH=${dev%/type}
+			DEVPATH=${DEVPATH#/sys}
+			/bin/env -i DEVPATH="$DEVPATH" SUBSYSTEM=scsi_device ACTION=add $HOTPLUG scsi_device
+			/bin/env -i DEVPATH="$DEVPATH" ACTION=add SUBSYSTEM=scsi $HOTPLUG scsi
+		done
+	done
+	return 0
 }
 
 ide_scan() {
@@ -155,24 +142,87 @@ ide_scan() {
 	return 0
 }
 
+supported_kernel() {
+    case "$(uname -r)" in
+    2.[012345].*) return 1 ;;
+    esac
+    return 0
+}
+
+set_hotplug_handler() {
+    echo /sbin/udevsend > /proc/sys/kernel/hotplug
+}
+
 export ACTION=add
-export UDEV_NO_SLEEP=1
 prog=udev
 ret=0
-nls "Starting udev"
-# propagate $udev_root from /sys
-grep -q "none ${udev_root%/} " /proc/mounts || { 
+show "Starting udev"
+busy
+
+if ! supported_kernel; then
+    fail
+    echo "udev requires a kernel >= 2.6.x, not started."
+    exit 0                                                
+fi
+
+# mount the tmpfs on ${udev_root%/}, if not already done
+LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/mounts && {
+	if LANG=C fgrep -q "none ${udev_root%/}/pts " /proc/mounts; then
+		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
+		mount --move $udev_root/pts "$PTSDIR"
+	fi
+	if LANG=C fgrep -q "none ${udev_root%/}/shm " /proc/mounts; then
+		SHMDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
+		mount --move $udev_root/shm "$SHMDIR"
+	fi
 	mount -n -o mode=0755 -t tmpfs none "$udev_root"
-	ret=$(($ret + $?))
+	mkdir -m 0755 $udev_root/pts
+	mkdir -m 0755 $udev_root/shm
+	if [ -n "$PTSDIR" ]; then
+		mount --move "$PTSDIR" $udev_root/pts
+		rmdir "$PTSDIR"
+	fi
+	if [ -n "$SHMDIR" ]; then
+		mount --move "$SHMDIR" $udev_root/shm
+		rmdir "$SHMDIR"
+	fi
+
+	ret=$(( $ret + $? ))
 }
-rm -f $udev_root/.udev.tdb
+
+
+kill_udevd > "$udev_root/null" 2>&1
+
+scsi_replay > "$udev_root/null" 2>&1
+
+ret=$(( $ret + $? ))
+
+ide_scan > "$udev_root/null" 2>&1
+
+# Starting the hotplug events dispatcher
+/sbin/udevd --daemon
+
+# Making extra nodes
 make_extra_nodes
-kill_udevd >/dev/null 2>&1
-scsi_replay >/dev/null 2>&1
-ret=$(($ret + $?))
-kill_udevd >/dev/null 2>&1
-ide_scan >/dev/null 2>&1
-/sbin/udevstart 
-ret=$(($ret + $?))
+
+# Setting default hotplug handler
+set_hotplug_handler
+
+# Synthesizing the initial hotplug events
+/sbin/${UDEV_STARTER}
+
+# wait for /dev to be fully populated
+while [ -d /dev/.udev/queue/ ]; do
+    sleep 0.2
+    udevd_timeout=$(($udevd_timeout - 1))
+    if [ $udevd_timeout -eq 0 ]; then
+	break
+    fi
+done
+
+# Start workaround for broken Linux input subsystem
+/lib/udev/udev_input_coldplug start
+
+ret=$(( $ret + $? ))
 [ $ret -eq 0 ] && ok || fail
 exit 0
