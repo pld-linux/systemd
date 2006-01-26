@@ -57,13 +57,6 @@ kill_udevd() {
 	fi
 }
 
-supported_kernel() {
-    if [ -f "/sys/class/tty/console/uevent" ]; then
-    2.[012345].*) return 1 ;;
-    esac
-    return 0
-}
-
 set_hotplug_handler() {
     echo "" > /proc/sys/kernel/hotplug
 }
