@@ -24,6 +24,7 @@
 udev_root="/dev/"
 sysfs_dir="/sys"
 udevd_timeout=8
+UDEV_STARTER="udevstart"
 
 # don't use udev if sysfs is not mounted.
 [ -d $sysfs_dir/class ] || exit 1
