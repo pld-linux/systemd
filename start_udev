@@ -94,20 +94,20 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 
 kill_udevd > "$udev_root/null" 2>&1
 
-if [ -f "/sys/class/tty/console/uevent" ]; then
-
 	# Start udevd daemon
 	udevd --daemon
-	ret=$(( $ret + $? ))
-	
-	# Setting default hotplug handler
-	set_hotplug_handler
 	ret=$(( $ret + $? ))
 	
 	# Making extra nodes
 	make_extra_nodes
 	ret=$(( $ret + $? ))
 	
+if [ -f "/sys/class/tty/console/uevent" ]; then
+
+    	# Setting default hotplug handler
+	set_hotplug_handler
+	ret=$(( $ret + $? ))
+
 	# retrigger all events
 	mkdir -p /dev/.udev/queue
 	list=$(echo /sys/bus/*/devices/*/uevent)
@@ -149,8 +149,7 @@ if [ -f "/sys/class/tty/console/uevent" ]; then
 	
 	ret=$(( $ret + $? ))
 else
-	echo "udev requires a kernel >= 2.6.15, not started."
-	exit 0                                                
+	echo "Kernel too old for this udev version"
 fi
 
 ret=$(( $ret + $? ))
