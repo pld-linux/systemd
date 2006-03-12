@@ -17,11 +17,11 @@ KERNEL=="pty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTI
 KERNEL=="tty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
 KERNEL=="vcs*",                 NAME="%k", GROUP="tty",			OPTIONS="last_rule"
 KERNEL=="vcsa*",                NAME="%k", GROUP="tty",			OPTIONS="last_rule"
-KERNEL=="tty",                  NAME="%k", GROUP="tty", MODE="0666",	OPTIONS="last_rule"
+KERNEL=="tty",                  NAME="%k", GROUP="tty",	MODE="0666",	OPTIONS="last_rule"
 KERNEL=="tty[0-9]",             NAME="%k", GROUP="tty",			OPTIONS="last_rule"
 KERNEL=="tty[0-9][0-9]",        NAME="%k", GROUP="tty",			OPTIONS="last_rule"
-KERNEL=="console",		NAME="%k", GROUP="console", MODE="0660"
-KERNEL=="ptmx",			NAME="%k", GROUP="tty",	MODE="0666"
+KERNEL=="console",		NAME="%k", GROUP="console", MODE="0660",	OPTIONS="last_rule"
+KERNEL=="ptmx",			NAME="%k", GROUP="tty",	MODE="0666",	OPTIONS="last_rule"
 
 # tty devices
 KERNEL=="ttyS[0-9]*",	NAME="tts/%n", SYMLINK+="%k", GROUP="ttyS"
