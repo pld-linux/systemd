@@ -40,17 +40,12 @@ BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $t
 BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
 BUS=="scsi",	KERNEL="scd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
 
+ENV{ID_CDROM}=="?*", PROGRAM="write_cd_aliases", SYMLINK+="%c"
+
 # disk devices
 KERNEL=="sd*",		NAME="%k", GROUP="disk"
 KERNEL=="dasd*",	NAME="%k", GROUP="disk"
 KERNEL=="ataraid*",	NAME="%k", GROUP="disk"
-
-# compaq smart array
-KERNEL=="cciss*",	PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
-KERNEL=="ida*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
-
-# mylex
-KERNEL=="rd*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
 
 # dri devices
 SUBSYSTEM=="graphics",	KERNEL=="3dfx*",	NAME="%k", GROUP="video"
