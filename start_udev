@@ -114,13 +114,7 @@ if [ -f "/sys/class/tty/console/uevent" ]; then
 	ret=$(( $ret + $? ))
 	
 	# wait for the events to finish
-	loop=300
-	while test -d /dev/.udev/queue; do
-	    sleep 0.1;
-	    test "$loop" -gt 0 || break
-	    loop=$(($loop - 1))
-	done
-	
+	udevsettle	
 	ret=$(( $ret + $? ))
 else
 	echo "Kernel too old for this udev version"
