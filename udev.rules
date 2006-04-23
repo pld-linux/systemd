@@ -40,8 +40,6 @@ BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnod
 BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
 BUS=="scsi",	KERNEL="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
 
-ENV{ID_CDROM}=="?*", PROGRAM="write_cd_aliases", SYMLINK+="%c"
-
 # disk devices
 KERNEL=="sd*",		NAME="%k", GROUP="disk"
 KERNEL=="dasd*",	NAME="%k", GROUP="disk"
@@ -253,6 +251,3 @@ KERNEL=="tpm*",		NAME="%k", OWNER="tss", MODE="0600"
 
 # debugging monitor
 RUN+="socket:/org/kernel/udev/monitor"
-
-# debug events to /events, but not on default udev_log="err"
-#ENV{UDEV_LOG}=="[4-9]", RUN+="/lib/udev/eventrecorder.sh"

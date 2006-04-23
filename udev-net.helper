@@ -47,19 +47,15 @@ add|register)
 	    # we can't do much here without distro-specific knowledge
 	    # such as whether/how to invoke DHCP, set up bridging, etc.
 
-	    # Run ifrename as needed - Jean II
+	    # Run nameif as needed - Jean II
 	    # Remap interface names based on MAC address. This workaround
 	    # the dreaded configuration problem "all my cards are 'eth0'"...
 	    # This needs to be done before ifup otherwise ifup will get
 	    # confused by the name changed and because iface need to be
 	    # down to change its name.
-	    if [ -x /sbin/ifrename ] && [ -r /etc/iftab ]; then
-		debug_mesg invoke ifrename for $INTERFACE
-		NEWNAME=`/sbin/ifrename -i $INTERFACE`
-		if [ -n "$NEWNAME" ]; then
-		    debug_mesg iface $INTERFACE is remapped to $NEWNAME
-		    INTERFACE=$NEWNAME
-		fi;
+	    if [ -x /sbin/nameif ] && [ -r /etc/mactab ]; then
+		debug_mesg invoke nameif for $INTERFACE
+		NEWNAME=`/sbin/nameif`
 	    fi
 
 	    # conform to network service (AUTOMATIC_IFCFG)
