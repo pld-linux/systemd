@@ -46,19 +46,8 @@ add|register)
 	    # NOTE:  network configuration relies on administered state,
 	    # we can't do much here without distro-specific knowledge
 	    # such as whether/how to invoke DHCP, set up bridging, etc.
-
-	    # Run nameif as needed - Jean II
-	    # Remap interface names based on MAC address. This workaround
-	    # the dreaded configuration problem "all my cards are 'eth0'"...
-	    # This needs to be done before ifup otherwise ifup will get
-	    # confused by the name changed and because iface need to be
-	    # down to change its name.
-	    if [ -x /sbin/nameif ] && [ -r /etc/mactab ]; then
-		debug_mesg invoke nameif for $INTERFACE
-		NEWNAME=`/sbin/nameif`
-	    fi
-
 	    # conform to network service (AUTOMATIC_IFCFG)
+
 	    [ -r /etc/sysconfig/network ] && . /etc/sysconfig/network
 
 	    # don't do anything for non ethernet devices
