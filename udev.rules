@@ -80,11 +80,6 @@ KERNEL=="cpu[0-9]*",	NAME="cpu/%n/cpuid"
 KERNEL=="msr[0-9]*",	NAME="cpu/%n/msr"
 KERNEL=="microcode",	NAME="cpu/microcode"
 
-# dm devices (ignore them)
-KERNEL=="dm-[0-9]*",	OPTIONS="ignore_device"
-# create a symlink named after the device map name
-# note devmap_name comes with multipath-tools package and it has it's own .rules file
-#KERNEL=="dm-[0-9]*",	PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK+="%c"
 KERNEL=="device-mapper",	NAME="mapper/control"
 
 # fb devices
