@@ -40,6 +40,12 @@ BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnod
 BUS=="scsi",	KERNEL=="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
 BUS=="scsi",	KERNEL=="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
 
+ENV{ID_CDROM_CD_R}=="?*",	GROUP="cdwrite"
+ENV{ID_CDROM_CD_RW}=="?*",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD}=="?*",	GROUP="disk"
+ENV{ID_CDROM_DVD_R}=="?*",	GROUP="cdwrite"
+ENV{ID_CDROM}=="?*",		GROUP="disk"
+
 # disk devices
 KERNEL=="sd*",		NAME="%k", GROUP="disk"
 KERNEL=="dasd*",	NAME="%k", GROUP="disk"
