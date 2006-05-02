@@ -37,8 +37,8 @@ SUBSYSTEM=="block", GROUP="disk"
 
 # cdrom symlinks and other good cdrom naming
 BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-BUS=="scsi",	KERNEL="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+BUS=="scsi",	KERNEL=="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+BUS=="scsi",	KERNEL=="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
 
 # disk devices
 KERNEL=="sd*",		NAME="%k", GROUP="disk"
@@ -52,24 +52,24 @@ SUBSYSTEM=="graphics",	KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
 SUBSYSTEM=="graphics",	KERNEL=="nvidia*",	NAME="%k", GROUP="video"
 
 # alsa devices
-SUBSYSTEM="sound",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
 
 # sound devices
-SUBSYSTEM="sound",	KERNEL=="adsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="adsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="audio",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="audio[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="dsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="dsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="mixer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="mixer[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="sequencer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="sequencer[0-9]*",	NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="adsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="adsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="audio",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="audio[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="dsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="dsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="mixer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="mixer[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="sequencer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="sequencer[0-9]*",	NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
 
 # capi devices
 KERNEL=="capi",		NAME="capi20", SYMLINK+="isdn/capi20"
@@ -173,7 +173,7 @@ BUS=="usb".		KERNEL=="legousbtower*",	NAME="usb/%k"
 BUS=="usb",		KERNEL=="ttyUSB*", 	SYSFS{product}=="Palm Handheld*", SYMLINK+="pilot"
 
 # usbfs-like device nodes
-SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
+SUBSYSTEM=="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
 			SYMLINK+="%c", GROUP="usb", MODE="0664"
 
 # v4l devices
