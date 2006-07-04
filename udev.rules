@@ -35,7 +35,6 @@ KERNEL=="rfcomm[0-9]*", NAME="%k", GROUP="ttyS", MODE="0664"
 # all block devices
 SUBSYSTEM=="block", GROUP="disk"
 
-ENV{PHYSDEVBUS}!="ide", GOTO="ide_end"
 # cdrom symlinks and other good cdrom naming
 BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
 BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
@@ -44,7 +43,6 @@ ENV{ID_CDROM}=="?*",		SYMLINK+="cdrom%e",	GROUP="disk"
 ENV{ID_CDROM_CD_RW}=="?*",	SYMLINK+="cdrw%e",	GROUP="cdwrite"
 ENV{ID_CDROM_DVD}=="?*",	SYMLINK+="dvd%e",	GROUP="disk"
 ENV{ID_CDROM_DVD_R}=="?*",	SYMLINK+="dvdrw%e",	GROUP="cdwrite"
-LABEL="ide_end"
 
 # disk devices
 KERNEL=="sd*",		NAME="%k", GROUP="disk"
