@@ -115,6 +115,7 @@ kill_udevd > "$udev_root/null" 2>&1
     ret=$(( $ret + $? ))
 
 # retrigger ide/scsi/input events
+    mkdir -p /dev/.udev/queue
     list="$(echo /sys/bus/ide/devices/*/uevent)"
     list="$list $(echo /sys/bus/scsi/devices/*/uevent)"
     list="$list $(echo /sys/class/input/*/uevent)"
