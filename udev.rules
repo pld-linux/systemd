@@ -120,7 +120,8 @@ SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="02
 
 # misc devices
 KERNEL=="agpgart",	NAME="misc/%k", SYMLINK+="%k", MODE="660", GROUP="video"
-KERNEL=="cdemu[0-9]*",		NAME="cdemu/%n"
+KERNEL=="cdemu[0-9]*",	NAME="cdemu/%n"
+KERNEL=="fuse",		NAME="%k",	MODE="0666"
 KERNEL=="hw_random",	NAME="hwrng"
 KERNEL=="inotify",	NAME="misc/%k", SYMLINK+="%k", MODE="0666"
 KERNEL=="psaux",	NAME="misc/%k", SYMLINK+="%k"
@@ -250,3 +251,5 @@ KERNEL=="uverbs*",	NAME="infiniband/%k"
 
 # tpm devices
 KERNEL=="tpm*",		NAME="%k", MODE="0600"
+
+# fuse
