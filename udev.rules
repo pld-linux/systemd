@@ -251,5 +251,3 @@ KERNEL=="uverbs*",	NAME="infiniband/%k"
 
 # tpm devices
 KERNEL=="tpm*",		NAME="%k", MODE="0600"
-
-# fuse
