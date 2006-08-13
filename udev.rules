@@ -249,7 +249,4 @@ KERNEL=="umad*",	NAME="infiniband/%k"
 KERNEL=="uverbs*",	NAME="infiniband/%k"
 
 # tpm devices
-KERNEL=="tpm*",		NAME="%k", OWNER="tss", MODE="0600"
-
-# debugging monitor
-RUN+="socket:/org/kernel/udev/monitor"
+KERNEL=="tpm*",		NAME="%k", MODE="0600"
