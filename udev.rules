@@ -38,14 +38,14 @@ KERNEL=="ttyUSB*",		ATTRS{product}=="[Pp]alm*Handheld*", SYMLINK+="pilot"
 SUBSYSTEM=="block", GROUP="disk"
 
 # cdrom symlinks and other good cdrom naming
-BUS=="ide",			KERNEL=="hd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
-BUS=="scsi",			KERNEL="sr[0-9]*", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
-BUS=="scsi",			KERNEL="scd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
-BUS=="scsi",			KERNEL="sg[0-9]*", ACTION=="add", DRIVER=="sr", GROUP="cdwrite"
-ENV{ID_CDROM}=="?*",            GROUP="cdwrite"
-ENV{ID_CDROM_CD_RW}=="?*",      GROUP="cdwrite"
-ENV{ID_CDROM_DVD}=="?*",        GROUP="cdwrite"
-ENV{ID_CDROM_DVD_R}=="?*",      GROUP="cdwrite"
+BUS=="ide",			KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+BUS=="scsi",			KERNEL=="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+BUS=="scsi",			KERNEL=="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+BUS=="scsi",			KERNEL=="sg[0-9]*", ACTION=="add", DRIVER=="sr", GROUP="cdwrite"
+ENV{ID_CDROM}=="?*",		GROUP="cdwrite"
+ENV{ID_CDROM_CD_RW}=="?*",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD}=="?*",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD_R}=="?*",	GROUP="cdwrite"
 
 # disk devices
 KERNEL=="sd*",			GROUP="disk"
