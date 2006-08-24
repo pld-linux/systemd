@@ -9,7 +9,7 @@
 #
 
 # workaround for devices which do not report media changes
-BUS=="ide", KERNEL=="hd[a-z]", SYSFS{removable}=="1", ENV{ID_MODEL}=="IOMEGA_ZIP*", OPTIONS+="all_partitions"
+SUBSYSTEMS=="ide", KERNEL=="hd[a-z]", ATTRS{removable}=="1", ENV{ID_MODEL}=="IOMEGA_ZIP*", OPTIONS+="all_partitions"
 SUBSYSTEMS=="ide", KERNEL=="hd[a-z]", ATTRS{media}=="floppy", OPTIONS+="all_partitions"
 
 # console
@@ -37,11 +37,11 @@ KERNEL=="ttyUSB*",		ATTRS{product}=="[Pp]alm*Handheld*", SYMLINK+="pilot"
 # all block devices
 SUBSYSTEM=="block", GROUP="disk"
 
-# cdrom symlinks and other good cdrom naming
-BUS=="ide",			KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-BUS=="scsi",			KERNEL=="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-BUS=="scsi",			KERNEL=="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-BUS=="scsi",			KERNEL=="sg[0-9]*", ACTION=="add", DRIVER=="sr", GROUP="cdwrite"
+# IDE/SCSI devices
+KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+SUBSYSTEM=="scsi",		KERNEL=="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+SUBSYSTEM=="scsi",		KERNEL=="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+SUBSYSTEM=="scsi",		KERNEL=="sg[0-9]*", ACTION=="add", DRIVERS=="sr", GROUP="cdwrite"
 ENV{ID_CDROM}=="?*",		GROUP="cdwrite"
 ENV{ID_CDROM_CD_RW}=="?*",	GROUP="cdwrite"
 ENV{ID_CDROM_DVD}=="?*",	GROUP="cdwrite"
@@ -176,12 +176,12 @@ KERNEL=="null",		 	MODE="0666", SYMLINK+="drzewo"
 KERNEL=="zero",		 	MODE="0666"
 
 # misc usb devices
-BUS=="usb",			KERNEL=="auer[0-9]*", NAME="usb/%k"
-BUS=="usb",			KERNEL=="cpad[0-9]*", NAME="usb/%k"
-BUS=="usb",			KERNEL=="dabusb*", NAME="usb/%k"
-BUS=="usb",			KERNEL=="hiddev*", NAME="usb/%k"
-BUS=="usb".			KERNEL=="legousbtower*", NAME="usb/%k"
-BUS=="usb",			KERNEL=="ttyUSB*", SYSFS{product}=="Palm Handheld*", SYMLINK+="pilot"
+SUBSYSTEM=="usb",		KERNEL=="auer[0-9]*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="cpad[0-9]*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="dabusb*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="hiddev*", NAME="usb/%k"
+SUBSYSTEM=="usb".		KERNEL=="legousbtower*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="ttyUSB*", ATTRS{product}=="Palm Handheld*", SYMLINK+="pilot"
 
 # Asterisk Zaptel devices
 KERNEL=="zapctl",		NAME="zap/ctl"
