@@ -69,7 +69,7 @@ add|register)
 	    ethernet_check $INTERFACE || exit 0;
 
 	    # automatically create an interface file
-	    CFG=/etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+	    CFG=/etc/sysconfig/interfaces/ifcfg-$INTERFACE
 	    if [ "$AUTOMATIC_IFCFG" != no -a ! -r $CFG ]; then
 		debug_mesg creating config file for $INTERFACE
 		cat > $CFG <<EOF
@@ -103,7 +103,7 @@ remove|unregister)
 	*)
 	    if [ -x /sbin/ifdown ]; then
 		debug_mesg invoke ifdown $INTERFACE
-		exec /sbin/ifdown $INTERFACE daemon
+		exec /sbin/ifdown $INTERFACE hotplug
 	    fi
 	    ;;
     esac
