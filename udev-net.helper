@@ -88,7 +88,7 @@ remove|unregister)
 	*)
 	    if [ -x /sbin/ifdown ]; then
 		debug_mesg invoke ifdown $INTERFACE
-		exec /sbin/ifdown $INTERFACE daemon
+		exec /sbin/ifdown $INTERFACE hotplug
 	    fi
 	    ;;
     esac
