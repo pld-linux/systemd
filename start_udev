@@ -109,7 +109,10 @@ if [ -f "/sys/class/tty/console/uevent" ]; then
 	ret=$(( $ret + $? ))
 
 	# retrigger all events
-	mkdir -p /dev/.udev/queue
+	# Udev find's it's own way of making this dir
+	# and making it by hand makes udevsettle
+	# work forever
+	#mkdir -p /dev/.udev/queue
 	udevtrigger	
 	ret=$(( $ret + $? ))
 	
