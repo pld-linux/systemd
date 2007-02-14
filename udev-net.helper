@@ -60,7 +60,7 @@ add|register)
 		cat > $CFG <<EOF
 DEVICE=$INTERFACE
 BOOTPROTO=dhcp
-ONBOOT=yes
+ONBOOT=no
 EOF
 	    fi
 
