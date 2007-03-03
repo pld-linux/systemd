@@ -204,9 +204,9 @@ KERNEL=="zip*",			GROUP="disk"
 KERNEL=="ls120",		GROUP="disk"
 
 # printer devices
-SUBSYSTEM=="printer",		KERNEL=="lp*", GROUP="lp"
-SUBSYSTEM=="usb",		KERNEL=="lp*", NAME="usb/%k", SYMLINK+="usb%k", GROUP="lp"
-KERNEL=="irlpt*",		GROUP="lp"
+SUBSYSTEM=="printer",		KERNEL=="lp*", MODE="0660", GROUP="lp"
+SUBSYSTEM=="usb",		KERNEL=="lp*", NAME="usb/%k", SYMLINK+="usb%k", MODE="0660", GROUP="lp"
+KERNEL=="irlpt*",		MODE="0660", GROUP="lp"
 
 # disk devices
 KERNEL=="ht*",			GROUP="disk"
