@@ -47,7 +47,8 @@ make_extra_nodes () {
 	        *) echo "links.conf: unparseable line ($type $name $arg1)" ;;
 	    esac
 	done
-	cp -a /lib/udev/devices/* /dev/ >/dev/null 2>&1 || :
+	[ -d /lib/udev/devices ] && cp -a /lib/udev/devices/* /dev/ >/dev/null 2>&1 || :
+	[ -d /lib64/udev/devices ] && cp -a /lib64/udev/devices/* /dev/ >/dev/null 2>&1 || :
 }
 
 kill_udevd() {
