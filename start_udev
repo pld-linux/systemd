@@ -24,10 +24,12 @@
 udev_root="/dev/"
 sysfs_dir="/sys"
 udevd_timeout=8
+UDEV_STARTER="udevstart"
 
 # don't use udev if sysfs is not mounted.
 [ -d $sysfs_dir/class ] || exit 1
 [ -r /proc/mounts ] || exit 1
+[ -x /sbin/udev ] || exit 1
 [ -f /etc/udev/udev.conf ] && . /etc/udev/udev.conf
 
 . /etc/rc.d/init.d/functions
@@ -35,6 +37,7 @@ udevd_timeout=8
 prog=udev
 bin=/sbin/udev
 udevd=/sbin/udevd
+MAKEDEV="/sbin/MAKEDEV"
 
 make_extra_nodes () {
 	grep '^[^#]' /etc/udev/links.conf | \
@@ -43,7 +46,7 @@ make_extra_nodes () {
 	    case "$type" in
     		L) ln -s $arg1 $udev_root/$name ;;
 	        D) mkdir -p $udev_root/$name ;;
-		M) mknod -m 600 /dev/$name $arg1 ;;
+    		M) mknod --mode=600 $udev_root/$name $arg1 ;;
 	        *) echo "links.conf: unparseable line ($type $name $arg1)" ;;
 	    esac
 	done
@@ -68,18 +71,25 @@ show "Starting udev"
 busy
 
 # mount the tmpfs on ${udev_root%/}, if not already done
-LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/mounts && {
-    	if LANG=C fgrep -q "none ${udev_root%/}/pts " /proc/mounts; then
-    		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
+awk -vudev_root="${udev_root%/}" '$2 == udev_root && $3 == "tmpfs" { exit 1 }' /proc/mounts && {
+	if LANG=C fgrep -q "none ${udev_root%/}/pts " /proc/mounts; then
+		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/pts "$PTSDIR"
 	fi
 	if LANG=C fgrep -q "none ${udev_root%/}/shm " /proc/mounts; then
 		SHMDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/shm "$SHMDIR"
 	fi
-	mount -n -o mode=0755 -t tmpfs none "$udev_root"
-	mkdir -m 0755 $udev_root/pts
-	mkdir -m 0755 $udev_root/shm
+
+	# try to use /initrd/dev if it is there
+	if awk '$2 == "/initrd/dev" && $3 == "tmpfs" { exit 1 }' /proc/mounts; then
+		mount -n -o mode=0755 -t tmpfs none "$udev_root"
+	else
+		mount -n --move /initrd/dev "$udev_root"
+	fi
+
+	mkdir -p -m 0755 $udev_root/pts
+	mkdir -p -m 0755 $udev_root/shm
 	if [ -n "$PTSDIR" ]; then
 		mount --move "$PTSDIR" $udev_root/pts
 		rmdir "$PTSDIR"
@@ -92,34 +102,68 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 	ret=$(( $ret + $? ))
 }
 
+
 kill_udevd > "$udev_root/null" 2>&1
 
-	# Start udevd daemon
-	udevd --daemon
-	ret=$(( $ret + $? ))
-	
-	# Making extra nodes
-	make_extra_nodes
-	ret=$(( $ret + $? ))
-	
-if [ -f "/sys/class/tty/console/uevent" ]; then
+# Starting the hotplug events dispatcher
+    /sbin/udevd --daemon
+    ret=$(( $ret + $? ))
 
-    	# Setting default hotplug handler
-	set_hotplug_handler
-	ret=$(( $ret + $? ))
+# Making extra nodes
+    make_extra_nodes
+    ret=$(( $ret + $? ))
 
-	# retrigger all events
-	mkdir -p /dev/.udev/queue
-	udevtrigger	
-	ret=$(( $ret + $? ))
+# Setting default hotplug handler
+    set_hotplug_handler
+    ret=$(( $ret + $? ))
+    
+# Synthesizing the initial hotplug events
+    /sbin/${UDEV_STARTER}
+    ret=$(( $ret + $? ))
+
+# retrigger ide/scsi/input events
+    mkdir -p /dev/.udev/queue
+    list="$(echo /sys/bus/ide/devices/*/uevent)"
+    list="$list $(echo /sys/bus/scsi/devices/*/uevent)"
+    list="$list $(echo /sys/class/input/*/uevent)"
+    list="$list $(echo /sys/class/scsi*/*/uevent)"
+    list="$list $(echo /sys/block/*/uevent /sys/block/*/*/uevent)"
+    
+    for i in $list; do
+	case "$i" in
+	    */device/uevent|*\**)
+	    continue
+	    ;;
+	    */class/mem/*|*/class/tty/*)
+	    first="$first $i"
+	    ;;
+	    */block/md*)
+	    last="$last $i"
+	    ;;
+	    */*)
+	    default="$default $i"
+	    ;;
+	esac
+    done
 	
-	# wait for the events to finish
-	udevsettle	
-	ret=$(( $ret + $? ))
-else
-	echo "Kernel too old for this udev version"
-fi
+    ret=$(( $ret + $? ))
+	
+    # trigger the sorted events
+    for i in $first $default $last; do
+	echo "add" > "$i"
+    done
 
-ret=$(( $ret + $? ))
+    ret=$(( $ret + $? ))
+
+# wait for /dev to be fully populated
+    while [ -d /dev/.udev/queue/ ]; do
+	sleep 0.2
+        udevd_timeout=$(($udevd_timeout - 1))
+	if [ $udevd_timeout -eq 0 ]; then
+	    break
+        fi
+    done
+    ret=$(( $ret + $? ))
+
 [ $ret -eq 0 ] && ok || fail
 exit 0
