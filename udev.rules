@@ -15,13 +15,13 @@ BUS=="ide", KERNEL=="hd[a-z]", SYSFS{removable}=="1", \
 # console
 KERNEL=="pty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
 KERNEL=="tty[pqrstuvwxyzabcdef][0123456789abcdef]", NAME="%k", GROUP="tty",	OPTIONS="last_rule"
-KERNEL=="vcs*",                 NAME="%k", GROUP="tty",			OPTIONS="last_rule"
-KERNEL=="vcsa*",                NAME="%k", GROUP="tty",			OPTIONS="last_rule"
-KERNEL=="tty",                  NAME="%k", GROUP="tty",	MODE="0666",	OPTIONS="last_rule"
-KERNEL=="tty[0-9]",             NAME="%k", GROUP="tty",			OPTIONS="last_rule"
-KERNEL=="tty[0-9][0-9]",        NAME="%k", GROUP="tty",			OPTIONS="last_rule"
+KERNEL=="vcs*",			NAME="%k", GROUP="tty",				OPTIONS="last_rule"
+KERNEL=="vcsa*",		NAME="%k", GROUP="tty",				OPTIONS="last_rule"
+KERNEL=="tty",			NAME="%k", GROUP="tty", MODE="0666",		OPTIONS="last_rule"
+KERNEL=="tty[0-9]",		NAME="%k", GROUP="tty",				OPTIONS="last_rule"
+KERNEL=="tty[0-9][0-9]",	NAME="%k", GROUP="tty",				OPTIONS="last_rule"
 KERNEL=="console",		NAME="%k", GROUP="console", MODE="0660",	OPTIONS="last_rule"
-KERNEL=="ptmx",			NAME="%k", GROUP="tty",	MODE="0666",	OPTIONS="last_rule"
+KERNEL=="ptmx",			NAME="%k", GROUP="tty",	MODE="0666",		OPTIONS="last_rule"
 
 # tty devices
 KERNEL=="ttyS[0-9]*",	NAME="tts/%n", SYMLINK+="%k", GROUP="ttyS"
@@ -36,16 +36,25 @@ KERNEL=="rfcomm[0-9]*", NAME="%k", GROUP="ttyS", MODE="0664"
 SUBSYSTEM=="block", GROUP="disk"
 
 # cdrom symlinks and other good cdrom naming
-BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-BUS=="scsi",	KERNEL="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
-
-ENV{ID_CDROM}=="?*", PROGRAM="write_cd_aliases", SYMLINK+="%c"
+BUS=="ide",	KERNEL=="hd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
+BUS=="scsi",	KERNEL="sr[0-9]*", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
+BUS=="scsi",	KERNEL="scd[a-z]", ACTION=="add", IMPORT="/sbin/cdrom_id --export $tempnode"
+ENV{ID_CDROM}=="?*",		SYMLINK+="cdrom%e",	GROUP="cdwrite"
+ENV{ID_CDROM_CD_RW}=="?*",	SYMLINK+="cdrw%e",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD}=="?*",	SYMLINK+="dvd%e",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD_R}=="?*",	SYMLINK+="dvdrw%e",	GROUP="cdwrite"
 
 # disk devices
 KERNEL=="sd*",		NAME="%k", GROUP="disk"
 KERNEL=="dasd*",	NAME="%k", GROUP="disk"
 KERNEL=="ataraid*",	NAME="%k", GROUP="disk"
+
+# compaq smart array
+KERNEL=="cciss*",	PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
+KERNEL=="ida*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
+
+# mylex
+KERNEL=="rd*",		PROGRAM="/lib/udev/raid-devfs.sh %k", NAME="%c{1}", SYMLINK+="%k"
 
 # dri devices
 SUBSYSTEM=="graphics",	KERNEL=="3dfx*",	NAME="%k", GROUP="video"
@@ -54,24 +63,24 @@ SUBSYSTEM=="graphics",	KERNEL=="nvidiactl*",	NAME="%k", GROUP="video"
 SUBSYSTEM=="graphics",	KERNEL=="nvidia*",	NAME="%k", GROUP="video"
 
 # alsa devices
-SUBSYSTEM="sound",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="controlC[0-9]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="hw[CD0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="midiC[D0-9]*",		NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="seq",			NAME="snd/%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="timer",		NAME="snd/%k",	GROUP="audio"
 
 # sound devices
-SUBSYSTEM="sound",	KERNEL=="adsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="adsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="audio",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="audio[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="dsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="dsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="mixer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="mixer[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="sequencer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
-SUBSYSTEM="sound",	KERNEL=="sequencer[0-9]*",	NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="adsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="adsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="audio",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="audio[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="dsp",			NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="dsp[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="mixer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="mixer[0-9]*",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="sequencer",		NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
+SUBSYSTEM=="sound",	KERNEL=="sequencer[0-9]*",	NAME="sound/%k",	SYMLINK+="%k",	GROUP="audio"
 
 # capi devices
 KERNEL=="capi",		NAME="capi20", SYMLINK+="isdn/capi20"
@@ -82,11 +91,6 @@ KERNEL=="cpu[0-9]*",	NAME="cpu/%n/cpuid"
 KERNEL=="msr[0-9]*",	NAME="cpu/%n/msr"
 KERNEL=="microcode",	NAME="cpu/microcode"
 
-# dm devices (ignore them)
-KERNEL=="dm-[0-9]*",	OPTIONS="ignore_device"
-# create a symlink named after the device map name
-# note devmap_name comes with multipath-tools package and it has it's own .rules file
-#KERNEL=="dm-[0-9]*",	PROGRAM="/sbin/devmap_name %M %m", NAME="%k", SYMLINK+="%c"
 KERNEL=="device-mapper",	NAME="mapper/control"
 
 # fb devices
@@ -126,6 +130,7 @@ KERNEL=="inotify",	NAME="misc/%k", SYMLINK+="%k", MODE="0666"
 KERNEL=="psaux",	NAME="misc/%k", SYMLINK+="%k"
 KERNEL=="rtc",		NAME="misc/%k", SYMLINK+="%k", MODE="0664"
 KERNEL=="uinput",	NAME="misc/%k", SYMLINK+="%k"
+KERNEL=="fuse",		MODE="0666"
 
 # netlink devices
 KERNEL=="route",	NAME="netlink/%k"
@@ -175,7 +180,7 @@ BUS=="usb".		KERNEL=="legousbtower*",	NAME="usb/%k"
 BUS=="usb",		KERNEL=="ttyUSB*", 	SYSFS{product}=="Palm Handheld*", SYMLINK+="pilot"
 
 # usbfs-like device nodes
-SUBSYSTEM="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
+SUBSYSTEM=="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", \
 			SYMLINK+="%c", GROUP="usb", MODE="0664"
 
 # v4l devices
@@ -249,10 +254,7 @@ KERNEL=="umad*",	NAME="infiniband/%k"
 KERNEL=="uverbs*",	NAME="infiniband/%k"
 
 # tpm devices
-KERNEL=="tpm*",		NAME="%k", OWNER="tss", MODE="0600"
+KERNEL=="tpm*",		NAME="%k", MODE="0600"
 
 # debugging monitor
 RUN+="socket:/org/kernel/udev/monitor"
-
-# debug events to /events, but not on default udev_log="err"
-#ENV{UDEV_LOG}=="[4-9]", RUN+="/lib/udev/eventrecorder.sh"
