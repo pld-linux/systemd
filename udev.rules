@@ -128,13 +128,17 @@ SUBSYSTEM=="aoe",		KERNEL=="err", NAME="etherd/%k", GROUP="disk", MODE="0440"
 SUBSYSTEM=="aoe",		KERNEL=="interfaces", NAME="etherd/%k", GROUP="disk", MODE="0220"
 
 # misc devices
-KERNEL=="agpgart",		NAME="misc/%k", SYMLINK+="%k", MODE="660", GROUP="video"
 KERNEL=="cdemu[0-9]*",		NAME="cdemu/%n"
 KERNEL=="fuse",			MODE="0666"
-KERNEL=="hw_random",		NAME="hwrng"
+KERNEL=="hw_random",		NAME="hwrng",	SYMLINK+="%k"
 KERNEL=="inotify",		NAME="misc/%k", SYMLINK+="%k", MODE="0666"
 KERNEL=="psaux",		NAME="misc/%k", SYMLINK+="%k"
-KERNEL=="rtc",			NAME="misc/%k", SYMLINK+="%k", MODE="0664"
+KERNEL=="rtc|rtc0",		MODE="0644"
+KERNEL=="rtc0",			SYMLINK+="rtc"
+
+# graphics
+KERNEL=="agpgart",		NAME="misc/%k", SYMLINK+="%k", MODE="660", GROUP="video"
+KERNEL=="fb0",			SYMLINK+="fb"
 
 # netlink devices
 KERNEL=="arpd",			NAME="netlink/%k"
@@ -174,6 +178,8 @@ KERNEL=="port",		 	MODE="0640", GROUP="kmem"
 KERNEL=="full",		 	MODE="0666"
 KERNEL=="null",		 	MODE="0666", SYMLINK+="drzewo"
 KERNEL=="zero",		 	MODE="0666"
+KERNEL=="ram0",			SYMLINK+="ramdisk"
+KERNEL=="ram1",			SYMLINK+="ram"
 
 # misc usb devices
 SUBSYSTEM=="usb",		KERNEL=="auer[0-9]*", NAME="usb/%k"
