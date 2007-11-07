@@ -130,6 +130,7 @@ KERNEL=="inotify",	NAME="misc/%k", SYMLINK+="%k", MODE="0666"
 KERNEL=="psaux",	NAME="misc/%k", SYMLINK+="%k"
 KERNEL=="rtc",		NAME="misc/%k", SYMLINK+="%k", MODE="0664"
 KERNEL=="uinput",	NAME="misc/%k", SYMLINK+="%k"
+KERNEL=="fuse",		MODE="0666"
 
 # netlink devices
 KERNEL=="route",	NAME="netlink/%k"
