@@ -114,11 +114,11 @@ if [ -f "/sys/class/tty/console/uevent" ]; then
 	# and making it by hand makes udevsettle
 	# work forever
 	#mkdir -p /dev/.udev/queue
-	udevtrigger	
+	udevadm trigger	
 	ret=$(( $ret + $? ))
 	
 	# wait for the events to finish
-	udevsettle	
+	udevadm settle	
 	ret=$(( $ret + $? ))
 else
 	echo "Kernel too old for this udev version"
