@@ -2,59 +2,59 @@
 # PLD Linux Distribution udev rules
 #
 
-KERNEL=="tty[A-Z]*|pppox*|ircomm*|noz*", GROUP+="ttyS"
-KERNEL=="mwave",                GROUP+="ttyS"
-KERNEL=="hvc*|hvsi*",           GROUP+="ttyS"
-KERNEL=="iseries/vtty*",	GROUP+="ttyS"
-KERNEL=="rfcomm[0-9]*",		GROUP+="ttyS", MODE+="0664"
+KERNEL=="tty[A-Z]*|pppox*|ircomm*|noz*", GROUP="ttyS"
+KERNEL=="mwave",                GROUP="ttyS"
+KERNEL=="hvc*|hvsi*",           GROUP="ttyS"
+KERNEL=="iseries/vtty*",	GROUP="ttyS"
+KERNEL=="rfcomm[0-9]*",		GROUP="ttyS", MODE="0664"
 
 # graphics/video
-SUBSYSTEM=="video4linux",	GROUP+="video"
-SUBSYSTEM=="graphics",		GROUP+="video"
-KERNEL=="3dfx*",		GROUP+="video"
-KERNEL=="card*",		GROUP+="video"
-KERNEL=="nvidia*|nvidiactl*",	GROUP+="video"
-KERNEL=="pmu",			GROUP+="video"
-KERNEL=="vttuner*",		GROUP+="video"
-KERNEL=="vtx*|vbi*",		GROUP+="video"
-KERNEL=="winradio*",		GROUP+="video"
+SUBSYSTEM=="video4linux",	GROUP="video"
+SUBSYSTEM=="graphics",		GROUP="video"
+KERNEL=="3dfx*",		GROUP="video"
+KERNEL=="card*",		GROUP="video"
+KERNEL=="nvidia*|nvidiactl*",	GROUP="video"
+KERNEL=="pmu",			GROUP="video"
+KERNEL=="vttuner*",		GROUP="video"
+KERNEL=="vtx*|vbi*",		GROUP="video"
+KERNEL=="winradio*",		GROUP="video"
 
 # fb devices
-KERNEL=="fb[0-9]*",		GROUP+="video"
+KERNEL=="fb[0-9]*",		GROUP="video"
 
 # alsa devices
-SUBSYSTEM=="sound",		GROUP+="audio"
-KERNEL=="controlC[0-9]*",	GROUP+="audio"
-KERNEL=="hw[CD0-9]*",		GROUP+="audio"
-KERNEL=="midiC[D0-9]*",		GROUP+="audio"
-KERNEL=="pcm[CD0-9cp]*",	GROUP+="audio"
-KERNEL=="seq",			GROUP+="audio"
-KERNEL=="timer",		GROUP+="audio"
+SUBSYSTEM=="sound",		GROUP="audio"
+KERNEL=="controlC[0-9]*",	GROUP="audio"
+KERNEL=="hw[CD0-9]*",		GROUP="audio"
+KERNEL=="midiC[D0-9]*",		GROUP="audio"
+KERNEL=="pcm[CD0-9cp]*",	GROUP="audio"
+KERNEL=="seq",			GROUP="audio"
+KERNEL=="timer",		GROUP="audio"
 
-KERNEL=="adsp",			GROUP+="audio"
-KERNEL=="adsp[0-9]*",		GROUP+="audio"
-KERNEL=="audio",		GROUP+="audio"
-KERNEL=="audio[0-9]*",		GROUP+="audio"
-KERNEL=="dsp",			GROUP+="audio"
-KERNEL=="dsp[0-9]*",		GROUP+="audio"
-KERNEL=="mixer",		GROUP+="audio"
-KERNEL=="mixer[0-9]*",		GROUP+="audio"
-KERNEL=="sequencer",		GROUP+="audio"
-KERNEL=="sequencer[0-9]*",	GROUP+="audio"
+KERNEL=="adsp",			GROUP="audio"
+KERNEL=="adsp[0-9]*",		GROUP="audio"
+KERNEL=="audio",		GROUP="audio"
+KERNEL=="audio[0-9]*",		GROUP="audio"
+KERNEL=="dsp",			GROUP="audio"
+KERNEL=="dsp[0-9]*",		GROUP="audio"
+KERNEL=="mixer",		GROUP="audio"
+KERNEL=="mixer[0-9]*",		GROUP="audio"
+KERNEL=="sequencer",		GROUP="audio"
+KERNEL=="sequencer[0-9]*",	GROUP="audio"
 
 # floppy devices
-KERNEL=="nvram",		ACTION=="add", RUN+="load_floppy_module.sh"
-KERNEL=="fd[0-9]*",		ACTION=="add", ATTRS{cmos}=="*", RUN+="create_floppy_devices -c -t $attr{cmos} -m %M $root/%k", GROUP="floppy"
-KERNEL=="fd[0-9]*",		ACTION=="remove", RUN+="/bin/rm -f $root/%k*"
+KERNEL=="nvram",		ACTION=="add", RUN="load_floppy_module.sh"
+KERNEL=="fd[0-9]*",		ACTION=="add", ATTRS{cmos}=="*", RUN="create_floppy_devices -c -t $attr{cmos} -m %M $root/%k", GROUP="floppy"
+KERNEL=="fd[0-9]*",		ACTION=="remove", RUN="/bin/rm -f $root/%k*"
 
 # input devices
-KERNEL=="js*",			MODE+="0664", GROUP+="sys"
+KERNEL=="js*",			MODE="0664", GROUP="sys"
 
 # misc devices
-KERNEL=="fuse",			MODE+="0660", GROUP+="fuse"
+KERNEL=="fuse",			MODE="0660", GROUP="fuse"
 
 # graphics
-KERNEL=="agpgart",		MODE+="660", GROUP+="video"
+KERNEL=="agpgart",		MODE="660", GROUP="video"
 
 # netlink devices
 KERNEL=="arpd",			NAME="netlink/%k"
@@ -71,6 +71,6 @@ KERNEL=="usersock",		NAME="netlink/%k"
 KERNEL=="xfrm",			NAME="netlink/%k"
 
 # IEEE1394 (firewire) devices
-KERNEL=="dv1394*",		GROUP+="video"
-KERNEL=="raw1394",		GROUP+="video"
-KERNEL=="video1394*",		GROUP+="video"
+KERNEL=="dv1394*",		GROUP="video"
+KERNEL=="raw1394",		GROUP="video"
+KERNEL=="video1394*",		GROUP="video"
