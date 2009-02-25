@@ -40,4 +40,4 @@ done
 # udev README says:
 # - The system must have the following group names resolvable at udev startup:
 #     disk, cdrom, floppy, tape, audio, video, lp, tty, dialout, kmem
-grep '^\(disk\|cdrom\|floppy\|tape\|audio\|video\|lp\|tty\|dialout\|kmem\):' /etc/group > $DESTDIR/etc/group
+egrep '^(disk|cdrom|floppy|tape|audio|video|lp|tty|dialout|kmem):' /etc/group > $DESTDIR/etc/group
