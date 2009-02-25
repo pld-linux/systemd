@@ -36,3 +36,8 @@ rm -f $DESTDIR/etc/udev/rules.d/75-cd-aliases-generator.rules
 for program in /lib/udev/*_id; do
   copy_exec $program /lib/udev
 done
+
+# udev README says:
+# - The system must have the following group names resolvable at udev startup:
+#     disk, cdrom, floppy, tape, audio, video, lp, tty, dialout, kmem
+grep '^\(disk\|cdrom\|floppy\|tape\|audio\|video\|lp\|tty\|dialout\|kmem\):' /etc/group > $DESTDIR/etc/group
