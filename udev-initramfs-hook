@@ -16,8 +16,12 @@ esac
 # udevd uses unix domain sockets for communication
 force_load unix
 
-cp -a /etc/udev/ $DESTDIR/etc/
-rm -f $DESTDIR/etc/udev/rules.d/75-cd-aliases-generator.rules
+mkdir -p $DESTDIR/etc/udev/rules.d
+cp -a /etc/udev/*.conf $DESTDIR/etc/udev/
+for f in /etc/udev/rules.d/*device-mapper* ; do
+	cp -a "$f" $DESTDIR/etc/udev/rules.d/
+done
+
 if [ -e /etc/scsi_id.config ]; then
   cp /etc/scsi_id.config $DESTDIR/etc/
 fi
@@ -25,7 +29,10 @@ fi
 copy_exec /sbin/udevd      /sbin
 copy_exec /sbin/udevadm    /sbin
 
-mkdir -p $DESTDIR/lib/udev/
+mkdir -p $DESTDIR/lib/udev/rules.d
+cp -a /lib/udev/rules.d/* $DESTDIR/lib/udev/rules.d/
+rm -f $DESTDIR/etc/udev/rules.d/75-cd-aliases-generator.rules
+
 for program in /lib/udev/*_id; do
   copy_exec $program /lib/udev
 done
