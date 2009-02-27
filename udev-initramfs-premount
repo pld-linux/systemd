@@ -14,7 +14,7 @@ esac
 echo > /sys/kernel/uevent_helper
 
 mkdir -p /dev/.udev/db/
-udevd --daemon
+udevd --daemon --resolve-names=never
 
 mkdir -p /dev/.udev/queue/ /dev/.udev/rules.d/
 udevadm trigger
