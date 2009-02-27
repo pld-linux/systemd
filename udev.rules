@@ -1,60 +1,144 @@
 #
 # PLD Linux Distribution udev rules
 #
+# There are a number of modifiers that are allowed to be used in some of the
+# fields.  See the udev man page for a full description of them.
+#
+# Try not to modify this file, if you wish to change things, create a new rule
+# file that can be run before this one.
+#
 
-KERNEL=="tty[A-Z]*|pppox*|ircomm*|noz*", GROUP="ttyS"
-KERNEL=="mwave",                GROUP="ttyS"
-KERNEL=="hvc*|hvsi*",           GROUP="ttyS"
+# workaround for devices which do not report media changes
+SUBSYSTEMS=="ide", KERNEL=="hd[a-z]", ATTRS{removable}=="1", ENV{ID_MODEL}=="IOMEGA_ZIP*", OPTIONS+="all_partitions"
+SUBSYSTEMS=="ide", KERNEL=="hd[a-z]", ATTRS{media}=="floppy", OPTIONS+="all_partitions"
+
+# console
+KERNEL=="pty[pqrstuvwxyzabcdef][0123456789abcdef]", GROUP="tty", OPTIONS="last_rule"
+KERNEL=="tty[pqrstuvwxyzabcdef][0123456789abcdef]", GROUP="tty", OPTIONS="last_rule"
+KERNEL=="console",		GROUP="console", MODE="0660", OPTIONS="last_rule"
+KERNEL=="ptmx",			GROUP="tty", MODE="0666", OPTIONS="last_rule"
+KERNEL=="tty[0-9][0-9]",	GROUP="tty", OPTIONS="last_rule"
+KERNEL=="tty[0-9]",		GROUP="tty", OPTIONS="last_rule"
+KERNEL=="tty", 			GROUP="tty", MODE="0666", OPTIONS="last_rule"
+KERNEL=="vcsa*",		GROUP="tty", OPTIONS="last_rule"
+KERNEL=="vcs*",			GROUP="tty", OPTIONS="last_rule"
+
+# serial devices
+KERNEL=="ircomm*",		GROUP="ttyS"
 KERNEL=="iseries/vtty*",	GROUP="ttyS"
+KERNEL=="modems/mwave*",	GROUP="ttyS"
+KERNEL=="pppox*",		GROUP="ttyS"
 KERNEL=="rfcomm[0-9]*",		GROUP="ttyS", MODE="0664"
+KERNEL=="ttyS[0-9]*",		NAME="tts/%n", SYMLINK+="%k", GROUP="ttyS"
+KERNEL=="ttyUSB[0-9]*",		NAME="tts/USB%n", GROUP="ttyS", MODE="0660"
+KERNEL=="ttyUSB*",		ATTRS{product}=="[Hh]andspring*Treo*|[Hh]andspring*Visor*", SYMLINK+="pilot"
+KERNEL=="ttyUSB*",		ATTRS{product}=="[Pp]alm*Handheld*", SYMLINK+="pilot"
+
+# all block devices
+SUBSYSTEM=="block", GROUP="disk"
+
+# IDE/SCSI devices
+KERNEL=="hd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+KERNEL=="sr[0-9]*", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+KERNEL=="scd[a-z]", ACTION=="add", IMPORT="cdrom_id --export $tempnode"
+KERNEL=="sg[0-9]*", ACTION=="add", DRIVERS=="sr", GROUP="cdwrite"
+ENV{ID_CDROM}=="?*",		SYMLINK+="cdrom",	GROUP="cdwrite"
+ENV{ID_CDROM_CD_RW}=="?*",	SYMLINK+="cdrw",	GROUP="cdwrite"
+ENV{ID_CDROM_DVD}=="?*",	SYMLINK+="dvd",		GROUP="cdwrite"
+ENV{ID_CDROM_DVD_R}=="?*",	SYMLINK+="dvdrw",	GROUP="cdwrite"
+
+# disk devices
+KERNEL=="sd*",			GROUP="disk"
+KERNEL=="dasd*",		GROUP="disk"
+KERNEL=="ataraid*",		GROUP="disk"
 
 # graphics/video
 SUBSYSTEM=="video4linux",	GROUP="video"
 SUBSYSTEM=="graphics",		GROUP="video"
 KERNEL=="3dfx*",		GROUP="video"
-KERNEL=="card*",		GROUP="video"
+KERNEL=="card*",		NAME="dri/card%n", GROUP="video"
 KERNEL=="nvidia*|nvidiactl*",	GROUP="video"
 KERNEL=="pmu",			GROUP="video"
+KERNEL=="radio0",		SYMLINK+="radio"
+KERNEL=="vbi0",			SYMLINK+="vbi"
+KERNEL=="video0",		SYMLINK+="video"
 KERNEL=="vttuner*",		GROUP="video"
 KERNEL=="vtx*|vbi*",		GROUP="video"
 KERNEL=="winradio*",		GROUP="video"
 
 # fb devices
-KERNEL=="fb[0-9]*",		GROUP="video"
+KERNEL=="fb[0-9]*",		NAME="fb/%n", SYMLINK+="%k", GROUP="video"
 
 # alsa devices
 SUBSYSTEM=="sound",		GROUP="audio"
-KERNEL=="controlC[0-9]*",	GROUP="audio"
-KERNEL=="hw[CD0-9]*",		GROUP="audio"
-KERNEL=="midiC[D0-9]*",		GROUP="audio"
-KERNEL=="pcm[CD0-9cp]*",	GROUP="audio"
-KERNEL=="seq",			GROUP="audio"
-KERNEL=="timer",		GROUP="audio"
+KERNEL=="controlC[0-9]*",	NAME="snd/%k", GROUP="audio"
+KERNEL=="hw[CD0-9]*",		NAME="snd/%k", GROUP="audio"
+KERNEL=="midiC[D0-9]*",		NAME="snd/%k", GROUP="audio"
+KERNEL=="pcm[CD0-9cp]*",	NAME="snd/%k", GROUP="audio"
+KERNEL=="seq",			NAME="snd/%k", GROUP="audio"
+KERNEL=="timer",		NAME="snd/%k", GROUP="audio"
 
-KERNEL=="adsp",			GROUP="audio"
-KERNEL=="adsp[0-9]*",		GROUP="audio"
-KERNEL=="audio",		GROUP="audio"
-KERNEL=="audio[0-9]*",		GROUP="audio"
-KERNEL=="dsp",			GROUP="audio"
-KERNEL=="dsp[0-9]*",		GROUP="audio"
-KERNEL=="mixer",		GROUP="audio"
-KERNEL=="mixer[0-9]*",		GROUP="audio"
-KERNEL=="sequencer",		GROUP="audio"
-KERNEL=="sequencer[0-9]*",	GROUP="audio"
+# sound devices
+SUBSYSTEM=="sound",		GROUP="audio"
+KERNEL=="adsp",			NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="adsp[0-9]*",		NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="audio",		NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="audio[0-9]*",		NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="dsp",			NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="dsp[0-9]*",		NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="mixer",		NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="mixer[0-9]*",		NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="sequencer",		NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+KERNEL=="sequencer[0-9]*",	NAME="sound/%k", SYMLINK+="%k",	GROUP="audio"
+
+# capi devices
+KERNEL=="capi",			NAME="capi20", SYMLINK+="isdn/capi20"
+KERNEL=="capi*",		NAME="capi/%n"
+
+# cpu devices
+KERNEL=="cpu[0-9]*",		NAME="cpu/%n/cpuid"
+KERNEL=="microcode",		NAME="cpu/microcode"
+KERNEL=="msr[0-9]*",		NAME="cpu/%n/msr"
 
 # floppy devices
-KERNEL=="nvram",		ACTION=="add", RUN="load_floppy_module.sh"
-KERNEL=="fd[0-9]*",		ACTION=="add", ATTRS{cmos}=="*", RUN="create_floppy_devices -c -t $attr{cmos} -m %M $root/%k", GROUP="floppy"
-KERNEL=="fd[0-9]*",		ACTION=="remove", RUN="/bin/rm -f $root/%k*"
+KERNEL=="nvram",		ACTION=="add", RUN+="load_floppy_module.sh"
+KERNEL=="fd[0-9]*",		ACTION=="add", ATTRS{cmos}=="*", RUN+="create_floppy_devices -c -t $attr{cmos} -m %M $root/%k", GROUP="floppy"
+KERNEL=="fd[0-9]*",		ACTION=="remove", RUN+="/bin/rm -f $root/%k*"
+
+# i2c devices
+KERNEL=="i2c-[0-9]*",		NAME="i2c/%n", SYMLINK+="%k"
 
 # input devices
-KERNEL=="js*",			MODE="0664", GROUP="sys"
+KERNEL=="event*",		NAME="input/%k", MODE="0600"
+KERNEL=="js*",			NAME="input/%k", MODE="0664", GROUP="sys"
+KERNEL=="lirc0",		SYMLINK+="lirc"
+KERNEL=="mouse*|mice",		NAME="input/%k", MODE="0644"
+KERNEL=="ts*",			NAME="input/%k", MODE="0600"
+KERNEL=="uinput",		NAME="input/%k"
+
+# loop devices
+KERNEL=="loop[0-9]*",		NAME="loop/%n", SYMLINK+="%k", GROUP="disk"
+
+# md block devices
+KERNEL=="md[0-9]*",		NAME="md/%n", SYMLINK+="%k", GROUP="disk"
+
+# aoe char devices
+SUBSYSTEM=="aoe",		KERNEL=="discover", NAME="etherd/%k", GROUP="disk", MODE="0220"
+SUBSYSTEM=="aoe",		KERNEL=="err", NAME="etherd/%k", GROUP="disk", MODE="0440"
+SUBSYSTEM=="aoe",		KERNEL=="interfaces", NAME="etherd/%k", GROUP="disk", MODE="0220"
 
 # misc devices
+KERNEL=="cdemu[0-9]*",		NAME="cdemu/%n"
 KERNEL=="fuse",			MODE="0660", GROUP="fuse"
+KERNEL=="hw_random",		NAME="hwrng",	SYMLINK+="%k"
+KERNEL=="inotify",		NAME="misc/%k", SYMLINK+="%k", MODE="0666"
+KERNEL=="psaux",		NAME="misc/%k", SYMLINK+="%k"
+KERNEL=="rtc|rtc0",		MODE="0644"
+KERNEL=="rtc0",			SYMLINK+="rtc"
 
 # graphics
-KERNEL=="agpgart",		MODE="660", GROUP="video"
+KERNEL=="agpgart",		NAME="misc/%k", SYMLINK+="%k", MODE="660", GROUP="video"
+KERNEL=="fb0",			SYMLINK+="fb"
 
 # netlink devices
 KERNEL=="arpd",			NAME="netlink/%k"
@@ -70,7 +154,103 @@ KERNEL=="tcpdiag",		NAME="netlink/%k"
 KERNEL=="usersock",		NAME="netlink/%k"
 KERNEL=="xfrm",			NAME="netlink/%k"
 
+# network devices
+KERNEL=="tun",			NAME="net/%k"
+
+# ramdisk devices
+KERNEL=="ram[0-9]*",		NAME="rd/%n", SYMLINK+="%k"
+
 # IEEE1394 (firewire) devices
-KERNEL=="dv1394*",		GROUP="video"
+KERNEL=="dv1394*",		NAME="dv1394/%n", GROUP="video"
 KERNEL=="raw1394",		GROUP="video"
-KERNEL=="video1394*",		GROUP="video"
+KERNEL=="video1394*",		NAME="video1394/%n", GROUP="video"
+
+# raw devices
+KERNEL=="raw[0-9]*",		NAME="raw/%k", GROUP="disk"
+KERNEL=="ram*",			GROUP="disk"
+
+# memory devices
+KERNEL=="random",		MODE="0644"
+KERNEL=="urandom",	 	MODE="0644"
+KERNEL=="mem",		 	MODE="0640", GROUP="kmem"
+KERNEL=="kmem",		 	MODE="0640", GROUP="kmem"
+KERNEL=="port",		 	MODE="0640", GROUP="kmem"
+KERNEL=="full",		 	MODE="0666"
+KERNEL=="null",		 	MODE="0666", SYMLINK+="drzewo"
+KERNEL=="zero",		 	MODE="0666"
+KERNEL=="ram0",			SYMLINK+="ramdisk"
+KERNEL=="ram1",			SYMLINK+="ram"
+
+# misc usb devices
+SUBSYSTEM=="usb",		KERNEL=="auer[0-9]*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="cpad[0-9]*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="dabusb*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="hiddev*", NAME="usb/%k"
+SUBSYSTEM=="usb".		KERNEL=="legousbtower*", NAME="usb/%k"
+SUBSYSTEM=="usb",		KERNEL=="ttyUSB*", ATTRS{product}=="Palm Handheld*", SYMLINK+="pilot"
+
+# Asterisk Zaptel devices
+KERNEL=="zapctl",		NAME="zap/ctl"
+KERNEL=="zaptimer",		NAME="zap/timer"
+KERNEL=="zapchannel",		NAME="zap/channel"
+KERNEL=="zappseudo",		NAME="zap/pseudo"
+KERNEL=="zap[0-9]*",		NAME="zap/%n"
+
+# pilot/palm devices
+KERNEL=="pilot",		NAME="%k"
+
+# jaz devices
+KERNEL=="jaz*",			GROUP="disk"
+
+# zip devices
+KERNEL=="pocketzip*",	 	GROUP="disk"
+KERNEL=="zip*",			GROUP="disk"
+
+# ls120 devices
+KERNEL=="ls120",		GROUP="disk"
+
+# printer devices
+SUBSYSTEM=="printer",		KERNEL=="lp*", MODE="0660", GROUP="lp"
+SUBSYSTEM=="usb",		KERNEL=="lp*", NAME="usb/%k", SYMLINK+="usb%k", MODE="0660", GROUP="lp"
+KERNEL=="irlpt*",		MODE="0660", GROUP="lp"
+
+# disk devices
+KERNEL=="ht*",			GROUP="disk"
+KERNEL=="nht*",			GROUP="disk"
+KERNEL=="pt*",			GROUP="disk"
+KERNEL=="npt*",			GROUP="disk"
+KERNEL=="st*",			GROUP="disk"
+KERNEL=="nst*",			GROUP="disk"
+KERNEL=="osst*",		GROUP="disk"
+KERNEL=="nosst*",		GROUP="disk"
+
+# diskonkey devices
+KERNEL=="diskonkey*",		GROUP="disk"
+
+# rem_ide devices
+KERNEL=="microdrive*",	 	GROUP="disk"
+
+# kbd devices
+KERNEL=="kbd",		 	MODE="0664"
+
+# Sony Vaio Jogdial sonypi device
+KERNEL=="sonypi",	 	MODE="0666"
+
+# packet devices
+KERNEL=="pktcdvd[0-9]*",	NAME="pktcdvd/pktcdvd%n", GROUP="cdwrite", MODE="0660"
+KERNEL=="pktcdvd",		NAME="pktcdvd/control", GROUP="cdwrite", MODE="0660"
+
+# infiniband devices
+KERNEL=="issm*",		NAME="infiniband/%k"
+KERNEL=="ucm*",			NAME="infiniband/%k"
+KERNEL=="umad*",		NAME="infiniband/%k"
+KERNEL=="uverbs*",		NAME="infiniband/%k"
+
+# tpm devices
+KERNEL=="tpm*",			MODE="0600"
+
+# usbfs-like device nodes
+SUBSYSTEM=="usb_device", PROGRAM="/bin/sh -c 'K=%k; K=$${K#usbdev}; printf bus/usb/%%03i/%%03i $${K%%%%.*} $${K#*.}'", SYMLINK+="%c", GROUP="usb", MODE="0664"
+
+# dvb devices
+KERNEL=="dvb*",  PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s $${K%%%%.*} $${K#*.}", NAME="%c", GROUP="video", MODE="0660"
