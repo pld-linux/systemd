@@ -1,0 +1,54 @@
+diff -ur udev-150/extras/ata_id/ata_id.c udev-150-uclibc/extras/ata_id/ata_id.c
+--- udev-150/extras/ata_id/ata_id.c	2009-12-08 18:43:09.000000000 +0100
++++ udev-150-uclibc/extras/ata_id/ata_id.c	2010-01-19 17:10:19.000000000 +0100
+@@ -168,7 +168,11 @@
+ 	uint16_t *p;
+ 
+ 	p = (uint16_t *) identify;
++#ifdef __UCLIBC__
++	p[offset_words] = __le16_to_cpu (p[offset_words]);
++#else
+ 	p[offset_words] = le16toh (p[offset_words]);
++#endif
+ }
+ 
+ /**
+diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
+--- udev-150/udev/udevadm-info.c	2009-12-24 20:40:34.000000000 +0100
++++ udev-150-uclibc/udev/udevadm-info.c	2010-01-19 17:47:00.000000000 +0100
+@@ -43,6 +43,9 @@
+ 			struct stat statbuf;
+ 			const char *value;
+ 			size_t len;
++#ifdef __UCLIBC__
++			char filename[UTIL_PATH_SIZE];
++#endif
+ 
+ 			if (dent->d_name[0] == '.')
+ 				continue;
+@@ -52,7 +55,12 @@
+ 			if (strcmp(dent->d_name, "dev") == 0)
+ 				continue;
+ 
++#ifdef __UCLIBC__
++			util_strscpyl(filename, sizeof(filename), udev_device_get_syspath(device), "/", dent->d_name, NULL);
++			if (lstat(filename, &statbuf) != 0)
++#else
+ 			if (fstatat(dirfd(dir), dent->d_name, &statbuf, AT_SYMLINK_NOFOLLOW) != 0)
++#endif
+ 				continue;
+ 			if (S_ISLNK(statbuf.st_mode))
+ 				continue;
+diff -ur udev-150/udev/udev-node.c udev-150-uclibc/udev/udev-node.c
+--- udev-150/udev/udev-node.c	2009-12-18 21:25:07.000000000 +0100
++++ udev-150-uclibc/udev/udev-node.c	2010-01-19 17:30:10.000000000 +0100
+@@ -178,7 +178,9 @@
+ 					info(udev, "preserve already existing symlink '%s' to '%s'\n",
+ 					     slink, target);
+ 					udev_selinux_lsetfilecon(udev, slink, S_IFLNK);
++#if !defined(__UCLIBC__) && !defined(__dietlibc__)
+ 					lutimes(slink, NULL);
++#endif
+ 					goto exit;
+ 				}
+ 			}
