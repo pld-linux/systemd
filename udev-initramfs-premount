@@ -20,6 +20,11 @@ mkdir -p /dev/.udev/queue/ /dev/.udev/rules.d/
 udevadm trigger
 udevadm settle || true
 
+if [ -d /sys/bus/scsi ]; then
+	modprobe -q scsi_wait_scan && modprobe -r scsi_wait_scan || true
+	udevadm settle || true
+fi
+
 # If the rootdelay parameter has been set, we wait a bit for devices
 # like usb/firewire disks to settle.
 if [ "$ROOTDELAY" ]; then
