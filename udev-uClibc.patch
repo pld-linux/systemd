@@ -39,16 +39,4 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
  				continue;
  			if (S_ISLNK(statbuf.st_mode))
  				continue;
-diff -ur udev-150/udev/udev-node.c udev-150-uclibc/udev/udev-node.c
---- udev-150/udev/udev-node.c	2009-12-18 21:25:07.000000000 +0100
-+++ udev-150-uclibc/udev/udev-node.c	2010-01-19 17:30:10.000000000 +0100
-@@ -178,7 +178,9 @@
- 					info(udev, "preserve already existing symlink '%s' to '%s'\n",
- 					     slink, target);
- 					udev_selinux_lsetfilecon(udev, slink, S_IFLNK);
-+#if !defined(__UCLIBC__) && !defined(__dietlibc__)
- 					lutimes(slink, NULL);
-+#endif
- 					goto exit;
- 				}
- 			}
+
