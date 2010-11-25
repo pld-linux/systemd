@@ -51,7 +51,7 @@ oferuje uruchamianie usług na życzenie, monitoruje procesy używając
 linuksowych cgroups, wspomaga zapisywanie (snapshot) i odczytywanie
 (restore) stanu systemu, zarządza (auto)mount pointami oraz
 implementuje starannie opracowaną transakcjonalną, bazującą na
-zależnościach logikę kontroli usług. Może pracować jako zastepca dla
+zależnościach logikę kontroli usług. Może pracować jako zastępca dla
 sysvinit.
 
 %prep
