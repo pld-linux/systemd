@@ -67,8 +67,12 @@ sysvinit.
 %{__autoconf}
 %{__automake}
 %configure \
-	--with-distro="PLD Linux" \
-	--%{?with_gtk:en}%{!?with_gtk:dis}able-gtk
+	--with-distro=other \
+	--%{?with_gtk:en}%{!?with_gtk:dis}able-gtk \
+	--with-syslog-service=syslog-ng \
+	--with-sysvinit-path=/etc/rc.d/init.d \
+	--with-sysvrcd-path=/etc/rc.d
+
 %{__make}
 
 %install
