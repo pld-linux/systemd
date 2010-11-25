@@ -90,6 +90,33 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/runlevel
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+/bin/systemctl daemon-reexec > /dev/null 2>&1 || :
+if [ $1 -eq 1 ] ; then
+	# Try to read default runlevel from the old inittab if it exists
+	runlevel=$(/bin/awk -F ':' '$3 == "initdefault" && $1 !~ "^#" { print $2 }' /etc/inittab 2> /dev/null)
+	if [ -z "$runlevel" ] ; then
+		target="/lib/systemd/system/runlevel$runlevel.target"
+	else
+		target="/lib/systemd/system/runlevel3.target"
+	fi
+
+	# And symlink what we found to the new-style default.target
+	/bin/ln -sf "$target" /etc/systemd/system/default.target > /dev/null 2>&1 || :
+	#/bin/systemctl enable SERVICES > /dev/null 2>&1 || :
+fi
+
+%preun
+if [ $1 -eq 0 ] ; then
+	#/bin/systemctl disable SERVICES > /dev/null 2>&1 || :
+	/bin/rm -f /etc/systemd/system/default.target > /dev/null 2>&1 || :
+fi
+
+%postun
+if [ $1 -ge 1 ] ; then
+	/bin/systemctl daemon-reload > /dev/null 2>&1 || :
+fi
+
 %files
 %defattr(644,root,root,755)
 %doc DISTRO_PORTING README TODO
