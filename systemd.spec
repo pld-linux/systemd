@@ -26,7 +26,8 @@ BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	libtool
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.11
-Obsoletes:	SysVinit
+Provides:	virtual(init-daemon)
+Obsoletes:	virtual(init-daemon)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
