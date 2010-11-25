@@ -27,7 +27,7 @@ BuildRequires:	libtool
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.11
 Provides:	virtual(init-daemon)
-Provides:	SysVinit
+Provides:	SysVinit = 2.86-23
 Obsoletes:	virtual(init-daemon)
 Obsoletes:	SysVinit
 Obsoletes:	vserver-SysVinit
