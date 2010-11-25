@@ -1,4 +1,9 @@
 #
+# TODO:
+# - gtk BRs: libnotify 0.7 and gtk+3
+# - subpackages: bash-autocompletion, dbus(?), gtk, others?
+# - more BRs
+#
 
 %bcond_with	gtk	# build gtk tools
 
@@ -12,28 +17,15 @@ Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 # Source0-md5:	36011aa8593862ca78e3e909f6143570
 URL:		http://www.freedesktop.org/wiki/Software/systemd
-#BuildRequires:	-
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	dbus-devel
-BuildRequires:	gettext-devel
 %if %{with gtk}
 BuildRequires:	libnotify-devel >= 0.7.0
 %endif
 BuildRequires:	libtool
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.11
-#Requires(postun):	-
-#Requires(pre,post):	-
-#Requires(preun):	-
-#Requires:	-
-#Provides:	-
-#Provides:	group(foo)
-#Provides:	user(foo)
-#Obsoletes:	-
-#Conflicts:	-
-#BuildArch:	noarch
-#ExclusiveArch:	%{ix86}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -61,9 +53,6 @@ sysvinit.
 %setup -q
 
 %build
-#%%{__gettextize}
-#%%{__libtoolize}
-#%%{__aclocal} -I m4
 %{__autoconf}
 %{__automake}
 %configure \
