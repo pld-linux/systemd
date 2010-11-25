@@ -1,5 +1,7 @@
 #
 
+%bcond_with	gtk	# build gtk tools
+
 Summary:	systemd - a system and service manager for Linux
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
@@ -13,7 +15,11 @@ URL:		http://www.freedesktop.org/wiki/Software/systemd
 #BuildRequires:	-
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	dbus-devel
 BuildRequires:	gettext-devel
+%if %{with gtk}
+BuildRequires:	libnotify-devel >= 0.7.0
+%endif
 BuildRequires:	libtool
 BuildRequires:	udev-devel >= 160
 #Requires(postun):	-
@@ -59,7 +65,9 @@ sysvinit.
 %{__aclocal} -I m4
 %{__autoconf}
 %{__automake}
-%configure
+%configure \
+	--with-distro="PLD Linux" \
+	--%{?with_gtk:en}%{!?with_gtk:dis}able-gtk
 %{__make}
 
 %install
