@@ -22,6 +22,7 @@ BuildRequires:	libnotify-devel >= 0.7.0
 %endif
 BuildRequires:	libtool
 BuildRequires:	udev-devel >= 160
+BuildRequires:	vala >= 0.11
 #Requires(postun):	-
 #Requires(pre,post):	-
 #Requires(preun):	-
