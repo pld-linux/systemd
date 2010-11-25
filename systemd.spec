@@ -85,20 +85,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/systemd-tty-ask-password-agent
 %{_prefix}/lib/systemd/
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
-%{_sysconfdir}/systemd/system.conf
-%{_sysconfdir}/systemd/system/getty.target.wants/getty@tty1.service
-%{_sysconfdir}/systemd/system/getty.target.wants/getty@tty2.service
-%{_sysconfdir}/systemd/system/getty.target.wants/getty@tty3.service
-%{_sysconfdir}/systemd/system/getty.target.wants/getty@tty4.service
-%{_sysconfdir}/systemd/system/getty.target.wants/getty@tty5.service
-%{_sysconfdir}/systemd/system/getty.target.wants/getty@tty6.service
-%{_sysconfdir}/systemd/system/local-fs.target.wants/quotacheck.service
-%{_sysconfdir}/systemd/system/local-fs.target.wants/quotaon.service
-%{_sysconfdir}/systemd/system/multi-user.target.wants/remote-fs.target
-%{_sysconfdir}/systemd/system/sysinit.target.wants/hwclock-load.service
-%{_sysconfdir}/tmpfiles.d/systemd.conf
-%{_sysconfdir}/tmpfiles.d/x11.conf
-%{_sysconfdir}/xdg/systemd/user
+%{_sysconfdir}/systemd
+%{_sysconfdir}/tmpfiles.d
+%{_sysconfdir}/xdg/systemd
 /lib/udev/rules.d/99-systemd.rules
 %{_lib}/security/pam_systemd.la
 %attr(755,root,root) %{_lib}/security/pam_systemd.so
