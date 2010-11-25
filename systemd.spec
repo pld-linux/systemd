@@ -26,10 +26,10 @@ BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	libtool
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.11
-Provides:	virtual(init-daemon)
 Provides:	SysVinit = 2.86-23
-Obsoletes:	virtual(init-daemon)
+Provides:	virtual(init-daemon)
 Obsoletes:	SysVinit
+Obsoletes:	virtual(init-daemon)
 Obsoletes:	vserver-SysVinit
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -66,7 +66,7 @@ sysvinit.
 	--with-syslog-service=syslog-ng \
 	--with-sysvinit-path=/etc/rc.d/init.d \
 	--with-sysvrcd-path=/etc/rc.d \
-	--with-rootdir=/usr
+	--with-rootdir=
 
 %{__make}
 
@@ -76,19 +76,37 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
+# Create SysV compatibility symlinks. systemctl/systemd are smart
+# enough to detect in which way they are called.
+install -d $RPM_BUILD_ROOT/sbin
+ln -s ../bin/systemd $RPM_BUILD_ROOT/sbin/init
+ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/reboot
+ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/halt
+ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/poweroff
+ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/shutdown
+ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
+ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/runlevel
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
 %doc DISTRO_PORTING README TODO
-%attr(755,root,root) %{_bindir}/systemctl
-%attr(755,root,root) %{_bindir}/systemd
-%attr(755,root,root) %{_bindir}/systemd-ask-password
+%attr(755,root,root) /bin/systemctl
+%attr(755,root,root) /bin/systemd
+%attr(755,root,root) /bin/systemd-ask-password
 %attr(755,root,root) %{_bindir}/systemd-cgls
-%attr(755,root,root) %{_bindir}/systemd-notify
-%attr(755,root,root) %{_bindir}/systemd-tty-ask-password-agent
-%{_prefix}/lib/systemd/
+%attr(755,root,root) /bin/systemd-notify
+%attr(755,root,root) /bin/systemd-tty-ask-password-agent
+/sbin/halt
+/sbin/init
+/sbin/poweroff
+/sbin/reboot
+/sbin/runlevel
+/sbin/shutdown
+/sbin/telinit
+/lib/systemd/
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 %{_sysconfdir}/systemd
 %{_sysconfdir}/tmpfiles.d
