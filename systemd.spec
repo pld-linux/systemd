@@ -19,11 +19,17 @@ Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	cryptsetup-luks-devel
 BuildRequires:	dbus-devel
+BuildRequires:	audit-libs-devel
+BuildRequires:	libcap-devel
 %if %{with gtk}
 BuildRequires:	libnotify-devel >= 0.7.0
 %endif
+BuildRequires:	libselinux-devel
 BuildRequires:	libtool
+BuildRequires:	libwrap-devel
+BuildRequires:	pam-devel
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.11
 Provides:	SysVinit = 2.86-23
