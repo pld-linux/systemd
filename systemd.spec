@@ -89,8 +89,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/tmpfiles.d
 %{_sysconfdir}/xdg/systemd
 /lib/udev/rules.d/99-systemd.rules
-%{_lib}/security/pam_systemd.la
-%attr(755,root,root) %{_lib}/security/pam_systemd.so
+/%{_lib}/security/pam_systemd.la
+%attr(755,root,root) /%{_lib}/security/pam_systemd.so
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.Automount.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.Device.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.Job.xml
