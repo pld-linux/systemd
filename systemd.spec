@@ -1,10 +1,11 @@
-# TODO:
-# - gtk BRs: libnotify 0.7 and gtk+3
-# - subpackages: bash-autocompletion, dbus(?), gtk, others?
-# - more BRs
 #
 # Conditional build:
-%bcond_with	gtk	# build gtk tools
+%bcond_with		gtk	# build gtk tools (needs devel libnotify>=0.7 and gtk+3)
+%bcond_without	selinux		# without SELinux support
+%bcond_without	tcpd		# libwrap (tcp_wrappers) support
+%bcond_without	pam			# PAM authentication support
+%bcond_without	audit		# without audit support
+%bcond_without	cryptsetup	# without cryptsetup support
 
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
@@ -16,21 +17,22 @@ Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 # Source0-md5:	42a47d6fa60b7f3fe92fa22027713b32
 URL:		http://www.freedesktop.org/wiki/Software/systemd
-BuildRequires:	audit-libs-devel
+%{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	cryptsetup-luks-devel
+%{?with_crypt:BuildRequires:	cryptsetup-luks-devel}
 BuildRequires:	dbus-devel
 BuildRequires:	docbook-style-xsl
 BuildRequires:	gtk+2-devel
 BuildRequires:	libcap-devel
 %{?with_gtk:BuildRequires:	libnotify-devel >= 0.7}
-BuildRequires:	libselinux-devel
-BuildRequires:	libtool
-BuildRequires:	libwrap-devel
+%{?with_selinux:BuildRequires:	libselinux-devel}
+BuildRequires:	libtool >= 2:2.2
+%{?with_tcpd:BuildRequires:	libwrap-devel}
 BuildRequires:	libxslt
-BuildRequires:	pam-devel
+%{?with_pam:BuildRequires:	pam-devel}
 BuildRequires:	pkgconfig
+BuildRequires:	rpmbuild(macros) >= 1.527
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.11
 Requires:	%{name}-units = %{version}-%{release}
@@ -86,6 +88,15 @@ Requires:	polkit
 %description gtk
 Graphical front-end for systemd.
 
+%package -n bash-completion-systemd
+Summary:	bash-completion for systemd
+Group:		Applications/Shells
+Requires:	%{name}
+Requires:	bash-completion
+
+%description -n bash-completion-systemd
+bash-completion for systemd.
+
 %prep
 %setup -q
 
@@ -93,8 +104,14 @@ Graphical front-end for systemd.
 %{__autoconf}
 %{__automake}
 %configure \
+	%{__enable_disable audit} \
+	%{__enable_disable cryptsetup libcryptsetup} \
+	%{__enable_disable gtk} \
+	%{__enable_disable pam} \
+	%{__enable_disable selinux} \
+	%{__enable_disable tcpd tcpwrap} \
+	--disable-silent-rules \
 	--with-distro=other \
-	--%{?with_gtk:en}%{!?with_gtk:dis}able-gtk \
 	--with-syslog-service=syslog-ng \
 	--with-sysvinit-path=/etc/rc.d/init.d \
 	--with-sysvrcd-path=/etc/rc.d \
@@ -107,7 +124,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-find $RPM_BUILD_ROOT '(' -name '*.a' -o -name '*.la' ')' | xargs rm -v
+find $RPM_BUILD_ROOT '(' -name '*.a' -o -name '*.la' ')' | xargs -r rm -v
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 
@@ -198,9 +215,7 @@ fi
 %dir /lib/systemd
 /lib/systemd/systemd-*
 %dir /lib/systemd/system-generators
-/lib/systemd/system-generators/systemd-cryptsetup-generator
 /lib/udev/rules.d/99-systemd.rules
-%attr(755,root,root) /%{_lib}/security/pam_systemd.so
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
 %{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
@@ -241,12 +256,20 @@ fi
 %{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man8/halt.8*
-%{_mandir}/man8/pam_systemd.8*
 %{_mandir}/man8/poweroff.8
 %{_mandir}/man8/reboot.8
 %{_mandir}/man8/runlevel.8*
 %{_mandir}/man8/shutdown.8*
 %{_mandir}/man8/telinit.8*
+
+%if %{with cryptsetup}
+/lib/systemd/system-generators/systemd-cryptsetup-generator
+%endif
+
+%if %{with pam}
+%attr(755,root,root) /%{_lib}/security/pam_systemd.so
+%{_mandir}/man8/pam_systemd.8*
+%endif
 
 %files units
 %defattr(644,root,root,755)
@@ -269,3 +292,7 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 %{_mandir}/man1/systemadm.1*
 %endif
+
+%files -n bash-completion-systemd
+%defattr(644,root,root,755)
+/etc/bash_completion.d/systemctl-bash-completion.sh
