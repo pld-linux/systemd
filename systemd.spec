@@ -16,6 +16,7 @@ License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 # Source0-md5:	42a47d6fa60b7f3fe92fa22027713b32
+Patch0:	target-pld.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf
@@ -23,7 +24,7 @@ BuildRequires:	automake
 %{?with_crypt:BuildRequires:	cryptsetup-luks-devel}
 BuildRequires:	dbus-devel
 BuildRequires:	docbook-style-xsl
-BuildRequires:	gtk+2-devel
+%{?with_gtk:BuildRequires:	gtk+3-devel}
 BuildRequires:	libcap-devel
 %{?with_gtk:BuildRequires:	libnotify-devel >= 0.7}
 %{?with_selinux:BuildRequires:	libselinux-devel}
@@ -99,8 +100,10 @@ bash-completion for systemd.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
+%{__aclocal} -I m4
 %{__autoconf}
 %{__automake}
 %configure \
@@ -111,10 +114,8 @@ bash-completion for systemd.
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
-	--with-distro=other \
+	--with-distro=pld \
 	--with-syslog-service=syslog-ng \
-	--with-sysvinit-path=/etc/rc.d/init.d \
-	--with-sysvrcd-path=/etc/rc.d \
 	--with-rootdir=
 
 %{__make}
