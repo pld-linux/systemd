@@ -10,13 +10,14 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	18
+Version:	19
 Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
-# Source0-md5:	42a47d6fa60b7f3fe92fa22027713b32
-Patch0:	target-pld.patch
+# Source0-md5:	32de12b132a2f6c270d422d682362a91
+Patch0:		target-pld.patch
+Patch1:		pld-port.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf
@@ -101,6 +102,7 @@ bash-completion for systemd.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 %{__aclocal} -I m4
