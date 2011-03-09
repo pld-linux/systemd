@@ -10,12 +10,12 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	19
+Version:	20
 Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
-# Source0-md5:	32de12b132a2f6c270d422d682362a91
+# Source0-md5:	c1c98eed410ec108b8bf74e4d94d5d66
 Patch0:		target-pld.patch
 Patch1:		pld-port.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
@@ -205,6 +205,7 @@ fi
 /etc/xdg/systemd/user
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
+%attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
 %attr(755,root,root) %{_bindir}/systemd-cgls
@@ -224,9 +225,9 @@ fi
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
 %{_datadir}/systemd
 %{_mandir}/man1/init.1
+%{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-notify.1*
-%{_mandir}/man1/systemd.1*
 %{_mandir}/man3/sd_booted.3*
 %{_mandir}/man3/sd_is_fifo.3*
 %{_mandir}/man3/sd_is_socket.3
@@ -238,6 +239,7 @@ fi
 %{_mandir}/man3/sd_readahead.3*
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/locale.conf.5*
+%{_mandir}/man5/machine-id.5*
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/systemd.automount.5*
