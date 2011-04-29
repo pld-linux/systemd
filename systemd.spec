@@ -209,6 +209,9 @@ fi
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
 %attr(755,root,root) %{_bindir}/systemd-cgls
+%attr(755,root,root) %{_bindir}/systemd-analyze
+%attr(755,root,root) %{_bindir}/systemd-nspawn
+%attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) /sbin/halt
 %attr(755,root,root) /sbin/init
 %attr(755,root,root) /sbin/poweroff
@@ -218,12 +221,16 @@ fi
 %attr(755,root,root) /sbin/telinit
 %dir /lib/systemd
 /lib/systemd/systemd-*
+%dir %{_libdir}/systemd
+%{_libdir}/systemd/user
+%dir %{_libdir}/systemd/user-generators
 %dir /lib/systemd/system-generators
+/lib/systemd/system-generators/systemd-getty-generator
 /lib/udev/rules.d/99-systemd.rules
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
 %{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
-%{_datadir}/systemd
+#%{_datadir}/systemd
 %{_mandir}/man1/init.1
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-cgls.1*
