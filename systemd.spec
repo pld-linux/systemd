@@ -161,10 +161,13 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/runlevel
 # them.
 rm -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
 
+touch $RPM_BUILD_ROOT%{_sysconfdir}/machine-id
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
+/bin/systemd-machine-id-setup > /dev/null 2>&1 || :
 /bin/systemctl daemon-reexec > /dev/null 2>&1 || :
 
 %post units
@@ -202,6 +205,7 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 %dir %{_sysconfdir}/systemd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
+%ghost %config(noreplace) %{_sysconfdir}/machine-id
 %dir /etc/xdg/systemd
 /etc/xdg/systemd/user
 %attr(755,root,root) /bin/systemd
