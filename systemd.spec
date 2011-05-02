@@ -206,8 +206,7 @@ fi
 %dir %{_sysconfdir}/systemd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
-%dir /etc/xdg/systemd
-/etc/xdg/systemd/user
+/etc/xdg/systemd
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
 %attr(755,root,root) /bin/systemd-machine-id-setup
@@ -224,13 +223,16 @@ fi
 %attr(755,root,root) /sbin/runlevel
 %attr(755,root,root) /sbin/shutdown
 %attr(755,root,root) /sbin/telinit
-%dir /lib/systemd
-/lib/systemd/systemd-*
-%dir %{_libdir}/systemd
-%{_libdir}/systemd/user
-%dir %{_libdir}/systemd/user-generators
+%attr(755,root,root) /lib/systemd/systemd-*
+%dir %{_prefix}/lib/systemd
+%{_prefix}/lib/systemd/user
+%dir %{_prefix}/lib/systemd/user-generators
 %dir /lib/systemd/system-generators
-/lib/systemd/system-generators/systemd-getty-generator
+%if %{with cryptsetup}
+%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator
+%endif
+%attr(755,root,root) /lib/systemd/system-generators/systemd-getty-generator
+%dir /lib/systemd/system-shutdown
 /lib/udev/rules.d/99-systemd.rules
 %{_prefix}/lib/tmpfiles.d/legacy.conf
 %{_prefix}/lib/tmpfiles.d/systemd.conf
@@ -288,10 +290,6 @@ fi
 %{_mandir}/man8/shutdown.8*
 %{_mandir}/man8/telinit.8*
 
-%if %{with cryptsetup}
-/lib/systemd/system-generators/systemd-cryptsetup-generator
-%endif
-
 %if %{with pam}
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
 %{_mandir}/man8/pam_systemd.8*
@@ -299,11 +297,17 @@ fi
 
 %files units
 %defattr(644,root,root,755)
+%dir %{_sysconfdir}/binfmt.d
+%dir %{_sysconfdir}/modules-load.d
+%dir %{_sysconfdir}/sysctl.d
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/tmpfiles.d
 %dir /lib/systemd
 /lib/systemd/system
+%dir %{_prefix}/lib/binfmt.d
+%dir %{_prefix}/lib/modules-load.d
+%dir %{_prefix}/lib/sysctl.d
 %dir %{_prefix}/lib/tmpfiles.d
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
