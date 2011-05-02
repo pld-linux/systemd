@@ -1,15 +1,15 @@
---- systemd-18/configure.ac~	2011-02-16 23:12:09.000000000 +0200
-+++ systemd-18/configure.ac	2011-03-06 23:24:39.486435579 +0200
-@@ -371,6 +371,12 @@
-                 AC_DEFINE(TARGET_ALTLINUX, [], [Target is ALTLinux])
-                 M4_DISTRO_FLAG=-DTARGET_ALTLINUX=1
+--- systemd-26/configure.ac.orig	2011-05-02 14:05:34.544253875 +0200
++++ systemd-26/configure.ac	2011-05-02 14:22:04.085559738 +0200
+@@ -369,6 +369,12 @@ case $with_distro in
+                 M4_DISTRO_FLAG=-DTARGET_MANDRIVA=1
+ 		have_plymouth=true
                  ;;
 +        pld)
-+                SYSTEM_SYSVINIT_PATH=/etc/rc.d/init.d
-+                SYSTEM_SYSVRCND_PATH=/etc/rc.d
-+                AC_DEFINE(TARGET_PLD, [], [Target is PLD Linux])
-+                M4_DISTRO_FLAG=-DTARGET_PLD=1
-+                ;;
-         other)
-                 AS_IF([test "x$with_syslog_service" = "x"],
-                         [AC_MSG_ERROR([With --distro=other, you must pass --with-syslog-service= to configure])])
++    		SYSTEM_SYSVINIT_PATH=/etc/rc.d/init.d
++    		SYSTEM_SYSVRCND_PATH=/etc/rc.d
++    		AC_DEFINE(TARGET_PLD, [], [Target is PLD Linux])
++    		M4_DISTRO_FLAG=-DTARGET_PLD=1
++    		;;
+         meego)
+                 SYSTEM_SYSVINIT_PATH=
+                 SYSTEM_SYSVRCND_PATH=

@@ -1,20 +1,20 @@
---- systemd-20/src/hostname-setup.c~	2011-03-08 20:47:29.000000000 +0200
-+++ systemd-20/src/hostname-setup.c	2011-03-09 20:15:21.063880615 +0200
+--- systemd-26/src/hostname-setup.c.orig	2011-05-02 14:45:05.518075875 +0200
++++ systemd-26/src/hostname-setup.c	2011-05-02 14:43:12.065357168 +0200
 @@ -30,7 +30,7 @@
  #include "util.h"
  #include "log.h"
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_PLD)
+-#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO)
++#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO) || defined(TARGET_PLD)
  #define FILENAME "/etc/sysconfig/network"
  #elif defined(TARGET_SUSE) || defined(TARGET_SLACKWARE) || defined(TARGET_FRUGALWARE)
  #define FILENAME "/etc/HOSTNAME"
-@@ -87,7 +87,7 @@
+@@ -64,7 +64,7 @@ static int read_and_strip_hostname(const
  
  static int read_distro_hostname(char **hn) {
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_PLD)
+-#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO)
++#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO) || defined(TARGET_PLD)
          int r;
          FILE *f;
  

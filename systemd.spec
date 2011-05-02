@@ -1,42 +1,44 @@
 #
 # Conditional build:
-%bcond_with		gtk	# build gtk tools (needs devel libnotify>=0.7 and gtk+3)
+%bcond_without	gtk		# build gtk tools (needs devel libnotify>=0.7 and gtk+2)
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
-%bcond_without	pam			# PAM authentication support
+%bcond_without	pam		# PAM authentication support
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
 
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	24
+Version:	26
 Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
-# Source0-md5:	4a6b7d99f35bdae21d7f9b698792b8d3
+# Source0-md5:	b7c468aa400c64d02d533eba6359e283
 Patch0:		target-pld.patch
 Patch1:		pld-port.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 %{?with_audit:BuildRequires:	audit-libs-devel}
-BuildRequires:	autoconf
-BuildRequires:	automake
-%{?with_crypt:BuildRequires:	cryptsetup-luks-devel}
+BuildRequires:	autoconf >= 2.63
+BuildRequires:	automake >= 1:1.11
+%{?with_cryptsetup:BuildRequires:	cryptsetup-luks-devel}
 BuildRequires:	dbus-devel
 BuildRequires:	docbook-style-xsl
-%{?with_gtk:BuildRequires:	gtk+3-devel}
+%{?with_gtk:BuildRequires:	glib2-devel >= 1:2.26.1}
+%{?with_gtk:BuildRequires:	gtk+2-devel >= 2:2.24.0}
 BuildRequires:	libcap-devel
-%{?with_gtk:BuildRequires:	libnotify-devel >= 0.7}
+%{?with_gtk:BuildRequires:	libnotify-devel >= 0.7.0}
 %{?with_selinux:BuildRequires:	libselinux-devel}
 BuildRequires:	libtool >= 2:2.2
 %{?with_tcpd:BuildRequires:	libwrap-devel}
-BuildRequires:	libxslt
+BuildRequires:	m4
+BuildRequires:	libxslt-progs
 %{?with_pam:BuildRequires:	pam-devel}
 BuildRequires:	pkgconfig
 BuildRequires:	rpmbuild(macros) >= 1.527
 BuildRequires:	udev-devel >= 160
-BuildRequires:	vala >= 0.11
+BuildRequires:	vala >= 0.10.0
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	dbus >= 1.3.2
 Requires:	rc-scripts
@@ -107,6 +109,7 @@ bash-completion for systemd.
 %build
 %{__aclocal} -I m4
 %{__autoconf}
+%{__autoheader}
 %{__automake}
 %configure \
 	%{__enable_disable audit} \
@@ -117,7 +120,6 @@ bash-completion for systemd.
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
 	--with-distro=pld \
-	--with-syslog-service=syslog-ng \
 	--with-rootdir=
 
 %{__make}
@@ -196,10 +198,9 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc DISTRO_PORTING README TODO
+/etc/dbus-1/system.d/org.freedesktop.hostname1.conf
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 %dir %{_sysconfdir}/systemd
-%{_sysconfdir}/tmpfiles.d/systemd.conf
-%{_sysconfdir}/tmpfiles.d/x11.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
 %dir /etc/xdg/systemd
 /etc/xdg/systemd/user
@@ -227,14 +228,20 @@ fi
 %dir /lib/systemd/system-generators
 /lib/systemd/system-generators/systemd-getty-generator
 /lib/udev/rules.d/99-systemd.rules
+%{_prefix}/lib/tmpfiles.d/legacy.conf
+%{_prefix}/lib/tmpfiles.d/systemd.conf
+%{_prefix}/lib/tmpfiles.d/x11.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
 %{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
-#%{_datadir}/systemd
+%{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
 %{_mandir}/man1/init.1
 %{_mandir}/man1/systemd.1*
+%{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-notify.1*
+%{_mandir}/man1/systemd-nspawn.1*
 %{_mandir}/man3/sd_booted.3*
 %{_mandir}/man3/sd_is_fifo.3*
 %{_mandir}/man3/sd_is_socket.3
@@ -244,11 +251,14 @@ fi
 %{_mandir}/man3/sd_notify.3*
 %{_mandir}/man3/sd_notifyf.3
 %{_mandir}/man3/sd_readahead.3*
+%{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/locale.conf.5*
 %{_mandir}/man5/machine-id.5*
+%{_mandir}/man5/machine-info.5*
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/os-release.5*
+%{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/systemd.automount.5*
 %{_mandir}/man5/systemd.conf.5*
 %{_mandir}/man5/systemd.device.5*
@@ -290,6 +300,7 @@ fi
 %dir %{_sysconfdir}/tmpfiles.d
 %dir /lib/systemd
 /lib/systemd/system
+%dir %{_prefix}/lib/tmpfiles.d
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %{_mandir}/man5/tmpfiles.d.5*
