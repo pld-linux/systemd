@@ -243,7 +243,7 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
  #include <sys/types.h>
  #include <sys/poll.h>
  #include <sys/socket.h>
-@@ -185,13 +185,21 @@
+@@ -187,13 +187,22 @@
  	conn->refcount = 1;
  	conn->uctrl = uctrl;
  
@@ -255,16 +255,17 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
  	if (conn->sock < 0) {
  		if (errno != EINTR)
  			err(uctrl->udev, "unable to receive ctrl connection: %m\n");
- 		free(conn);
- 		return NULL;
+ 		goto err;
  	}
+ 
 +#ifdef __UCLIBC__
 +	fcntl(conn->sock, F_SETFD, FD_CLOEXEC);
 +	fcntl(conn->sock, F_SETFL, O_NONBLOCK);
 +#endif
- 
- 	/* enable receiving of the sender credentials */
- 	setsockopt(conn->sock, SOL_SOCKET, SO_PASSCRED, &on, sizeof(on));
++
+ 	/* check peer credential of connection */
+ 	slen = sizeof(ucred);
+ 	if (getsockopt(conn->sock, SOL_SOCKET, SO_PEERCRED, &ucred, &slen) < 0) {
 --- udev-168/udev/udevadm-monitor.c.orig	2011-04-26 01:53:44.361103209 +0200
 +++ udev-168/udev/udevadm-monitor.c	2011-04-26 01:54:41.946103207 +0200
 @@ -157,11 +157,18 @@
