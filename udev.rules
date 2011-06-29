@@ -42,11 +42,6 @@ KERNEL=="mixer[0-9]*",		GROUP="audio"
 KERNEL=="sequencer",		GROUP="audio"
 KERNEL=="sequencer[0-9]*",	GROUP="audio"
 
-# floppy devices
-KERNEL=="nvram",		ACTION=="add", RUN="load_floppy_module.sh"
-KERNEL=="fd[0-9]*",		ACTION=="add", ATTRS{cmos}=="*", RUN="create_floppy_devices -c -t $attr{cmos} -m %M $root/%k", GROUP="floppy"
-KERNEL=="fd[0-9]*",		ACTION=="remove", RUN="/bin/rm -f $root/%k*"
-
 # input devices
 KERNEL=="js*",			MODE="0664", GROUP="sys"
 
