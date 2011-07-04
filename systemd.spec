@@ -10,12 +10,12 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	28
+Version:	29
 Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
-# Source0-md5:	be37500f576a0494f82fed7fa47cc306
+# Source0-md5:	e91ffd208c5f03e5c11966eee7b684b0
 Patch0:		target-pld.patch
 Patch1:		pld-port.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
@@ -41,6 +41,9 @@ BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.10.0
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	dbus >= 1.3.2
+# python modules required by systemd-analyze
+Requires:	python-dbus
+Requires:	python-modules
 Requires:	rc-scripts
 Requires:	udev-core >= 160
 Provides:	SysVinit = 2.86-23
