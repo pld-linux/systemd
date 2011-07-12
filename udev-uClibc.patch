@@ -233,8 +233,8 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
  	if (epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd_ctrl, &ep_ctrl) < 0 ||
  	    epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd_inotify, &ep_inotify) < 0 ||
  	    epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd_signal, &ep_signal) < 0 ||
---- udev-168/libudev/libudev-ctrl.c.orig	2011-04-26 01:20:36.150103207 +0200
-+++ udev-168/libudev/libudev-ctrl.c	2011-04-26 01:21:48.940103224 +0200
+--- udev-172/udev/udev-ctrl.c.orig	2011-04-26 01:20:36.150103207 +0200
++++ udev-172/udev/udev-ctrl.c	2011-04-26 01:21:48.940103224 +0200
 @@ -15,6 +15,7 @@
  #include <stddef.h>
  #include <string.h>
