@@ -26,6 +26,7 @@ BuildRequires:	automake >= 1:1.11
 BuildRequires:	dbus-devel
 BuildRequires:	docbook-style-xsl
 %{?with_gtk:BuildRequires:	glib2-devel >= 1:2.26.1}
+BuildRequires:	gperf
 %{?with_gtk:BuildRequires:	gtk+2-devel >= 2:2.24.0}
 BuildRequires:	libcap-devel
 %{?with_gtk:BuildRequires:	libnotify-devel >= 0.7.0}
