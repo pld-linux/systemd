@@ -1,1 +1,1 @@
-SUBSYSTEM=="sound", KERNEL=="controlC?", RUN+="/usr/sbin/alsactl -F restore %n"
+SUBSYSTEM=="sound", KERNEL=="controlC?", RUN+="/sbin/alsactl -F restore %n"
