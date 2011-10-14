@@ -10,12 +10,12 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	36
+Version:	37
 Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
-# Source0-md5:	e1213338efb697abc8215d9a66a7f082
+# Source0-md5:	1435f23be79c8c38d1121c6b150510f3
 Patch0:		target-pld.patch
 Patch1:		pld-port.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
@@ -33,8 +33,8 @@ BuildRequires:	libcap-devel
 %{?with_selinux:BuildRequires:	libselinux-devel}
 BuildRequires:	libtool >= 2:2.2
 %{?with_tcpd:BuildRequires:	libwrap-devel}
-BuildRequires:	m4
 BuildRequires:	libxslt-progs
+BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
 BuildRequires:	pkgconfig
 BuildRequires:	rpmbuild(macros) >= 1.527
@@ -79,9 +79,9 @@ sysvinit.
 %package units
 Summary:	Configuration files, directories and installation tool for systemd
 Group:		Base
-Requires:	pkgconfig
 Requires(post):	coreutils
 Requires(post):	gawk
+Requires:	pkgconfig
 
 %description units
 Basic configuration files, directories and installation tool for the
@@ -105,6 +105,18 @@ Requires:	bash-completion
 %description -n bash-completion-systemd
 bash-completion for systemd.
 
+%package devel
+Summary:	Header files for systemd libraries
+Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
+Group:		Development/Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description devel
+Header files for systemd libraries.
+
+%description devel -l pl.UTF-8
+Pliki nagłówkowe bibliotek systemd.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -123,6 +135,7 @@ bash-completion for systemd.
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
+	--disable-static \
 	--with-distro=pld \
 	--with-rootdir=
 
@@ -133,19 +146,12 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-find $RPM_BUILD_ROOT '(' -name '*.a' -o -name '*.la' ')' | xargs -r rm -v
-
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
-
-# no -devel (yet)
-rm -f $RPM_BUILD_ROOT%{_npkgconfigdir}/systemd.pc
 
 %if %{without gtk}
 # to shut up check-files
-rm -f $RPM_BUILD_ROOT%{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 rm -f $RPM_BUILD_ROOT%{_bindir}/systemadm
 rm -f $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
-rm -f $RPM_BUILD_ROOT%{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
 %endif
 
@@ -165,54 +171,90 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/runlevel
 # them.
 rm -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
 
+# Make sure these directories are properly owned
+install -d $RPM_BUILD_ROOT/lib/systemd/system/basic.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/default.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/dbus.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/syslog.target.wants
+
+# Create new-style configuration files so that we can ghost-own them
+touch $RPM_BUILD_ROOT%{_sysconfdir}/hostname
+touch $RPM_BUILD_ROOT%{_sysconfdir}/locale.conf
 touch $RPM_BUILD_ROOT%{_sysconfdir}/machine-id
+touch $RPM_BUILD_ROOT%{_sysconfdir}/machine-info
+touch $RPM_BUILD_ROOT%{_sysconfdir}/os-release
+touch $RPM_BUILD_ROOT%{_sysconfdir}/timezone
+touch $RPM_BUILD_ROOT%{_sysconfdir}/vconsole.conf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
+/sbin/ldconfig
 /bin/systemd-machine-id-setup > /dev/null 2>&1 || :
 /bin/systemctl daemon-reexec > /dev/null 2>&1 || :
 
+%postun
+/sbin/ldconfig
+if [ $1 -ge 1 ] ; then
+	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
+fi
+
 %post units
-if [ $1 -ne 1 ]; then
-	exit 0
-fi
+if [ $1 -eq 1 ] ; then
+	# Try to read default runlevel from the old inittab if it exists
+	runlevel=$(/bin/awk -F ':' '$3 == "initdefault" && $1 !~ "^#" { print $2 }' /etc/inittab 2> /dev/null)
+	if [ -z "$runlevel" ] ; then
+		target="/lib/systemd/system/graphical.target"
+	else
+		target="/lib/systemd/system/runlevel$runlevel.target"
+	fi
 
-# Try to read default runlevel from the old inittab if it exists
-runlevel=$(/bin/awk -F ':' '$3 == "initdefault" && $1 !~ "^#" { print $2 }' /etc/inittab 2> /dev/null)
-if [ -z "$runlevel" ] ; then
-	runlevel=3
+	# And symlink what we found to the new-style default.target
+	/bin/ln -sf "$target" /etc/systemd/system/default.target >/dev/null 2>&1 || :
+	
+	# Enable the services we install by default.
+	/bin/systemctl enable \
+		getty@.service \
+		remote-fs.target \
+		systemd-readahead-replay.service \
+		systemd-readahead-collect.service >/dev/null 2>&1 || :
 fi
-target="/lib/systemd/system/runlevel$runlevel.target"
-
-# And symlink what we found to the new-style default.target
-ln -sf "$target" %{_sysconfdir}/systemd/system/default.target > /dev/null 2>&1 || :
-#/bin/systemctl enable SERVICES > /dev/null 2>&1 || :
 
 %preun units
-if [ $1 -ne 0 ]; then
-	exit 0
-fi
-#/bin/systemctl disable SERVICES > /dev/null 2>&1 || :
-rm -f %{_sysconfdir}/systemd/system/default.target > /dev/null 2>&1 || :
+if [ $1 -eq 0 ] ; then
+	/bin/systemctl disable \
+		getty@.service \
+		remote-fs.target \
+		systemd-readahead-replay.service \
+		systemd-readahead-collect.service >/dev/null 2>&1 || :
 
-%postun
+	/bin/rm -f /etc/systemd/system/default.target >/dev/null 2>&1 || :
+fi
+
+%postun units
 if [ $1 -ge 1 ] ; then
 	/bin/systemctl daemon-reload > /dev/null 2>&1 || :
 fi
+
 
 %files
 %defattr(644,root,root,755)
 %doc DISTRO_PORTING README TODO
 /etc/dbus-1/system.d/org.freedesktop.hostname1.conf
+/etc/dbus-1/system.d/org.freedesktop.locale1.conf
+/etc/dbus-1/system.d/org.freedesktop.login1.conf
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
+/etc/dbus-1/system.d/org.freedesktop.timedate1.conf
 %dir %{_sysconfdir}/systemd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/systemd-logind.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
 /etc/xdg/systemd
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
+%attr(755,root,root) /bin/systemd-loginctl
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
@@ -228,9 +270,12 @@ fi
 %attr(755,root,root) /sbin/shutdown
 %attr(755,root,root) /sbin/telinit
 %attr(755,root,root) /lib/systemd/systemd-*
+%attr(755,root,root) %ghost %{_libdir}/libsystemd-daemon.so.0
+%attr(755,root,root) %{_libdir}/libsystemd-daemon.so.0.0.0
+%attr(755,root,root) %ghost %{_libdir}/libsystemd-login.so.0
+%attr(755,root,root) %{_libdir}/libsystemd-login.so.0.0.6
 %dir %{_prefix}/lib/systemd
 %{_prefix}/lib/systemd/user
-%dir %{_prefix}/lib/systemd/user-generators
 %dir /lib/systemd/system-generators
 %if %{with cryptsetup}
 %attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator
@@ -238,20 +283,37 @@ fi
 %attr(755,root,root) /lib/systemd/system-generators/systemd-getty-generator
 %dir /lib/systemd/system-shutdown
 /lib/udev/rules.d/99-systemd.rules
+/lib/udev/rules.d/70-uaccess.rules
+/lib/udev/rules.d/71-seat.rules
+/lib/udev/rules.d/73-seat-late.rules
 %{_prefix}/lib/tmpfiles.d/legacy.conf
 %{_prefix}/lib/tmpfiles.d/systemd.conf
 %{_prefix}/lib/tmpfiles.d/x11.conf
+%{_prefix}/lib/tmpfiles.d/tmp.conf
+%{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.timedate1.xml
 %{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
+%{_datadir}/polkit-1/actions/org.freedesktop.locale1.policy
+%{_datadir}/polkit-1/actions/org.freedesktop.login1.policy
+%{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
+%{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
+%dir %{_datadir}/systemd
+%{_datadir}/systemd/kbd-model-map
 %{_mandir}/man1/init.1
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
+%{_mandir}/man1/systemd-loginctl.1*
 %{_mandir}/man3/sd_booted.3*
 %{_mandir}/man3/sd_is_fifo.3*
 %{_mandir}/man3/sd_is_socket.3
@@ -283,6 +345,8 @@ fi
 %{_mandir}/man5/systemd.timer.5*
 %{_mandir}/man5/systemd.unit.5*
 %{_mandir}/man5/vconsole.conf.5*
+%{_mandir}/man5/systemd-logind.conf.5*
+%{_mandir}/man5/timezone.5*
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/sd-daemon.7*
 %{_mandir}/man7/sd-readahead.7*
@@ -318,16 +382,24 @@ fi
 %{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man1/systemctl.1*
 %{_mandir}/man8/systemd-tmpfiles.8*
+%{_npkgconfigdir}/systemd.pc
 
 %if %{with gtk}
 %files gtk
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/systemadm
 %attr(755,root,root) %{_bindir}/systemd-gnome-ask-password-agent
-%{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 %{_mandir}/man1/systemadm.1*
 %endif
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
 /etc/bash_completion.d/systemctl-bash-completion.sh
+
+%files devel
+%defattr(644,root,root,755)
+%{_includedir}/systemd
+%{_libdir}/libsystemd-daemon.so
+%{_libdir}/libsystemd-login.so
+%{_pkgconfigdir}/libsystemd-daemon.pc
+%{_pkgconfigdir}/libsystemd-login.pc
