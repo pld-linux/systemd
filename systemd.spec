@@ -1,3 +1,10 @@
+# UNPACKAGED files:
+#   /etc/hostname
+#   /etc/locale.conf
+#   /etc/machine-info
+#   /etc/os-release
+#   /etc/timezone
+#   /etc/vconsole.conf
 #
 # Conditional build:
 %bcond_without	gtk		# build gtk tools (needs devel libnotify>=0.7 and gtk+2)
@@ -54,6 +61,8 @@ Obsoletes:	SysVinit < 2.86-23
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		_libexecdir	%{_prefix}/lib
 
 %description
 systemd is a system and service manager for Linux, compatible with
@@ -147,6 +156,8 @@ rm -rf $RPM_BUILD_ROOT
 	DESTDIR=$RPM_BUILD_ROOT
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
+%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
 
 %if %{without gtk}
 # to shut up check-files
@@ -196,12 +207,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun
 /sbin/ldconfig
-if [ $1 -ge 1 ] ; then
+if [ $1 -ge 1 ]; then
 	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
 fi
 
 %post units
-if [ $1 -eq 1 ] ; then
+if [ $1 -eq 1 ]; then
 	# Try to read default runlevel from the old inittab if it exists
 	runlevel=$(/bin/awk -F ':' '$3 == "initdefault" && $1 !~ "^#" { print $2 }' /etc/inittab 2> /dev/null)
 	if [ -z "$runlevel" ] ; then
@@ -211,8 +222,8 @@ if [ $1 -eq 1 ] ; then
 	fi
 
 	# And symlink what we found to the new-style default.target
-	/bin/ln -sf "$target" /etc/systemd/system/default.target >/dev/null 2>&1 || :
-	
+	ln -sf "$target" /etc/systemd/system/default.target >/dev/null 2>&1 || :
+
 	# Enable the services we install by default.
 	/bin/systemctl enable \
 		getty@.service \
@@ -229,14 +240,13 @@ if [ $1 -eq 0 ] ; then
 		systemd-readahead-replay.service \
 		systemd-readahead-collect.service >/dev/null 2>&1 || :
 
-	/bin/rm -f /etc/systemd/system/default.target >/dev/null 2>&1 || :
+	%{__rm} -f /etc/systemd/system/default.target >/dev/null 2>&1 || :
 fi
 
 %postun units
-if [ $1 -ge 1 ] ; then
+if [ $1 -ge 1 ]; then
 	/bin/systemctl daemon-reload > /dev/null 2>&1 || :
 fi
-
 
 %files
 %defattr(644,root,root,755)
@@ -270,12 +280,13 @@ fi
 %attr(755,root,root) /sbin/shutdown
 %attr(755,root,root) /sbin/telinit
 %attr(755,root,root) /lib/systemd/systemd-*
-%attr(755,root,root) %ghost %{_libdir}/libsystemd-daemon.so.0
-%attr(755,root,root) %{_libdir}/libsystemd-daemon.so.0.0.0
-%attr(755,root,root) %ghost %{_libdir}/libsystemd-login.so.0
-%attr(755,root,root) %{_libdir}/libsystemd-login.so.0.0.6
-%dir %{_prefix}/lib/systemd
-%{_prefix}/lib/systemd/user
+%attr(755,root,root) %{_libdir}/libsystemd-daemon.so.*.*.*
+%ghost %{_libdir}/libsystemd-daemon.so.0
+%attr(755,root,root) %{_libdir}/libsystemd-login.so.*.*.*
+%ghost %{_libdir}/libsystemd-login.so.0
+
+%dir %{_libexecdir}/systemd
+%{_libexecdir}/systemd/user
 %dir /lib/systemd/system-generators
 %if %{with cryptsetup}
 %attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator
@@ -286,10 +297,10 @@ fi
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
-%{_prefix}/lib/tmpfiles.d/legacy.conf
-%{_prefix}/lib/tmpfiles.d/systemd.conf
-%{_prefix}/lib/tmpfiles.d/x11.conf
-%{_prefix}/lib/tmpfiles.d/tmp.conf
+%{_libexecdir}/tmpfiles.d/legacy.conf
+%{_libexecdir}/tmpfiles.d/systemd.conf
+%{_libexecdir}/tmpfiles.d/x11.conf
+%{_libexecdir}/tmpfiles.d/tmp.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -373,10 +384,10 @@ fi
 %dir %{_sysconfdir}/tmpfiles.d
 %dir /lib/systemd
 /lib/systemd/system
-%dir %{_prefix}/lib/binfmt.d
-%dir %{_prefix}/lib/modules-load.d
-%dir %{_prefix}/lib/sysctl.d
-%dir %{_prefix}/lib/tmpfiles.d
+%dir %{_libexecdir}/binfmt.d
+%dir %{_libexecdir}/modules-load.d
+%dir %{_libexecdir}/sysctl.d
+%dir %{_libexecdir}/tmpfiles.d
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %{_mandir}/man5/tmpfiles.d.5*
