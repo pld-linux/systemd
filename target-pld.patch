@@ -1,5 +1,13 @@
---- systemd-26/configure.ac.orig	2011-05-02 14:05:34.544253875 +0200
-+++ systemd-26/configure.ac	2011-05-02 14:22:04.085559738 +0200
+--- systemd-37/configure.ac.orig	2011-10-11 20:46:33.000000000 +0200
++++ systemd-37/configure.ac	2011-11-26 15:07:34.443334839 +0100
+@@ -361,6 +361,7 @@
+                 AC_MSG_WARN([Target distribution cannot be reliably detected when cross-compiling. You should specify it with --with-distro (see $0 --help for recognized distros)])
+         else
+                 test -f "/etc/redhat-release" && with_distro="fedora"
++                test -f "/etc/pld-release" && with_distro="pld"
+                 test -f "/etc/SuSE-release" && with_distro="suse"
+                 test -f "/etc/debian_version" &&  with_distro="debian"
+                 test -f "/etc/arch-release" && with_distro="arch"
 @@ -369,6 +369,12 @@ case $with_distro in
                  M4_DISTRO_FLAG=-DTARGET_MANDRIVA=1
  		have_plymouth=true
@@ -13,3 +21,228 @@
          meego)
                  SYSTEM_SYSVINIT_PATH=
                  SYSTEM_SYSVRCND_PATH=
+@@ -503,6 +509,7 @@
+ fi
+ 
+ AM_CONDITIONAL(TARGET_FEDORA, test x"$with_distro" = xfedora)
++AM_CONDITIONAL(TARGET_PLD, test x"$with_distro" = xpld)
+ AM_CONDITIONAL(TARGET_SUSE, test x"$with_distro" = xsuse)
+ AM_CONDITIONAL(TARGET_DEBIAN, test x"$with_distro" = xdebian)
+ AM_CONDITIONAL(TARGET_UBUNTU, test x"$with_distro" = xubuntu)
+--- systemd-37/Makefile.am.orig	2011-10-11 20:46:33.000000000 +0200
++++ systemd-37/Makefile.am	2011-11-26 15:07:34.443334839 +0100
+@@ -115,6 +115,12 @@
+ 	-DKBD_SETFONT=\"/usr/bin/setfont\" \
+ 	-DDEFAULT_FONT=\"LatArCyrHeb-16\"
+ else
++if TARGET_PLD
++AM_CPPFLAGS += \
++	-DKBD_LOADKEYS=\"/usr/bin/loadkeys\" \
++	-DKBD_SETFONT=\"/bin/setfont\" \
++	-DDEFAULT_FONT=\"LatArCyrHeb-16\"
++else
+ AM_CPPFLAGS += \
+ 	-DKBD_LOADKEYS=\"/bin/loadkeys\" \
+ 	-DKBD_SETFONT=\"/bin/setfont\" \
+@@ -125,6 +131,7 @@
+ endif
+ endif
+ endif
++endif
+ 
+ rootbin_PROGRAMS = \
+ 	systemd \
+@@ -1949,6 +1955,23 @@
+ 	$(MKDIR_P) -m 0755 $(DESTDIR)$(systemunitdir)/final.target.wants
+ 	( cd $(DESTDIR)$(systemunitdir)/multi-user.target.wants && \
+ 		rm -f rc-local.service && \
++		$(LN_S) $(systemunitdir)/rc-local.service rc-local.service )
++	( cd $(DESTDIR)$(systemunitdir)/final.target.wants && \
++		rm -f halt-local.service && \
++		$(LN_S) $(systemunitdir)/halt-local.service halt-local.service )
++	( cd $(DESTDIR)$(systemunitdir) && \
++		rm -f display-manager.service single.service && \
++		$(LN_S) prefdm.service display-manager.service && \
++		$(LN_S) rescue.service single.service )
++	( cd $(DESTDIR)$(systemunitdir)/graphical.target.wants && \
++		rm -f display-manager.service && \
++		$(LN_S) $(systemunitdir)/display-manager.service display-manager.service )
++endif
++
++if TARGET_PLD
++	$(MKDIR_P) -m 0755 $(DESTDIR)$(systemunitdir)/final.target.wants
++	( cd $(DESTDIR)$(systemunitdir)/multi-user.target.wants && \
++		rm -f rc-local.service && \
+ 		$(LN_S) $(systemunitdir)/rc-local.service rc-local.service )
+ 	( cd $(DESTDIR)$(systemunitdir)/final.target.wants && \
+ 		rm -f halt-local.service && \
+diff -ur systemd-37orig/src/fsck.c systemd-37/src/fsck.c
+--- systemd-37orig/src/fsck.c	2011-09-23 17:17:15.000000000 +0200
++++ systemd-37/src/fsck.c	2011-11-26 15:44:19.573328437 +0100
+@@ -127,7 +127,7 @@
+                         arg_skip = true;
+                 else if (startswith(w, "fsck.mode"))
+                         log_warning("Invalid fsck.mode= parameter. Ignoring.");
+-#if defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA)
+                 else if (strneq(w, "fastboot", l))
+                         arg_skip = true;
+                 else if (strneq(w, "forcefsck", l))
+diff -ur systemd-37orig/src/hostname-setup.c systemd-37/src/hostname-setup.c
+--- systemd-37orig/src/hostname-setup.c	2011-11-26 13:04:04.000000000 +0100
++++ systemd-37/src/hostname-setup.c	2011-11-26 15:48:30.890005881 +0100
+@@ -30,7 +30,7 @@
+ #include "util.h"
+ #include "log.h"
+ 
+-#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO)
+ #define FILENAME "/etc/sysconfig/network"
+ #elif defined(TARGET_SUSE) || defined(TARGET_SLACKWARE)
+ #define FILENAME "/etc/HOSTNAME"
+@@ -64,7 +64,7 @@
+ 
+ static int read_distro_hostname(char **hn) {
+ 
+-#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO)
+         int r;
+         FILE *f;
+ 
+diff -ur systemd-37orig/src/locale-setup.c systemd-37/src/locale-setup.c
+--- systemd-37orig/src/locale-setup.c	2011-09-23 17:16:34.000000000 +0200
++++ systemd-37/src/locale-setup.c	2011-11-26 15:47:40.906672674 +0100
+@@ -74,7 +74,7 @@
+ 
+         if (detect_container(NULL) <= 0)
+                 if ((r = parse_env_file("/proc/cmdline", WHITESPACE,
+-#if defined(TARGET_FEDORA) || defined(TARGET_MEEGO)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MEEGO)
+                                         "LANG",                     &variables[VARIABLE_LANG],
+ #endif
+                                         "locale.LANG",              &variables[VARIABLE_LANG],
+@@ -121,7 +121,7 @@
+                         log_warning("Failed to read /etc/locale.conf: %s", strerror(-r));
+         }
+ 
+-#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MEEGO)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MEEGO)
+         if (r <= 0 &&
+             (r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
+                                 "LANG", &variables[VARIABLE_LANG],
+diff -ur systemd-37orig/src/systemctl.c systemd-37/src/systemctl.c
+--- systemd-37orig/src/systemctl.c	2011-10-11 03:17:42.000000000 +0200
++++ systemd-37/src/systemctl.c	2011-11-26 15:42:15.089997670 +0100
+@@ -3443,7 +3443,7 @@
+ static int enable_sysv_units(char **args) {
+         int r = 0;
+ 
+-#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_MEEGO) || defined(TARGET_ALTLINUX))
++#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_MEEGO) || defined(TARGET_ALTLINUX))
+         const char *verb = args[0];
+         unsigned f = 1, t = 1;
+         LookupPaths paths;
+diff -ur systemd-37orig/src/timedated.c systemd-37/src/timedated.c
+--- systemd-37orig/src/timedated.c	2011-10-11 04:22:35.000000000 +0200
++++ systemd-37/src/timedated.c	2011-11-26 15:44:03.823326808 +0100
+@@ -174,7 +174,7 @@
+                 if (r != -ENOENT)
+                         log_warning("Failed to read /etc/timezone: %s", strerror(-r));
+ 
+-#ifdef TARGET_FEDORA
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD)
+                 r = parse_env_file("/etc/sysconfig/clock", NEWLINE,
+                                    "ZONE", &zone,
+                                    NULL);
+diff -ur systemd-37orig/src/util.c systemd-37/src/util.c
+--- systemd-37orig/src/util.c	2011-10-11 03:17:51.000000000 +0200
++++ systemd-37/src/util.c	2011-11-26 15:46:57.579996731 +0100
+@@ -3599,6 +3599,19 @@
+                         const_color = "0;34"; /* Blue for Fedora */
+         }
+ 
++#elif defined(TARGET_PLD)
++
++        if (!pretty_name) {
++                if ((r = read_one_line_file("/etc/pld-release", &pretty_name)) < 0) {
++
++                        if (r != -ENOENT)
++                                log_warning("Failed to read /etc/pld-release: %s", strerror(-r));
++                }
++        }
++
++        if (!ansi_color)
++                const_color = "0;32"; /* Green for PLD */
++
+ #elif defined(TARGET_SUSE)
+ 
+         if (!pretty_name) {
+diff -ur systemd-37orig/src/vconsole-setup.c systemd-37/src/vconsole-setup.c
+--- systemd-37orig/src/vconsole-setup.c	2011-09-28 04:34:17.000000000 +0200
++++ systemd-37/src/vconsole-setup.c	2011-11-26 15:42:54.143324363 +0100
+@@ -230,7 +230,7 @@
+         }
+ 
+         if (r <= 0) {
+-#if defined(TARGET_FEDORA) || defined(TARGET_MEEGO)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MEEGO)
+                 if ((r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
+                                         "SYSFONT", &vc_font,
+                                         "SYSFONTACM", &vc_font_map,
+diff -ur systemd-37orig/units/console-shell.service.m4 systemd-37/units/console-shell.service.m4
+--- systemd-37orig/units/console-shell.service.m4	2011-09-21 00:48:26.000000000 +0200
++++ systemd-37/units/console-shell.service.m4	2011-11-26 15:49:15.266671820 +0100
+@@ -11,6 +11,9 @@
+ m4_ifdef(`TARGET_FEDORA',
+ After=rc-local.service
+ )m4_dnl
++m4_ifdef(`TARGET_PLD',
++After=rc-local.service
++)m4_dnl
+ m4_ifdef(`TARGET_ARCH',
+ After=rc-local.service
+ )m4_dnl
+diff -ur systemd-37orig/units/getty@.service.m4 systemd-37/units/getty@.service.m4
+--- systemd-37orig/units/getty@.service.m4	2011-08-31 14:33:29.000000000 +0200
++++ systemd-37/units/getty@.service.m4	2011-11-26 15:49:07.480001391 +0100
+@@ -12,6 +12,9 @@
+ m4_ifdef(`TARGET_FEDORA',
+ After=rc-local.service
+ )m4_dnl
++m4_ifdef(`TARGET_PLD',
++After=rc-local.service
++)m4_dnl
+ m4_ifdef(`TARGET_ARCH',
+ After=rc-local.service
+ )m4_dnl
+diff -ur systemd-37orig/units/rescue.service.m4 systemd-37/units/rescue.service.m4
+--- systemd-37orig/units/rescue.service.m4	2011-09-23 01:45:34.000000000 +0200
++++ systemd-37/units/rescue.service.m4	2011-11-26 15:50:48.323334353 +0100
+@@ -25,10 +25,13 @@
+ m4_ifdef(`TARGET_MANDRIVA',
+ `EnvironmentFile=/etc/sysconfig/init
+ ExecStart=-/bin/bash -c "exec ${SINGLE}"',
++m4_ifdef(`TARGET_PLD',
++`EnvironmentFile=/etc/sysconfig/init
++ExecStart=-/bin/bash -c "exec ${SINGLE}"',
+ m4_ifdef(`TARGET_MEEGO',
+ `EnvironmentFile=/etc/sysconfig/init
+ ExecStart=-/bin/bash -c "exec ${SINGLE}"',
+-`ExecStart=-/sbin/sulogin')))
++`ExecStart=-/sbin/sulogin'))))
+ ExecStopPost=-/bin/systemctl --fail --no-block default
+ StandardInput=tty-force
+ StandardOutput=inherit
+diff -ur systemd-37orig/units/serial-getty@.service.m4 systemd-37/units/serial-getty@.service.m4
+--- systemd-37orig/units/serial-getty@.service.m4	2011-05-18 00:13:05.000000000 +0200
++++ systemd-37/units/serial-getty@.service.m4	2011-11-26 15:48:58.076667457 +0100
+@@ -12,6 +12,9 @@
+ m4_ifdef(`TARGET_FEDORA',
+ After=rc-local.service
+ )m4_dnl
++m4_ifdef(`TARGET_PLD',
++After=rc-local.service
++)m4_dnl
+ m4_ifdef(`TARGET_ARCH',
+ After=rc-local.service
+ )m4_dnl

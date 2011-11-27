@@ -18,7 +18,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.3
+Release:	0.4
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
@@ -129,7 +129,7 @@ Pliki nagłówkowe bibliotek systemd.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
+#%patch1 -p1
 
 %build
 %{__aclocal} -I m4
@@ -145,7 +145,6 @@ Pliki nagłówkowe bibliotek systemd.
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
 	--disable-static \
-	--with-distro=pld \
 	--with-rootdir=
 
 %{__make}
