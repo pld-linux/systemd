@@ -18,7 +18,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.1
+Release:	0.3
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
@@ -54,10 +54,10 @@ Requires:	python-dbus
 Requires:	python-modules
 Requires:	rc-scripts
 Requires:	udev-core >= 160
-Provides:	SysVinit = 2.86-23
+Provides:	SysVinit = 2.86-26
 Provides:	readahead = 1:1.5.7-3
 Provides:	virtual(init-daemon)
-Obsoletes:	SysVinit < 2.86-23
+Obsoletes:	SysVinit < 2.86-26
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -184,8 +184,12 @@ rm -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
 
 # Make sure these directories are properly owned
 install -d $RPM_BUILD_ROOT/lib/systemd/system/basic.target.wants
-install -d $RPM_BUILD_ROOT/lib/systemd/system/default.target.wants
 install -d $RPM_BUILD_ROOT/lib/systemd/system/dbus.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/default.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/halt.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/kexec.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/poweroff.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/reboot.target.wants
 install -d $RPM_BUILD_ROOT/lib/systemd/system/syslog.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
