@@ -50,6 +50,7 @@ BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.10.0
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	SysVinit-tools
+Requires:	agetty
 Requires:	dbus >= 1.3.2
 Requires:	dbus-systemd
 # python modules required by systemd-analyze
