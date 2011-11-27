@@ -6,6 +6,10 @@
 #   /etc/timezone
 #   /etc/vconsole.conf
 #
+# TODO:	- move %_libexecdir/tmpfiles.d/* to /etc/tmpfiles.d?
+#	- shouldn't ../bin/systemctl symlinks be absolute?
+#	- verify %_sysconfdir usage vs literal '/etc'
+#
 # Conditional build:
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
@@ -161,17 +165,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %{__mv} $RPM_BUILD_ROOT{%{_libdir}/lib%{name}-*.so*,/%{_lib}}
 
-%{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
-%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
-
-%if %{without gtk}
-# to shut up check-files
-rm -f $RPM_BUILD_ROOT%{_bindir}/systemadm
-rm -f $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
-%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
-%endif
-
 # Create SysV compatibility symlinks. systemctl/systemd are smart
 # enough to detect in which way they are called.
 install -d $RPM_BUILD_ROOT/sbin
@@ -183,6 +176,8 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/runlevel
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/shutdown
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
 
+ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
+
 # We create all wants links manually at installation time to make sure
 # they are not owned and hence overriden by rpm after the used deleted
 # them.
@@ -193,6 +188,17 @@ install -d $RPM_BUILD_ROOT/lib/systemd/system/{basic,dbus,default,halt,kexec,pow
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
+
+%if %{without gtk}
+# to shut up check-files
+rm -f $RPM_BUILD_ROOT%{_bindir}/systemadm
+rm -f $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
+%endif
+
+%{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
+%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -254,9 +260,7 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
 %dir %{_sysconfdir}/systemd
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/systemd-logind.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/*.conf
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
 /etc/xdg/systemd
 %attr(755,root,root) /bin/systemd
@@ -285,19 +289,13 @@ fi
 %dir %{_libexecdir}/systemd
 %{_libexecdir}/systemd/user
 %dir /lib/systemd/system-generators
-%if %{with cryptsetup}
-%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator
-%endif
-%attr(755,root,root) /lib/systemd/system-generators/systemd-getty-generator
+%attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
 %dir /lib/systemd/system-shutdown
 /lib/udev/rules.d/99-systemd.rules
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
-%{_libexecdir}/tmpfiles.d/legacy.conf
-%{_libexecdir}/tmpfiles.d/systemd.conf
-%{_libexecdir}/tmpfiles.d/tmp.conf
-%{_libexecdir}/tmpfiles.d/x11.conf
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_libexecdir}/tmpfiles.d/*.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -375,12 +373,13 @@ fi
 %defattr(644,root,root,755)
 %dir %{_sysconfdir}/binfmt.d
 %dir %{_sysconfdir}/modules-load.d
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/modules-load.d/modules.conf
 %dir %{_sysconfdir}/sysctl.d
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/tmpfiles.d
 %dir /lib/systemd
-/lib/systemd/system
+%config(noreplace,missingok) %verify(not md5 mtime size) /lib/systemd/system
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
