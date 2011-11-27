@@ -18,7 +18,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.4
+Release:	0.5
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
@@ -49,12 +49,15 @@ BuildRequires:	rpmbuild(macros) >= 1.527
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.10.0
 Requires:	%{name}-units = %{version}-%{release}
+Requires:	SysVinit-tools
 Requires:	dbus >= 1.3.2
+Requires:	dbus-systemd
 # python modules required by systemd-analyze
 Requires:	python-dbus
 Requires:	python-modules
 Requires:	rc-scripts
 Requires:	udev-core >= 160
+Requires:	udev-systemd
 Provides:	SysVinit = 2.86-26
 Provides:	readahead = 1:1.5.7-3
 Provides:	virtual(init-daemon)
