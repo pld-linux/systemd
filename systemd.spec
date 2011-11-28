@@ -213,6 +213,9 @@ install -d $RPM_BUILD_ROOT/lib/systemd/system/{basic,dbus,default,halt,kexec,pow
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
 
+> $RPM_BUILD_ROOT/var/log/btmp
+> $RPM_BUILD_ROOT/var/log/wtmp
+
 %if %{without gtk}
 # to shut up check-files
 rm -f $RPM_BUILD_ROOT%{_bindir}/systemadm
@@ -371,6 +374,8 @@ fi
 %{_mandir}/man8/runlevel.8*
 %{_mandir}/man8/shutdown.8*
 %{_mandir}/man8/telinit.8*
+%attr(640,root,root) %ghost /var/log/btmp
+%attr(664,root,utmp) %ghost /var/log/wtmp
 
 %if %{with pam}
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
