@@ -180,7 +180,7 @@ rm -rf $RPM_BUILD_ROOT
 
 for lib in libsystemd-daemon libsystemd-login; do
 	%{__mv} $RPM_BUILD_ROOT{%{_libdir}/$lib.so.*,/%{_lib}}
-	ln -sf /%{_lib}/$(basename $RPM_BUILD_ROOT/%{_lib}/$lib.so.*) $RPM_BUILD_ROOT%{_libdir}/$lib.so
+	ln -sf /%{_lib}/$(basename $RPM_BUILD_ROOT/%{_lib}/$lib.so.*.*.*) $RPM_BUILD_ROOT%{_libdir}/$lib.so
 done
 
 # Create SysV compatibility symlinks. systemctl/systemd are smart
@@ -201,9 +201,10 @@ ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 # them.
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
 
-# do not cover /media (system-specific removable mountpoints)
+# do not cover /media (system-specific removable mountpoints) for now
+# needs %post code to convert existing /media structure to tmpfiles
 %{__rm} -f $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/media.mount
-# do not cover /var/run (packages need rpm-provided subdirectories)
+# do not cover /var/run until packages need rpm-provided-only subdirectories
 %{__rm} -f $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/var-run.mount
 
 # Make sure these directories are properly owned
@@ -314,7 +315,7 @@ fi
 /lib/udev/rules.d/73-seat-late.rules
 %dir %{_libexecdir}/systemd
 %{_libexecdir}/systemd/user
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_libexecdir}/tmpfiles.d/*.conf
+%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/*.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -356,19 +357,7 @@ fi
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/sysctl.d.5*
-%{_mandir}/man5/systemd.automount.5*
-%{_mandir}/man5/systemd.conf.5*
-%{_mandir}/man5/systemd.device.5*
-%{_mandir}/man5/systemd.exec.5*
-%{_mandir}/man5/systemd.mount.5*
-%{_mandir}/man5/systemd.path.5*
-%{_mandir}/man5/systemd.service.5*
-%{_mandir}/man5/systemd.snapshot.5*
-%{_mandir}/man5/systemd.socket.5*
-%{_mandir}/man5/systemd.swap.5*
-%{_mandir}/man5/systemd.target.5*
-%{_mandir}/man5/systemd.timer.5*
-%{_mandir}/man5/systemd.unit.5*
+%{_mandir}/man5/systemd.*.5*
 %{_mandir}/man5/systemd-logind.conf.5*
 %{_mandir}/man5/timezone.5*
 %{_mandir}/man5/vconsole.conf.5*
@@ -405,15 +394,15 @@ fi
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/tmpfiles.d
 %dir /lib/systemd
-%config(noreplace,missingok) %verify(not md5 mtime size) /lib/systemd/system
+%config(noreplace,missingok) /lib/systemd/system
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
 %dir %{_libexecdir}/tmpfiles.d
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
-%{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man1/systemctl.1*
+%{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man8/systemd-tmpfiles.8*
 %{_npkgconfigdir}/systemd.pc
 
@@ -432,7 +421,7 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %{_includedir}/systemd
-%{_libdir}/libsystemd-daemon.so
-%{_libdir}/libsystemd-login.so
+%attr(755,root,root) %{_libdir}/libsystemd-daemon.so
+%attr(755,root,root) %{_libdir}/libsystemd-login.so
 %{_pkgconfigdir}/libsystemd-daemon.pc
 %{_pkgconfigdir}/libsystemd-login.pc
