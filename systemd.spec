@@ -8,6 +8,8 @@
 #
 # TODO:	- move %_libexecdir/tmpfiles.d/* to /etc/tmpfiles.d?
 #	- shouldn't ../bin/systemctl symlinks be absolute?
+#	- separate init subpackage (with symlink), one can switch to
+#	  systemd using init=/bin/systemd with other one installed
 #	- verify %_sysconfdir usage vs literal '/etc'
 #
 # Conditional build:
