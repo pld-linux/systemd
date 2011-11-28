@@ -7,7 +7,7 @@
 #   /etc/vconsole.conf
 #
 # TODO:	- move %_libexecdir/tmpfiles.d/* to /etc/tmpfiles.d?
-#	- shouldn't ../bin/systemctl symlinks be absolute?
+#	- shouldn't ../bin/systemctl symlinks be absolute? -no they shouldn't (think browsing mounted as chroot and seeing all blink due invalid link targets when doing ls)
 #	- separate init subpackage (with symlink), one can switch to
 #	  systemd using init=/bin/systemd with other one installed
 #	- verify %_sysconfdir usage vs literal '/etc'
@@ -61,20 +61,21 @@ Requires:	agetty
 Requires:	dbus >= 1.3.2
 Requires:	dbus-systemd
 # python modules required by systemd-analyze
+Requires:	filesystem >= 3.0-43
 Requires:	python-dbus
 Requires:	python-modules
 Requires:	rc-scripts
 Requires:	udev-core >= 160
 Requires:	udev-systemd
+Suggests:	ConsoleKit-systemd
+Suggests:	rsyslog-systemd
+Suggests:	udev-systemd
 Provides:	SysVinit = 2.86-26
 Provides:	readahead = 1:1.5.7-3
 Provides:	virtual(init-daemon)
 Obsoletes:	SysVinit < 2.86-26
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
-Suggests:	ConsoleKit-systemd 
-Suggests:	rsyslog-systemd
-Suggests:	udev-systemd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
@@ -181,7 +182,7 @@ sed -e 's|%{_libdir}|/%{_lib}|' -i $RPM_BUILD_ROOT%{_pkgconfigdir}/libsystemd-da
 
 # Create SysV compatibility symlinks. systemctl/systemd are smart
 # enough to detect in which way they are called.
-install -d $RPM_BUILD_ROOT/{run,sbin}
+install -d $RPM_BUILD_ROOT/sbin
 ln -s ../bin/systemd $RPM_BUILD_ROOT/sbin/init
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/halt
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/poweroff
@@ -308,7 +309,6 @@ fi
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
-%dir /run
 %dir %{_libexecdir}/systemd
 %{_libexecdir}/systemd/user
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_libexecdir}/tmpfiles.d/*.conf
