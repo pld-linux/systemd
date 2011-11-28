@@ -180,7 +180,7 @@ rm -rf $RPM_BUILD_ROOT
 
 # Create SysV compatibility symlinks. systemctl/systemd are smart
 # enough to detect in which way they are called.
-install -d $RPM_BUILD_ROOT/sbin
+install -d $RPM_BUILD_ROOT/{run,sbin}
 ln -s ../bin/systemd $RPM_BUILD_ROOT/sbin/init
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/halt
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/poweroff
@@ -195,6 +195,11 @@ ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 # they are not owned and hence overriden by rpm after the used deleted
 # them.
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
+
+# do not cover /media (system-specific removable mountpoints)
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/media.mount
+# do not cover /var/run (packages need rpm-provided subdirectories)
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/var-run.mount
 
 # Make sure these directories are properly owned
 install -d $RPM_BUILD_ROOT/lib/systemd/system/{basic,dbus,default,halt,kexec,poweroff,reboot,syslog}.target.wants
@@ -225,8 +230,8 @@ if [ $1 -ge 1 ]; then
 	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
 fi
 
-%post	libs -p /sbin/ldconfig
-%postun	libs -p /sbin/ldconfig
+%post   libs -p /sbin/ldconfig
+%postun libs -p /sbin/ldconfig
 
 %post units
 if [ $1 -eq 1 ]; then
@@ -273,9 +278,9 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.login1.conf
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
+%ghost %config(noreplace) %{_sysconfdir}/machine-id
 %dir %{_sysconfdir}/systemd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/*.conf
-%ghost %config(noreplace) %{_sysconfdir}/machine-id
 /etc/xdg/systemd
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
@@ -295,9 +300,6 @@ fi
 %attr(755,root,root) /sbin/shutdown
 %attr(755,root,root) /sbin/telinit
 %attr(755,root,root) /lib/systemd/systemd-*
-
-%dir %{_libexecdir}/systemd
-%{_libexecdir}/systemd/user
 %dir /lib/systemd/system-generators
 %attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
 %dir /lib/systemd/system-shutdown
@@ -305,6 +307,9 @@ fi
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
+%dir /run
+%dir %{_libexecdir}/systemd
+%{_libexecdir}/systemd/user
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_libexecdir}/tmpfiles.d/*.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
