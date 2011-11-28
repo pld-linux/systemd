@@ -71,6 +71,9 @@ Provides:	virtual(init-daemon)
 Obsoletes:	SysVinit < 2.86-26
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
+Suggests:	ConsoleKit-systemd 
+Suggests:	rsyslog-systemd
+Suggests:	udev-systemd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
