@@ -54,6 +54,7 @@ BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	rpmbuild(macros) >= 1.527
 BuildRequires:	udev-devel >= 160
 BuildRequires:	vala >= 0.10.0
+Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	SysVinit-tools
 Requires:	agetty
@@ -128,11 +129,18 @@ Requires:	bash-completion
 %description -n bash-completion-systemd
 bash-completion for systemd.
 
+%package libs
+Summary:	Shared systemd library
+Group:		Libraries
+
+%description libs
+Shared systemd library.
+
 %package devel
 Summary:	Header files for systemd libraries
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
 Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-libs = %{version}-%{release}
 
 %description devel
 Header files for systemd libraries.
@@ -209,15 +217,16 @@ rm -f $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/ldconfig
 /bin/systemd-machine-id-setup > /dev/null 2>&1 || :
 /bin/systemctl daemon-reexec > /dev/null 2>&1 || :
 
 %postun
-/sbin/ldconfig
 if [ $1 -ge 1 ]; then
 	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
 fi
+
+%post	libs -p /sbin/ldconfig
+%postun	libs -p /sbin/ldconfig
 
 %post units
 if [ $1 -eq 1 ]; then
@@ -286,10 +295,6 @@ fi
 %attr(755,root,root) /sbin/shutdown
 %attr(755,root,root) /sbin/telinit
 %attr(755,root,root) /lib/systemd/systemd-*
-%attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
 
 %dir %{_libexecdir}/systemd
 %{_libexecdir}/systemd/user
@@ -373,6 +378,13 @@ fi
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
 %{_mandir}/man8/pam_systemd.8*
 %endif
+
+%files libs
+%defattr(644,root,root,755)
+%attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
 
 %files units
 %defattr(644,root,root,755)
