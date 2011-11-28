@@ -177,8 +177,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-%{__mv} $RPM_BUILD_ROOT{%{_libdir}/lib%{name}-*.so*,/%{_lib}}
-sed -e 's|%{_libdir}|/%{_lib}|' -i $RPM_BUILD_ROOT%{_pkgconfigdir}/libsystemd-daemon.pc -i $RPM_BUILD_ROOT%{_pkgconfigdir}/libsystemd-login.pc
+for lib in libsystemd-daemon libsystemd-login; do
+	%{__mv} $RPM_BUILD_ROOT{%{_libdir}/$lib.so.*,/%{_lib}}
+	ln -sf /%{_lib}/$(basename $RPM_BUILD_ROOT/%{_lib}/$lib.so.*) $RPM_BUILD_ROOT%{_libdir}/$lib.so
+done
 
 # Create SysV compatibility symlinks. systemctl/systemd are smart
 # enough to detect in which way they are called.
@@ -429,7 +431,7 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %{_includedir}/systemd
-%attr(755,root,root) /%{_lib}/libsystemd-daemon.so
-%attr(755,root,root) /%{_lib}/libsystemd-login.so
+%{_libdir}/libsystemd-daemon.so
+%{_libdir}/libsystemd-login.so
 %{_pkgconfigdir}/libsystemd-daemon.pc
 %{_pkgconfigdir}/libsystemd-login.pc
