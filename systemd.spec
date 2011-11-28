@@ -177,6 +177,7 @@ rm -rf $RPM_BUILD_ROOT
 	DESTDIR=$RPM_BUILD_ROOT
 
 %{__mv} $RPM_BUILD_ROOT{%{_libdir}/lib%{name}-*.so*,/%{_lib}}
+sed -e 's|%{_libdir}|/%{_lib}|' -i $RPM_BUILD_ROOT%{_pkgconfigdir}/libsystemd-daemon.pc -i $RPM_BUILD_ROOT%{_pkgconfigdir}/libsystemd-login.pc
 
 # Create SysV compatibility symlinks. systemctl/systemd are smart
 # enough to detect in which way they are called.
@@ -197,9 +198,9 @@ ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
 
 # do not cover /media (system-specific removable mountpoints)
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/media.mount
+%{__rm} -f $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/media.mount
 # do not cover /var/run (packages need rpm-provided subdirectories)
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/var-run.mount
+%{__rm} -f $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/var-run.mount
 
 # Make sure these directories are properly owned
 install -d $RPM_BUILD_ROOT/lib/systemd/system/{basic,dbus,default,halt,kexec,poweroff,reboot,syslog}.target.wants
