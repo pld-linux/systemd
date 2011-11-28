@@ -65,6 +65,7 @@ Requires:	filesystem >= 3.0-43
 Requires:	python-dbus
 Requires:	python-modules
 Requires:	rc-scripts
+Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 160
 Requires:	udev-systemd
 Suggests:	ConsoleKit-systemd
