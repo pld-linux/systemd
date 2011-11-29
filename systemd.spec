@@ -24,11 +24,12 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.6
+Release:	0.7
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 # Source0-md5:	1435f23be79c8c38d1121c6b150510f3
+Source1:	systemd-sysv-convert
 Patch0:		target-pld.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -213,6 +214,10 @@ install -d $RPM_BUILD_ROOT/lib/systemd/system/{basic,dbus,default,halt,kexec,pow
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
 
+# Install SysV conversion tool for systemd
+install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT/%{_bindir}/
+
+install -d $RPM_BUILD_ROOT/var/log
 > $RPM_BUILD_ROOT/var/log/btmp
 > $RPM_BUILD_ROOT/var/log/wtmp
 
@@ -300,6 +305,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-analyze
 %attr(755,root,root) %{_bindir}/systemd-cgls
 %attr(755,root,root) %{_bindir}/systemd-nspawn
+%attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) /sbin/halt
 %attr(755,root,root) /sbin/init
