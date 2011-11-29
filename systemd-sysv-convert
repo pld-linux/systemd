@@ -6,7 +6,7 @@ import sys, os, argparse, errno
 def find_service(service, runlevel):
 	priority = -1
 
-	for l in os.listdir("/etc/rc%i.d" % runlevel):
+	for l in os.listdir("/etc/rc.d/rc%i.d" % runlevel):
 		if len(l) < 4:
 			continue
 
