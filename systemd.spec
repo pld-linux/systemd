@@ -31,6 +31,7 @@ Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 # Source0-md5:	1435f23be79c8c38d1121c6b150510f3
 Source1:	systemd-sysv-convert
 Patch0:		target-pld.patch
+Patch1:		config-pld.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf >= 2.63
@@ -154,6 +155,7 @@ Pliki nagłówkowe bibliotek systemd.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 %{__aclocal} -I m4

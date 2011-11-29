@@ -1,0 +1,11 @@
+--- systemd-37/tmpfiles.d/legacy.conf.org	2011-11-29 18:53:25.625949937 +0100
++++ systemd-37/tmpfiles.d/legacy.conf	2011-11-29 18:53:34.999494346 +0100
+@@ -17,6 +17,5 @@
+ # On modern systems a BSD file lock is a better choice if
+ # serialization is needed on those devices.
+ 
+-d /run/lock 0755 root root -
+-d /run/lock/subsys 0755 root root -
+-d /run/lock/lockdev 0775 root lock -
++d /run/lock 1771 root root -
++d /run/lock/subsys 0700 root root -
