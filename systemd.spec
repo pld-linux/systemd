@@ -62,7 +62,7 @@ Requires:	agetty
 Requires:	dbus >= 1.3.2
 Requires:	dbus-systemd
 # python modules required by systemd-analyze
-Requires:	filesystem >= 3.0-43
+Requires:	filesystem >= 4.0
 Requires:	python-dbus
 Requires:	python-modules
 Requires:	rc-scripts
@@ -404,12 +404,9 @@ fi
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/tmpfiles.d
-%dir /lib/systemd
-%config(noreplace,missingok) /lib/systemd/system
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
-%dir %{_libexecdir}/tmpfiles.d
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %{_mandir}/man1/systemctl.1*
