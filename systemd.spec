@@ -29,7 +29,7 @@ License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 # Source0-md5:	1435f23be79c8c38d1121c6b150510f3
-Source1:	systemd-sysv-convert
+Source1:	%{name}-sysv-convert
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
@@ -62,8 +62,8 @@ Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.3.2
 Requires:	dbus-systemd
-# python modules required by systemd-analyze
 Requires:	filesystem >= 4.0
+# python modules required by systemd-analyze
 Requires:	python-dbus
 Requires:	python-modules
 Requires:	rc-scripts
@@ -217,7 +217,7 @@ install -d $RPM_BUILD_ROOT/lib/systemd/system/{basic,dbus,default,halt,kexec,pow
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
 
 # Install SysV conversion tool for systemd
-install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT/%{_bindir}/
+install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
 
 install -d $RPM_BUILD_ROOT/var/log
 > $RPM_BUILD_ROOT/var/log/btmp
@@ -225,8 +225,8 @@ install -d $RPM_BUILD_ROOT/var/log
 
 %if %{without gtk}
 # to shut up check-files
-rm -f $RPM_BUILD_ROOT%{_bindir}/systemadm
-rm -f $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
+%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemadm
+%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
 %endif
 
