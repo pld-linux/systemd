@@ -115,6 +115,9 @@ Requires:	pkgconfig
 Basic configuration files, directories and installation tool for the
 systemd system and service manager.
 
+This is distro specific config, to override 
+use /etc/systemd/system
+
 %package gtk
 Summary:	Graphical frontend for systemd
 Group:		Base
@@ -415,6 +418,23 @@ fi
 %{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man8/systemd-tmpfiles.8*
 %{_npkgconfigdir}/systemd.pc
+
+/lib/systemd/system/*.automount
+/lib/systemd/system/*.mount
+/lib/systemd/system/*.path
+/lib/systemd/system/*.service
+/lib/systemd/system/*.socket
+/lib/systemd/system/*.target
+/lib/systemd/system/*.timer
+/lib/systemd/system/basic.target.wants
+/lib/systemd/system/final.target.wants
+/lib/systemd/system/graphical.target.wants
+/lib/systemd/system/local-fs.target.wants
+/lib/systemd/system/multi-user.target.wants
+/lib/systemd/system/runlevel?.target.wants
+/lib/systemd/system/shutdown.target.wants
+/lib/systemd/system/sockets.target.wants
+/lib/systemd/system/sysinit.target.wants
 
 %if %{with gtk}
 %files gtk
