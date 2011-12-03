@@ -24,7 +24,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.7
+Release:	0.8
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
@@ -76,6 +76,7 @@ Suggests:	udev-systemd
 Provides:	SysVinit = 2.86-26
 Provides:	readahead = 1:1.5.7-3
 Provides:	virtual(init-daemon)
+Provides:	udev-acl
 Obsoletes:	SysVinit < 2.86-26
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
