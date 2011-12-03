@@ -34,7 +34,7 @@ udevd_timeout=8
 
 prog=udev
 bin=/sbin/udev
-udevd=/sbin/udevd
+udevd=/lib/udev/udevd
 
 make_extra_nodes () {
 	grep '^[^#]' /etc/udev/links.conf | \
@@ -96,7 +96,7 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 kill_udevd > "$udev_root/null" 2>&1
 
 	# Start udevd daemon
-	udevd --daemon
+	$udevd --daemon
 	ret=$(( $ret + $? ))
 	
 	# Making extra nodes
