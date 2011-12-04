@@ -24,7 +24,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.8
+Release:	0.9
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
@@ -428,14 +428,21 @@ fi
 /lib/systemd/system/*.target
 /lib/systemd/system/*.timer
 /lib/systemd/system/basic.target.wants
+/lib/systemd/system/dbus.target.wants
+/lib/systemd/system/default.target.wants
 /lib/systemd/system/final.target.wants
 /lib/systemd/system/graphical.target.wants
+/lib/systemd/system/halt.target.wants
+/lib/systemd/system/kexec.target.wants
 /lib/systemd/system/local-fs.target.wants
 /lib/systemd/system/multi-user.target.wants
+/lib/systemd/system/poweroff.target.wants
+/lib/systemd/system/reboot.target.wants
 /lib/systemd/system/runlevel?.target.wants
 /lib/systemd/system/shutdown.target.wants
 /lib/systemd/system/sockets.target.wants
 /lib/systemd/system/sysinit.target.wants
+/lib/systemd/system/syslog.target.wants
 
 %if %{with gtk}
 %files gtk
