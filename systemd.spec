@@ -1,11 +1,3 @@
-# UNPACKAGED files:
-#   /etc/hostname
-#   /etc/locale.conf
-#   /etc/machine-info
-#   /etc/os-release
-#   /etc/timezone
-#   /etc/vconsole.conf
-#
 # TODO:	- move %_libexecdir/tmpfiles.d/* to /etc/tmpfiles.d?
 #	- shouldn't ../bin/systemctl symlinks be absolute? -no they shouldn't (think browsing mounted as chroot and seeing all blink due invalid link targets when doing ls)
 #	- separate init subpackage (with symlink), one can switch to
@@ -24,12 +16,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.9
+Release:	0.10
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
 # Source0-md5:	1435f23be79c8c38d1121c6b150510f3
 Source1:	%{name}-sysv-convert
+Source2:	systemd_booted.c
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
@@ -160,6 +153,7 @@ Pliki nagłówkowe bibliotek systemd.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
 %{__aclocal} -I m4
@@ -178,12 +172,15 @@ Pliki nagłówkowe bibliotek systemd.
 	--with-rootdir=
 
 %{__make}
+./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
+
+./libtool --mode=install install -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
 
 for lib in libsystemd-daemon libsystemd-login; do
 	%{__mv} $RPM_BUILD_ROOT{%{_libdir}/$lib.so.*,/%{_lib}}
@@ -299,6 +296,12 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/locale.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/machine-info
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/os-release
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/timezone
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
 %dir %{_sysconfdir}/systemd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/*.conf
 /etc/xdg/systemd
@@ -415,6 +418,7 @@ fi
 %dir %{_libexecdir}/sysctl.d
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
+%attr(755,root,root) /bin/systemd_booted
 %{_mandir}/man1/systemctl.1*
 %{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man8/systemd-tmpfiles.8*
