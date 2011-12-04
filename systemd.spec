@@ -47,7 +47,7 @@ BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	rpmbuild(macros) >= 1.527
-BuildRequires:	udev-devel >= 160
+BuildRequires:	udev-devel >= 172
 BuildRequires:	vala >= 0.10.0
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
