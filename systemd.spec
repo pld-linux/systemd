@@ -16,7 +16,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	0.10
+Release:	1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
@@ -61,11 +61,11 @@ Requires:	python-dbus
 Requires:	python-modules
 Requires:	rc-scripts
 Requires:	setup >= 2.8.0-2
-Requires:	udev-core >= 160
-Requires:	udev-systemd
+Requires:	udev-core >= 1:172
+Requires:	udev-systemd >= 1:172
+Requires:	udev-libs >= 1:172
 Suggests:	ConsoleKit-systemd
 Suggests:	rsyslog-systemd
-Suggests:	udev-systemd
 Provides:	SysVinit = 2.86-26
 Provides:	readahead = 1:1.5.7-3
 Provides:	virtual(init-daemon)
