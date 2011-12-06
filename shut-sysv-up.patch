@@ -6,7 +6,7 @@ diff -urNp systemd-37.orig/src/unit.c systemd-37/src/unit.c
          assert(format);
  
 -        if (!UNIT_VTABLE(u)->show_status)
-+        if (!UNIT_VTABLE(u)->show_status || (u->meta.manager->sysv_console && u->service.sysv_path))
++        if (!UNIT_VTABLE(u)->show_status || (u->meta.manager->sysv_console && u->service.sysv_path && (u->meta.job==NULL || u->meta.job->result==JOB_DONE) && UNIT_VTABLE(u)->active_state(u)!=UNIT_FAILED && LOG_PRI(log_get_max_level()) <= LOG_INFO))
                  return;
  
          if (!manager_get_show_status(u->meta.manager))
