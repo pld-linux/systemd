@@ -26,6 +26,7 @@ Source1:	%{name}-sysv-convert
 Source2:	systemd_booted.c
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
+Patch2:		shut-sysv-up.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf >= 2.63
@@ -153,6 +154,7 @@ Pliki nagłówkowe bibliotek systemd.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build

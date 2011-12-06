@@ -1,0 +1,12 @@
+diff -urNp systemd-37.orig/src/unit.c systemd-37/src/unit.c
+--- systemd-37.orig/src/unit.c	2011-09-23 16:28:27.000000000 +0200
++++ systemd-37/src/unit.c	2011-12-05 21:37:15.000000000 +0100
+@@ -2432,7 +2432,7 @@ void unit_status_printf(Unit *u, const c
+         assert(u);
+         assert(format);
+ 
+-        if (!UNIT_VTABLE(u)->show_status)
++        if (!UNIT_VTABLE(u)->show_status || (u->meta.manager->sysv_console && u->service.sysv_path))
+                 return;
+ 
+         if (!manager_get_show_status(u->meta.manager))
