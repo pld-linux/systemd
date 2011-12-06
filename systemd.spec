@@ -1,7 +1,5 @@
-# TODO:	- move %_libexecdir/tmpfiles.d/* to /etc/tmpfiles.d?
+# TODO:
 #	- shouldn't ../bin/systemctl symlinks be absolute? -no they shouldn't (think browsing mounted as chroot and seeing all blink due invalid link targets when doing ls)
-#	- separate init subpackage (with symlink), one can switch to
-#	  systemd using init=/bin/systemd with other one installed
 #	- verify %_sysconfdir usage vs literal '/etc'
 #	- %post systemd-sysv-convert
 #
@@ -69,12 +67,7 @@ Suggests:	fsck >= 2.20
 Suggests:	python-dbus
 Suggests:	python-modules
 Suggests:	rsyslog-systemd
-Provides:	readahead = 1:1.5.7-3
 Provides:	udev-acl
-Provides:	virtual(init-daemon)
-Obsoletes:	SysVinit
-Obsoletes:	readahead < 1:1.5.7-3
-Obsoletes:	virtual(init-daemon)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
@@ -99,6 +92,18 @@ linuksowych cgroups, wspomaga zapisywanie (snapshot) i odczytywanie
 implementuje starannie opracowaną transakcjonalną, bazującą na
 zależnościach logikę kontroli usług. Może pracować jako zastępca dla
 sysvinit.
+
+%package init
+Summary:	systemd /sbin/init and LSB/SysV compatibility symlinks
+Group:		Base
+Provides:	readahead = 1:1.5.7-3
+Provides:	virtual(init-daemon)
+Obsoletes:	SysVinit
+Obsoletes:	readahead < 1:1.5.7-3
+Obsoletes:	virtual(init-daemon)
+
+%description init
+Install this package when you are ready to final switch to systemd.
 
 %package units
 Summary:	Configuration files, directories and installation tool for systemd
@@ -230,9 +235,6 @@ install -d $RPM_BUILD_ROOT/var/log
 > $RPM_BUILD_ROOT/var/log/wtmp
 
 %if %{without gtk}
-# to shut up check-files
-%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemadm
-%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
 %endif
 
@@ -321,13 +323,6 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
-%attr(755,root,root) /sbin/halt
-%attr(755,root,root) /sbin/init
-%attr(755,root,root) /sbin/poweroff
-%attr(755,root,root) /sbin/reboot
-%attr(755,root,root) /sbin/runlevel
-%attr(755,root,root) /sbin/shutdown
-%attr(755,root,root) /sbin/telinit
 %attr(755,root,root) /lib/systemd/systemd-*
 %dir /lib/systemd/system-generators
 %attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
@@ -357,7 +352,6 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
 %dir %{_datadir}/systemd
 %{_datadir}/systemd/kbd-model-map
-%{_mandir}/man1/init.1
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-*.1*
 %{_mandir}/man3/sd_booted.3*
@@ -385,12 +379,6 @@ fi
 %{_mandir}/man7/sd-daemon.7*
 %{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.special.7*
-%{_mandir}/man8/halt.8*
-%{_mandir}/man8/poweroff.8
-%{_mandir}/man8/reboot.8
-%{_mandir}/man8/runlevel.8*
-%{_mandir}/man8/shutdown.8*
-%{_mandir}/man8/telinit.8*
 %attr(640,root,root) %ghost /var/log/btmp
 %attr(664,root,utmp) %ghost /var/log/wtmp
 
@@ -398,6 +386,22 @@ fi
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
 %{_mandir}/man8/pam_systemd.8*
 %endif
+
+%files init
+%attr(755,root,root) /sbin/halt
+%attr(755,root,root) /sbin/init
+%attr(755,root,root) /sbin/poweroff
+%attr(755,root,root) /sbin/reboot
+%attr(755,root,root) /sbin/runlevel
+%attr(755,root,root) /sbin/shutdown
+%attr(755,root,root) /sbin/telinit
+%{_mandir}/man1/init.1
+%{_mandir}/man8/halt.8*
+%{_mandir}/man8/poweroff.8
+%{_mandir}/man8/reboot.8
+%{_mandir}/man8/runlevel.8*
+%{_mandir}/man8/shutdown.8*
+%{_mandir}/man8/telinit.8*
 
 %files libs
 %defattr(644,root,root,755)
