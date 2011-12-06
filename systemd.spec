@@ -1,6 +1,3 @@
-# TODO:
-#	- shouldn't ../bin/systemctl symlinks be absolute? -no they shouldn't (think browsing mounted as chroot and seeing all blink due invalid link targets when doing ls)
-#	- %post systemd-sysv-convert
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
@@ -95,6 +92,7 @@ sysvinit.
 %package init
 Summary:	systemd /sbin/init and LSB/SysV compatibility symlinks
 Group:		Base
+Requires:	systemd
 Provides:	readahead = 1:1.5.7-3
 Provides:	virtual(init-daemon)
 Obsoletes:	SysVinit
@@ -220,8 +218,7 @@ ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
 #	- syslog _might_ be used by some syslog implementation (none for now),
 #	- isn't dbus populated by dbus-systemd only (so to be moved there)?
-#	- default should be left intact by distro packages, shouldn't it?
-install -d $RPM_BUILD_ROOT/lib/systemd/system/{dbus,default,halt,kexec,poweroff,reboot,syslog}.target.wants
+install -d $RPM_BUILD_ROOT/lib/systemd/system/{dbus,halt,kexec,poweroff,reboot,syslog}.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
