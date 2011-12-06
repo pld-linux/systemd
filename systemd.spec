@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	37
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
@@ -231,8 +231,8 @@ install -d $RPM_BUILD_ROOT/var/log
 
 %if %{without gtk}
 # to shut up check-files
-rm -f $RPM_BUILD_ROOT%{_bindir}/systemadm
-rm -f $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
+%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemadm
+%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
 %endif
 
@@ -433,7 +433,8 @@ fi
 /lib/systemd/system/*.socket
 /lib/systemd/system/*.target
 /lib/systemd/system/*.timer
-%config(noreplace,missingok) /lib/systemd/system/*.wants
+%dir /lib/systemd/system/*.wants
+%config(noreplace,missingok) /lib/systemd/system/*.wants/*
 
 %if %{with gtk}
 %files gtk
