@@ -3,6 +3,7 @@
 #	- separate init subpackage (with symlink), one can switch to
 #	  systemd using init=/bin/systemd with other one installed
 #	- verify %_sysconfdir usage vs literal '/etc'
+#	- %post systemd-sysv-convert
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
@@ -56,19 +57,20 @@ Requires:	agetty
 Requires:	dbus >= 1.3.2
 Requires:	dbus-systemd
 Requires:	filesystem >= 4.0
-# python modules required by systemd-analyze
-Requires:	python-dbus
-Requires:	python-modules
 Requires:	rc-scripts
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:172
 Requires:	udev-systemd >= 1:172
 Requires:	udev-libs >= 1:172
 Suggests:	ConsoleKit-systemd
+Suggests:	fsck >= 2.20
+# python modules required by systemd-analyze
+Suggests:	python-dbus
+Suggests:	python-modules
 Suggests:	rsyslog-systemd
 Provides:	readahead = 1:1.5.7-3
-Provides:	virtual(init-daemon)
 Provides:	udev-acl
+Provides:	virtual(init-daemon)
 Obsoletes:	SysVinit
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
@@ -108,8 +110,7 @@ Requires:	pkgconfig
 Basic configuration files, directories and installation tool for the
 systemd system and service manager.
 
-This is distro specific config, to override 
-use /etc/systemd/system
+This is common config, use /etc/systemd/system to override.
 
 %package gtk
 Summary:	Graphical frontend for systemd
@@ -187,7 +188,7 @@ for lib in libsystemd-daemon libsystemd-login; do
 done
 
 # Create SysV compatibility symlinks. systemctl/systemd are smart
-# enough to detect in which way they are called.
+# enough to detect the way they were called
 install -d $RPM_BUILD_ROOT/sbin
 ln -s ../bin/systemd $RPM_BUILD_ROOT/sbin/init
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/halt
@@ -199,9 +200,8 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
 
 ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 
-# We create all wants links manually at installation time to make sure
-# they are not owned and hence overriden by rpm after the used deleted
-# them.
+# All wants links are created at %post to make sure they are not owned
+# and hence overriden by rpm if the user deletes them (missingok?)
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
 
 # do not cover /media (system-specific removable mountpoints) for now
@@ -210,8 +210,12 @@ ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 # do not cover /var/run until packages need rpm-provided-only subdirectories
 %{__rm} -f $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/var-run.mount
 
-# Make sure these directories are properly owned
-install -d $RPM_BUILD_ROOT/lib/systemd/system/{basic,dbus,default,halt,kexec,poweroff,reboot,syslog}.target.wants
+# Make sure these directories are properly owned:
+#	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
+#	- syslog _might_ be used by some syslog implementation (none for now),
+#	- isn't dbus populated by dbus-systemd only (so to be moved there)?
+#	- default should be left intact by distro packages, shouldn't it?
+install -d $RPM_BUILD_ROOT/lib/systemd/system/{dbus,default,halt,kexec,poweroff,reboot,syslog}.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
@@ -225,8 +229,8 @@ install -d $RPM_BUILD_ROOT/var/log
 
 %if %{without gtk}
 # to shut up check-files
-%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemadm
-%{__rm} $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
+rm -f $RPM_BUILD_ROOT%{_bindir}/systemadm
+rm -f $RPM_BUILD_ROOT%{_bindir}/systemd-gnome-ask-password-agent
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
 %endif
 
@@ -301,8 +305,8 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/os-release
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/timezone
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
-%dir %{_sysconfdir}/systemd
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/*.conf
+%dir %{_sysconfdir}/systemd/user
 /etc/xdg/systemd
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
@@ -313,8 +317,8 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-analyze
 %attr(755,root,root) %{_bindir}/systemd-cgls
 %attr(755,root,root) %{_bindir}/systemd-nspawn
-%attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
+%attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) /sbin/halt
 %attr(755,root,root) /sbin/init
 %attr(755,root,root) /sbin/poweroff
@@ -332,6 +336,7 @@ fi
 /lib/udev/rules.d/73-seat-late.rules
 %dir %{_libexecdir}/systemd
 %{_libexecdir}/systemd/user
+%dir %{_libexecdir}/systemd/user-generators
 %config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/*.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
@@ -352,11 +357,7 @@ fi
 %{_datadir}/systemd/kbd-model-map
 %{_mandir}/man1/init.1
 %{_mandir}/man1/systemd.1*
-%{_mandir}/man1/systemd-ask-password.1*
-%{_mandir}/man1/systemd-cgls.1*
-%{_mandir}/man1/systemd-notify.1*
-%{_mandir}/man1/systemd-nspawn.1*
-%{_mandir}/man1/systemd-loginctl.1*
+%{_mandir}/man1/systemd-*.1*
 %{_mandir}/man3/sd_booted.3*
 %{_mandir}/man3/sd_is_fifo.3*
 %{_mandir}/man3/sd_is_socket.3
@@ -430,22 +431,7 @@ fi
 /lib/systemd/system/*.socket
 /lib/systemd/system/*.target
 /lib/systemd/system/*.timer
-/lib/systemd/system/basic.target.wants
-/lib/systemd/system/dbus.target.wants
-/lib/systemd/system/default.target.wants
-/lib/systemd/system/final.target.wants
-/lib/systemd/system/graphical.target.wants
-/lib/systemd/system/halt.target.wants
-/lib/systemd/system/kexec.target.wants
-/lib/systemd/system/local-fs.target.wants
-/lib/systemd/system/multi-user.target.wants
-/lib/systemd/system/poweroff.target.wants
-/lib/systemd/system/reboot.target.wants
-/lib/systemd/system/runlevel?.target.wants
-/lib/systemd/system/shutdown.target.wants
-/lib/systemd/system/sockets.target.wants
-/lib/systemd/system/sysinit.target.wants
-/lib/systemd/system/syslog.target.wants
+%config(noreplace,missingok) /lib/systemd/system/*.wants
 
 %if %{with gtk}
 %files gtk
@@ -461,7 +447,7 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
-%{_includedir}/systemd
+%{_includedir}/%{name}
 %attr(755,root,root) %{_libdir}/libsystemd-daemon.so
 %attr(755,root,root) %{_libdir}/libsystemd-login.so
 %{_pkgconfigdir}/libsystemd-daemon.pc
