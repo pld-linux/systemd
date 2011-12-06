@@ -1,6 +1,5 @@
 # TODO:
 #	- shouldn't ../bin/systemctl symlinks be absolute? -no they shouldn't (think browsing mounted as chroot and seeing all blink due invalid link targets when doing ls)
-#	- verify %_sysconfdir usage vs literal '/etc'
 #	- %post systemd-sysv-convert
 #
 # Conditional build:
@@ -116,7 +115,7 @@ Requires:	pkgconfig
 Basic configuration files, directories and installation tool for the
 systemd system and service manager.
 
-This is common config, use /etc/systemd/system to override.
+This is common config, use %{_sysconfdir}/systemd/system to override.
 
 %package gtk
 Summary:	Graphical frontend for systemd
@@ -268,7 +267,7 @@ if [ $1 -eq 1 ]; then
 	fi
 
 	# And symlink what we found to the new-style default.target
-	ln -sf "$target" /etc/systemd/system/default.target >/dev/null 2>&1 || :
+	ln -s "$target" %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
 
 	# Enable the services we install by default.
 	/bin/systemctl enable \
@@ -286,7 +285,7 @@ if [ $1 -eq 0 ] ; then
 		systemd-readahead-replay.service \
 		systemd-readahead-collect.service >/dev/null 2>&1 || :
 
-	%{__rm} -f /etc/systemd/system/default.target >/dev/null 2>&1 || :
+	%{__rm} -f %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
 fi
 
 %postun units
