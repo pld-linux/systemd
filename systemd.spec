@@ -203,6 +203,7 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/shutdown
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
 
 ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
+ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/random.service
 
 # All wants links are created at %post to make sure they are not owned
 # and hence overriden by rpm if the user deletes them (missingok?)
@@ -210,9 +211,9 @@ ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 
 # do not cover /media (system-specific removable mountpoints) for now
 # needs %post code to convert existing /media structure to tmpfiles
-%{__rm} -f $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/media.mount
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/media.mount
 # do not cover /var/run until packages need rpm-provided-only subdirectories
-%{__rm} -f $RPM_BUILD_ROOT/lib/systemd/local-fs.target.wants/var-run.mount
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/var-run.mount
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
@@ -227,8 +228,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-inf
 install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
 
 install -d $RPM_BUILD_ROOT/var/log
-> $RPM_BUILD_ROOT/var/log/btmp
-> $RPM_BUILD_ROOT/var/log/wtmp
+:> $RPM_BUILD_ROOT/var/log/btmp
+:> $RPM_BUILD_ROOT/var/log/wtmp
 
 %if %{without gtk}
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
