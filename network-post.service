@@ -1,0 +1,8 @@
+[Unit]
+Description=Finalize network
+DefaultDependencies=no
+After=network.service
+
+[Service]
+ExecStart=/sbin/service network start_postinit
+RemainAfterExit=true

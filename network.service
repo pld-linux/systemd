@@ -1,0 +1,15 @@
+[Unit]
+Description=Initialize network
+DefaultDependencies=no
+After=remount-rootfs.service
+Before=network-post.service
+Wants=network-post.service
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/service network start_init
+ExecStop=/sbin/service network stop_deinit
+RemainAfterExit=true
+
+[Install]
+WantedBy=default.target

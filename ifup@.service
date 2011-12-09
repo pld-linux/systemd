@@ -1,0 +1,15 @@
+[Unit]
+Description=Start ifup for %I
+After=local-fs.target
+After=network.service
+Wants=network.service
+Before=network-post.service
+
+[Service]
+ExecStart=/sbin/ifup %I
+ExecStop=/sbin/ifdown %I
+RemainAfterExit=true
+Type=oneshot
+
+[Install]
+WantedBy=network.service
