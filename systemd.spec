@@ -22,6 +22,7 @@ Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
+BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf >= 2.63
 BuildRequires:	automake >= 1:1.11
@@ -34,6 +35,7 @@ BuildRequires:	gtk+2-devel >= 2:2.24.0
 BuildRequires:	libnotify-devel >= 0.7.0
 %endif
 BuildRequires:	gperf
+BuildRequires:	intltool >= 0.40.0
 BuildRequires:	libcap-devel
 %{?with_selinux:BuildRequires:	libselinux-devel}
 BuildRequires:	libtool >= 2:2.2
@@ -44,7 +46,8 @@ BuildRequires:	m4
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	rpmbuild(macros) >= 1.527
 BuildRequires:	udev-devel >= 172
-BuildRequires:	vala >= 0.10.0
+# not required for building from release (which contains *.c for *.vala)
+#BuildRequires:	vala >= 0.10.0
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	SysVinit-tools
@@ -91,6 +94,7 @@ sysvinit.
 
 %package init
 Summary:	systemd /sbin/init and LSB/SysV compatibility symlinks
+Summary(pl.UTF-8):	/sbin/init z systemd i dowiązania dla kompatybilności z LSB/SysV
 Group:		Base
 Requires:	systemd
 Provides:	readahead = 1:1.5.7-3
@@ -102,8 +106,13 @@ Obsoletes:	virtual(init-daemon)
 %description init
 Install this package when you are ready to final switch to systemd.
 
+%description init -l pl.UTF-8
+Ten pakiet należy zainstalować po przygotowaniu się do ostatecznego
+przejścia na systemd.
+
 %package units
 Summary:	Configuration files, directories and installation tool for systemd
+Summary(pl.UTF-8):	Pliki konfiguracyjne, katalogi i narzędzie instalacyjne dla systemd
 Group:		Base
 Requires(post):	coreutils
 Requires(post):	gawk
@@ -115,8 +124,16 @@ systemd system and service manager.
 
 This is common config, use %{_sysconfdir}/systemd/system to override.
 
+%description units -l pl.UTF-8
+Podstawowe pliki konfiguracyjne, katalogi i narzędzie instalacyjne dla
+zarządcy systemu i usług systemd.
+
+Ten pakiet zawiera ogólną konfigurację, ustawienia można nadpisać
+poprzez katalog %{_sysconfdir}/systemd/system.
+
 %package gtk
 Summary:	Graphical frontend for systemd
+Summary(pl.UTF-8):	Graficzny interfejs do systemd
 Group:		Base
 Requires:	%{name} = %{version}-%{release}
 Requires:	polkit
@@ -124,21 +141,19 @@ Requires:	polkit
 %description gtk
 Graphical front-end for systemd.
 
-%package -n bash-completion-systemd
-Summary:	bash-completion for systemd
-Group:		Applications/Shells
-Requires:	%{name}
-Requires:	bash-completion
-
-%description -n bash-completion-systemd
-bash-completion for systemd.
+%description gtk -l pl.UTF-8
+Graficzny interfejs do systemd.
 
 %package libs
-Summary:	Shared systemd library
+Summary:	Shared systemd libraries
+Summary(pl.UTF-8):	Biblioteki współdzielone systemd
 Group:		Libraries
 
 %description libs
-Shared systemd library.
+Shared systemd libraries.
+
+%description libs -l pl.UTF-8
+Biblioteki współdzielone systemd.
 
 %package devel
 Summary:	Header files for systemd libraries
@@ -151,6 +166,19 @@ Header files for systemd libraries.
 
 %description devel -l pl.UTF-8
 Pliki nagłówkowe bibliotek systemd.
+
+%package -n bash-completion-systemd
+Summary:	bash-completion for systemd
+Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
+Group:		Applications/Shells
+Requires:	%{name}
+Requires:	bash-completion
+
+%description -n bash-completion-systemd
+bash-completion for systemd.
+
+%description -n bash-completion-systemd -l pl.UTF-8
+Bashowe dopełnianie składni dla systemd
 
 %prep
 %setup -q
@@ -173,6 +201,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
 	--disable-static \
+	--with-distro=pld \
 	--with-rootdir=
 
 %{__make}
@@ -385,6 +414,7 @@ fi
 %endif
 
 %files init
+%defattr(644,root,root,755)
 %attr(755,root,root) /sbin/halt
 %attr(755,root,root) /sbin/init
 %attr(755,root,root) /sbin/poweroff
@@ -399,13 +429,6 @@ fi
 %{_mandir}/man8/runlevel.8*
 %{_mandir}/man8/shutdown.8*
 %{_mandir}/man8/telinit.8*
-
-%files libs
-%defattr(644,root,root,755)
-%attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
 
 %files units
 %defattr(644,root,root,755)
@@ -445,14 +468,21 @@ fi
 %{_mandir}/man1/systemadm.1*
 %endif
 
-%files -n bash-completion-systemd
+%files libs
 %defattr(644,root,root,755)
-/etc/bash_completion.d/systemctl-bash-completion.sh
+%attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
 
 %files devel
 %defattr(644,root,root,755)
-%{_includedir}/%{name}
 %attr(755,root,root) %{_libdir}/libsystemd-daemon.so
 %attr(755,root,root) %{_libdir}/libsystemd-login.so
+%{_includedir}/%{name}
 %{_pkgconfigdir}/libsystemd-daemon.pc
 %{_pkgconfigdir}/libsystemd-login.pc
+
+%files -n bash-completion-systemd
+%defattr(644,root,root,755)
+/etc/bash_completion.d/systemctl-bash-completion.sh
