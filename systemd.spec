@@ -202,7 +202,8 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--disable-silent-rules \
 	--disable-static \
 	--with-distro=pld \
-	--with-rootdir=
+	--with-rootprefix= \
+	--with-rootlibdir=/lib
 
 %{__make}
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
@@ -214,11 +215,6 @@ rm -rf $RPM_BUILD_ROOT
 	DESTDIR=$RPM_BUILD_ROOT
 
 ./libtool --mode=install install -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
-
-for lib in libsystemd-daemon libsystemd-login; do
-	%{__mv} $RPM_BUILD_ROOT{%{_libdir}/$lib.so.*,/%{_lib}}
-	ln -sf /%{_lib}/$(basename $RPM_BUILD_ROOT/%{_lib}/$lib.so.*.*.*) $RPM_BUILD_ROOT%{_libdir}/$lib.so
-done
 
 # Create SysV compatibility symlinks. systemctl/systemd are smart
 # enough to detect the way they were called
@@ -485,4 +481,4 @@ fi
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
-/etc/bash_completion.d/systemctl-bash-completion.sh
+/etc/bash_completion.d/systemd-bash-completion.sh
