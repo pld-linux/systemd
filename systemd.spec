@@ -10,12 +10,12 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	37
-Release:	3
+Version:	38
+Release:	0.5
 License:	GPL v2+
 Group:		Base
-Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.bz2
-# Source0-md5:	1435f23be79c8c38d1121c6b150510f3
+Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
+# Source0-md5:	68c66dce5a28c0efd7c210af5d11efed
 Source1:	%{name}-sysv-convert
 Source2:	systemd_booted.c
 Patch0:		target-pld.patch
