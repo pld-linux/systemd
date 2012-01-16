@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	0.5
+Release:	0.6
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -336,6 +336,7 @@ fi
 /etc/xdg/systemd
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
+%attr(755,root,root) /bin/systemd-journalctl
 %attr(755,root,root) /bin/systemd-loginctl
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
@@ -399,6 +400,7 @@ fi
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/sd-daemon.7*
+%{_mandir}/man7/sd-login.7*
 %{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.special.7*
 %attr(640,root,root) %ghost /var/log/btmp
@@ -468,16 +470,45 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-id128.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-id128.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-journal.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-journal.so.0
 %attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
 
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libsystemd-daemon.so
+%attr(755,root,root) %{_libdir}/libsystemd-id128.so
+%attr(755,root,root) %{_libdir}/libsystemd-journal.so
 %attr(755,root,root) %{_libdir}/libsystemd-login.so
 %{_includedir}/%{name}
 %{_pkgconfigdir}/libsystemd-daemon.pc
+%{_pkgconfigdir}/libsystemd-id128.pc
+%{_pkgconfigdir}/libsystemd-journal.pc
 %{_pkgconfigdir}/libsystemd-login.pc
+%{_mandir}/man3/sd_get_seats.3*
+%{_mandir}/man3/sd_get_sessions.3*
+%{_mandir}/man3/sd_get_uids.3*
+%{_mandir}/man3/sd_is_mq.3*
+%{_mandir}/man3/sd_login_monitor_flush.3*
+%{_mandir}/man3/sd_login_monitor_get_fd.3*
+%{_mandir}/man3/sd_login_monitor_new.3*
+%{_mandir}/man3/sd_login_monitor_unref.3*
+%{_mandir}/man3/sd_pid_get_owner_uid.3*
+%{_mandir}/man3/sd_pid_get_session.3*
+%{_mandir}/man3/sd_pid_get_unit.3*
+%{_mandir}/man3/sd_seat_can_multi_session.3*
+%{_mandir}/man3/sd_seat_get_active.3*
+%{_mandir}/man3/sd_seat_get_sessions.3*
+%{_mandir}/man3/sd_session_get_seat.3*
+%{_mandir}/man3/sd_session_get_uid.3*
+%{_mandir}/man3/sd_session_is_active.3*
+%{_mandir}/man3/sd_uid_get_seats.3*
+%{_mandir}/man3/sd_uid_get_sessions.3*
+%{_mandir}/man3/sd_uid_get_state.3*
+%{_mandir}/man3/sd_uid_is_on_seat.3*
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
