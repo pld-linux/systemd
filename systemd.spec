@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	0.6
+Release:	1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -239,6 +239,9 @@ ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/random.service
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/media.mount
 # do not cover /var/run until packages need rpm-provided-only subdirectories
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/var-run.mount
+
+# it is in rc-scripts pkg
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/rc-local.service
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
