@@ -264,7 +264,7 @@ install -d $RPM_BUILD_ROOT/var/log
 %endif
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
-%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
+%{__rm} $RPM_BUILD_ROOT/lib/security/pam_systemd.la
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
 
 %clean
@@ -410,7 +410,7 @@ fi
 %attr(664,root,utmp) %ghost /var/log/wtmp
 
 %if %{with pam}
-%attr(755,root,root) /%{_lib}/security/pam_systemd.so
+%attr(755,root,root) /lib/security/pam_systemd.so
 %{_mandir}/man8/pam_systemd.8*
 %endif
 
@@ -471,14 +471,14 @@ fi
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-id128.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-id128.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-journal.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-journal.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
+%attr(755,root,root) /lib/libsystemd-daemon.so.*.*.*
+%attr(755,root,root) %ghost /lib/libsystemd-daemon.so.0
+%attr(755,root,root) /lib/libsystemd-id128.so.*.*.*
+%attr(755,root,root) %ghost /lib/libsystemd-id128.so.0
+%attr(755,root,root) /lib/libsystemd-journal.so.*.*.*
+%attr(755,root,root) %ghost /lib/libsystemd-journal.so.0
+%attr(755,root,root) /lib/libsystemd-login.so.*.*.*
+%attr(755,root,root) %ghost /lib/libsystemd-login.so.0
 
 %files devel
 %defattr(644,root,root,755)
