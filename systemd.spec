@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -204,8 +204,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--disable-static \
 	--with-distro=pld \
 	--with-rootprefix= \
-	--with-rootlibdir=/lib \
-	--with-pamlibdir=/%{_lib}/security
+	--with-rootlibdir=/%{_lib}
 
 %{__make}
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
@@ -475,14 +474,14 @@ fi
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) /lib/libsystemd-daemon.so.*.*.*
-%attr(755,root,root) %ghost /lib/libsystemd-daemon.so.0
-%attr(755,root,root) /lib/libsystemd-id128.so.*.*.*
-%attr(755,root,root) %ghost /lib/libsystemd-id128.so.0
-%attr(755,root,root) /lib/libsystemd-journal.so.*.*.*
-%attr(755,root,root) %ghost /lib/libsystemd-journal.so.0
-%attr(755,root,root) /lib/libsystemd-login.so.*.*.*
-%attr(755,root,root) %ghost /lib/libsystemd-login.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-id128.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-id128.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-journal.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-journal.so.0
+%attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
 
 %files devel
 %defattr(644,root,root,755)
