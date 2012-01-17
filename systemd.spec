@@ -228,7 +228,9 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/shutdown
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
 
 ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
+# disable random and console SYSV service 
 ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/random.service
+ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/console.service
 
 # All wants links are created at %post to make sure they are not owned
 # and hence overriden by rpm if the user deletes them (missingok?)
