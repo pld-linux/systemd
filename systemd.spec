@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -32,6 +32,7 @@ BuildRequires:	docbook-style-xsl
 %if %{with gtk}
 BuildRequires:	glib2-devel >= 1:2.26.1
 BuildRequires:	gtk+2-devel >= 2:2.24.0
+BuildRequires:	libgee-devel
 BuildRequires:	libnotify-devel >= 0.7.0
 %endif
 BuildRequires:	gperf
@@ -203,7 +204,8 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--disable-static \
 	--with-distro=pld \
 	--with-rootprefix= \
-	--with-rootlibdir=/lib
+	--with-rootlibdir=/lib \
+	--with-pamlibdir=/%{_lib}/security
 
 %{__make}
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
@@ -266,7 +268,7 @@ install -d $RPM_BUILD_ROOT/var/log
 %endif
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
-%{__rm} $RPM_BUILD_ROOT/lib/security/pam_systemd.la
+%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
 
 %clean
@@ -412,7 +414,7 @@ fi
 %attr(664,root,utmp) %ghost /var/log/wtmp
 
 %if %{with pam}
-%attr(755,root,root) /lib/security/pam_systemd.so
+%attr(755,root,root) /%{_lib}/security/pam_systemd.so
 %{_mandir}/man8/pam_systemd.8*
 %endif
 
