@@ -316,6 +316,7 @@ fi
 	systemd-readahead-collect.service >/dev/null 2>&1 || :
 
 # Find and enable all installed interfaces
+mkdir -p %{_sysconfdir}/systemd/system/network.target.wants >/dev/null 2>&1 || :
 for f in /etc/sysconfig/interfaces/ifcfg-* ; do
 	ff=$(basename $f)
 	ff=${ff##ifcfg-}
