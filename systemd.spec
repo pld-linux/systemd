@@ -59,7 +59,7 @@ Requires:	agetty
 Requires:	dbus >= 1.3.2
 Requires:	dbus-systemd
 Requires:	filesystem >= 4.0
-Requires:	rc-scripts
+Requires:	rc-scripts >= 0.4.5.1-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:172
 Requires:	udev-systemd >= 1:172
