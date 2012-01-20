@@ -12,4 +12,4 @@ ExecStop=/sbin/service network stop_deinit
 RemainAfterExit=true
 
 [Install]
-WantedBy=default.target
+WantedBy=network.target

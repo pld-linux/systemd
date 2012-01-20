@@ -1,3 +1,8 @@
+# To set-up a new interface do the following (for example eth0):
+#
+# ln -s /lib/systemd/system/ifup@.service \
+#		/etc/systemd/system/network.target.wants/ifcfg@eth0.service
+#
 [Unit]
 Description=Start ifup for %I
 After=local-fs.target
@@ -5,11 +10,12 @@ After=network.service
 Wants=network.service
 Before=network-post.service
 
+# If it's a vlan/bridge/macvlan slave put required masters like this:
+#
+#Before=ifcfg@eth0.service
+
 [Service]
 ExecStart=/sbin/ifup %I
 ExecStop=/sbin/ifdown %I
 RemainAfterExit=true
 Type=oneshot
-
-[Install]
-WantedBy=network.service

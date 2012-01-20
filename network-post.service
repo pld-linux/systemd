@@ -6,3 +6,6 @@ After=network.service
 [Service]
 ExecStart=/sbin/service network start_postinit
 RemainAfterExit=true
+
+[Install]
+WantedBy=network.target
