@@ -11,13 +11,16 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	3
+Release:	3.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 # Source0-md5:	68c66dce5a28c0efd7c210af5d11efed
 Source1:	%{name}-sysv-convert
 Source2:	systemd_booted.c
+Source3:	ifup@.service
+Source4:	network-post.service
+Source5:	network.service
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
@@ -233,6 +236,11 @@ ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/random.service
 ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/console.service
 
+# add static (non-NetworkManager) networking
+install %{SOURCE3} $RPM_BUILD_ROOT/lib/systemd/system/ifup@.service
+install %{SOURCE4} $RPM_BUILD_ROOT/lib/systemd/system/network-post.service
+install %{SOURCE5} $RPM_BUILD_ROOT/lib/systemd/system/network.service
+
 # All wants links are created at %post to make sure they are not owned
 # and hence overriden by rpm if the user deletes them (missingok?)
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
@@ -297,24 +305,43 @@ if [ $1 -eq 1 ]; then
 
 	# And symlink what we found to the new-style default.target
 	ln -s "$target" %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
-
-	# Enable the services we install by default.
-	/bin/systemctl enable \
-		getty@.service \
-		remote-fs.target \
-		systemd-readahead-replay.service \
-		systemd-readahead-collect.service >/dev/null 2>&1 || :
 fi
+# Enable the services we install by default.
+/bin/systemctl enable \
+	getty@.service \
+	network.service \
+	network-post.service \
+	remote-fs.target \
+	systemd-readahead-replay.service \
+	systemd-readahead-collect.service >/dev/null 2>&1 || :
+
+# Find and enable all installed interfaces
+for f in /etc/sysconfig/interfaces/ifcfg-* ; do
+	ff=$(basename $f)
+	ff=${ff##ifcfg-}
+	case "$ff" in
+	*.rpmorig|*.rpmnew|*.rpmsave|*~|*.orig)
+		continue
+		;;
+	*)
+		ln -s /lib/systemd/system/ifup@.service \
+			%{_sysconfdir}/systemd/system/network.target.wants/ifcfg@$ff.service >/dev/null 2>&1 || :
+		;;
+	esac
+done
 
 %preun units
 if [ $1 -eq 0 ] ; then
 	/bin/systemctl disable \
 		getty@.service \
+		network.service \
+		network-post.service \
 		remote-fs.target \
 		systemd-readahead-replay.service \
 		systemd-readahead-collect.service >/dev/null 2>&1 || :
 
 	%{__rm} -f %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
+	%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
 fi
 
 %postun units
