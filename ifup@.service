@@ -15,7 +15,7 @@ Before=network-post.service
 #Before=ifcfg@eth0.service
 
 [Service]
-ExecStart=/sbin/ifup %I
-ExecStop=/sbin/ifdown %I
+ExecStart=/sbin/ifup %I boot
+ExecStop=/sbin/ifdown %I boot
 RemainAfterExit=true
 Type=oneshot
