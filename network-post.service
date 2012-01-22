@@ -4,9 +4,10 @@ DefaultDependencies=no
 After=network.service
 
 [Service]
+Type=oneshot
 ExecStart=/sbin/service network start_postinit
-ExecStart=touch /var/lock/subsys/network
-ExecStop=rm -f /var/lock/subsys/network
+ExecStart=/bin/touch /var/lock/subsys/network
+ExecStop=/bin/rm -f /var/lock/subsys/network
 
 RemainAfterExit=true
 
