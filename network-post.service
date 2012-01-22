@@ -5,6 +5,9 @@ After=network.service
 
 [Service]
 ExecStart=/sbin/service network start_postinit
+ExecStart=touch /var/lock/subsys/network
+ExecStop=rm -f /var/lock/subsys/network
+
 RemainAfterExit=true
 
 [Install]
