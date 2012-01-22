@@ -1,0 +1,14 @@
+--- systemd-38/src/virt.c~	2011-12-30 22:27:36.454528998 +0100
++++ systemd-38/src/virt.c	2012-01-23 00:41:53.036388492 +0100
+@@ -202,7 +202,10 @@
+                         }
+                         line[i] = 0;
+ 
+-                        if (streq(line, "container=lxc")) {
++                        if (streq(line, "container=lxc")
++			    || startswith(line, "LIBVIRT_LXC_UUID=")
++			    || startswith(line, "LIBVIRT_LXC_NAME=")
++			    || startswith(line, "LIBVIRT_LXC_CMDLINE=")) {
+                                 fclose(f);
+ 
+                                 if (id)

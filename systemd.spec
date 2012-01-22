@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	7
+Release:	7.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -24,6 +24,7 @@ Source5:	network.service
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
+Patch3:		virt-libvirt.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -189,6 +190,7 @@ Bashowe dopełnianie składni dla systemd
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
