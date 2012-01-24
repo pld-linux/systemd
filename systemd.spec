@@ -327,8 +327,13 @@ for f in /etc/sysconfig/interfaces/ifcfg-* ; do
 		continue
 		;;
 	*)
-		ln -s /lib/systemd/system/ifup@.service \
-			%{_sysconfdir}/systemd/system/network.target.wants/ifcfg@$ff.service >/dev/null 2>&1 || :
+		DEVICE=""
+		ONBOOT=""
+		. $f
+		if [ "$DEVICE" = "$ff" -a ${ONBOOT:-no} = "yes" ]; then
+			ln -s /lib/systemd/system/ifup@.service \
+				%{_sysconfdir}/systemd/system/network.target.wants/ifcfg@$ff.service >/dev/null 2>&1 || :
+		fi
 		;;
 	esac
 done
