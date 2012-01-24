@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	8
+Release:	9
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -329,7 +329,7 @@ for f in /etc/sysconfig/interfaces/ifcfg-* ; do
 	*)
 		DEVICE=""
 		ONBOOT=""
-		. $f
+		. $f 2>/dev/null
 		if [ "$DEVICE" = "$ff" -a ${ONBOOT:-no} = "yes" ]; then
 			ln -s /lib/systemd/system/ifup@.service \
 				%{_sysconfdir}/systemd/system/network.target.wants/ifcfg@$ff.service >/dev/null 2>&1 || :
