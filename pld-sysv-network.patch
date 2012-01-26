@@ -4,7 +4,7 @@
                  line++;
  
                  t = strstrip(l);
-+                # PLD specifick ugly hack to detect SysV services requiring networking
++                # PLD specific ugly hack to detect SysV services requiring network
 +                if (startswith_no_case(t, ". /etc/sysconfig/network")) {
 +                        r = unit_add_dependency_by_name(UNIT(s), UNIT_REQUIRES | UNIT_AFTER, "network.target", NULL, true);
 +
