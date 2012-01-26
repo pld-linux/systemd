@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	9
+Release:	9.4
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -25,6 +25,7 @@ Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		virt-libvirt.patch
+Patch4:		pld-sysv-network.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -191,6 +192,7 @@ Bashowe dopełnianie składni dla systemd
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -327,9 +329,9 @@ for f in /etc/sysconfig/interfaces/ifcfg-* ; do
 		continue
 		;;
 	*)
-		DEVICE=""
-		ONBOOT=""
+		DEVICE="" ; ONBOOT="" ; USERS=""
 		. $f 2>/dev/null
+		[ ${USERS:-no} != no ] && continue
 		if [ "$DEVICE" = "$ff" -a ${ONBOOT:-no} = "yes" ]; then
 			ln -s /lib/systemd/system/ifup@.service \
 				%{_sysconfdir}/systemd/system/network.target.wants/ifcfg@$ff.service >/dev/null 2>&1 || :

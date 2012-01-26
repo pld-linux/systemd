@@ -1,0 +1,16 @@
+--- systemd-38/src/service.c~	2012-01-26 00:12:06.239561034 +0100
++++ systemd-38/src/service.c	2012-01-26 18:26:15.476825041 +0100
+@@ -516,6 +516,13 @@
+                 line++;
+ 
+                 t = strstrip(l);
++                # PLD specifick ugly hack to detect SysV services requiring networking
++                if (startswith_no_case(t, ". /etc/sysconfig/network")) {
++                        r = unit_add_dependency_by_name(UNIT(s), UNIT_REQUIRES | UNIT_AFTER, "network.target", NULL, true);
++
++                        if (r < 0)
++                                 log_error("[%s:%u] Failed to add dependency on network.target, ignoring: %s", path, line, strerror(-r));
++                }
+                 if (*t != '#')
+                         continue;
+ 
