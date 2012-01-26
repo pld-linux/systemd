@@ -24,8 +24,7 @@ Source5:	network.service
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
-Patch3:		virt-libvirt.patch
-Patch4:		pld-sysv-network.patch
+Patch3:		pld-sysv-network.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -192,7 +191,6 @@ Bashowe dopełnianie składni dla systemd
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
