@@ -1,7 +1,7 @@
 [Unit]
 Description=Finalize network
 DefaultDependencies=no
-fter=ifup@.service network.service
+After=ifup@.service network.service
 Wants=network.target
 Before=network.target
 
