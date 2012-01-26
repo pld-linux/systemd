@@ -5,7 +5,6 @@
 #
 [Unit]
 Description=Start ifup for %I
-After=local-fs.target
 After=network.service
 Wants=network.service
 Before=network-post.service

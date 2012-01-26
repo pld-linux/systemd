@@ -1,9 +1,9 @@
 [Unit]
 Description=Initialize network
 DefaultDependencies=no
-After=remount-rootfs.service
-Before=network-post.service
-Wants=network-post.service
+After=syslog.target
+Wants=network.target
+Before=network.target
 
 [Service]
 Type=oneshot
@@ -12,4 +12,4 @@ ExecStop=/sbin/service network stop_deinit
 RemainAfterExit=true
 
 [Install]
-WantedBy=network.target
+WantedBy=multi-user.target
