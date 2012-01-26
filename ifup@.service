@@ -2,6 +2,10 @@
 #
 # ln -s /lib/systemd/system/ifup@.service \
 #		/etc/systemd/system/network.target.wants/ifcfg@eth0.service
+# or
+# cp -a /lib/systemd/system/ifup@.service \
+#		/etc/systemd/system/network.target.wants/ifcfg@eth0.service
+# if you have to edit this service
 #
 [Unit]
 Description=Start ifup for %I
