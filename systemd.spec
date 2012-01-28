@@ -70,7 +70,7 @@ Suggests:	fsck >= 2.20
 # python modules required by systemd-analyze
 Suggests:	python-dbus
 Suggests:	python-modules
-Suggests:	rsyslog-systemd
+Suggests:	service(syslog)
 Provides:	udev-acl
 Conflicts:	upstart
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
