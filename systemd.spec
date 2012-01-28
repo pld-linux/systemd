@@ -72,6 +72,7 @@ Suggests:	python-dbus
 Suggests:	python-modules
 Suggests:	rsyslog-systemd
 Provides:	udev-acl
+Conflicts:	upstart
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
