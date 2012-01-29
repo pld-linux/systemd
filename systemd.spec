@@ -67,6 +67,7 @@ Requires:	udev-systemd >= 1:172
 Requires:	udev-libs >= 1:172
 Suggests:	ConsoleKit-systemd
 Suggests:	fsck >= 2.20
+Suggests:	nss_myhostname
 # python modules required by systemd-analyze
 Suggests:	python-dbus
 Suggests:	python-modules
