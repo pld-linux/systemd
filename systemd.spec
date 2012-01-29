@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	12
+Release:	13
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -249,11 +249,14 @@ install %{SOURCE5} $RPM_BUILD_ROOT/lib/systemd/system/network.service
 
 # install compatibility tmpfiles configs
 install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
-install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+#install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 # All wants links are created at %post to make sure they are not owned
 # and hence overriden by rpm if the user deletes them (missingok?)
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
+
+# do not cover /var/run until packages need rpm-provided-only subdirectories
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/var-run.mount
 
 # it is in rc-scripts pkg
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system/rc-local.service

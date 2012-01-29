@@ -86,7 +86,7 @@ d /var/run/p3scan 770 root mail -
 d /var/run/pam_mount 755 root root -
 d /var/run/pcscd 755 root root -
 d /var/run/pgpool 775 root pgpool -
-d /var/run/php 731 root http) %verify(not group mode -
+d /var/run/php 731 root http -
 d /var/run/pluto 755 root root -
 d /var/run/policyd 775 root policyd -
 d /var/run/PolicyKit 770 root polkituser -
