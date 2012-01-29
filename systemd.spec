@@ -11,7 +11,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	38
-Release:	11
+Release:	12
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -21,6 +21,8 @@ Source2:	systemd_booted.c
 Source3:	ifup@.service
 Source4:	network-post.service
 Source5:	network.service
+Source6:	compat-pld-media.tmpfiles
+Source7:	compat-pld-var-run.tmpfiles
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
@@ -245,15 +247,13 @@ install %{SOURCE3} $RPM_BUILD_ROOT/lib/systemd/system/ifup@.service
 install %{SOURCE4} $RPM_BUILD_ROOT/lib/systemd/system/network-post.service
 install %{SOURCE5} $RPM_BUILD_ROOT/lib/systemd/system/network.service
 
+# install compatibility tmpfiles configs
+install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
+install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+
 # All wants links are created at %post to make sure they are not owned
 # and hence overriden by rpm if the user deletes them (missingok?)
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
-
-# do not cover /media (system-specific removable mountpoints) for now
-# needs %post code to convert existing /media structure to tmpfiles
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/media.mount
-# do not cover /var/run until packages need rpm-provided-only subdirectories
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/var-run.mount
 
 # it is in rc-scripts pkg
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system/rc-local.service
@@ -488,6 +488,7 @@ fi
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/tmpfiles.d
+%config(noreplace,missingok) %{_sysconfdir}/tmpfiles.d/*.conf
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d

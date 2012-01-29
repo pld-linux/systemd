@@ -1,0 +1,8 @@
+# For some unknown reason we are providing these in FHS.
+#
+# TODO: remove it.
+#
+# See tmpfiles.d(5) for details
+
+d /media/floppy 0755 root root -
+d /media/cdrom 0755 root root -
