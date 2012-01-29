@@ -1,4 +1,9 @@
 #
+# TODO:
+#	- remove compat-pld-var-run.tmpfiles and maybe tmpfiles-not-fatal.patch
+#	  after enough packages provide their own tmpfiles.d configs for
+#	  /var/run directories
+#
 # Conditional build:
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
@@ -10,12 +15,12 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	38
-Release:	13
+Version:	39
+Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	68c66dce5a28c0efd7c210af5d11efed
+# Source0-md5:	7179b34f6f6553d2a36551ac1dec5f0d
 Source1:	%{name}-sysv-convert
 Source2:	systemd_booted.c
 Source3:	ifup@.service
@@ -27,6 +32,7 @@ Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
+Patch4:		tmpfiles-not-fatal.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -193,8 +199,9 @@ Bashowe dopełnianie składni dla systemd
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
+#%patch2 -p1
 %patch3 -p1
+%patch4 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -249,14 +256,11 @@ install %{SOURCE5} $RPM_BUILD_ROOT/lib/systemd/system/network.service
 
 # install compatibility tmpfiles configs
 install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
-#install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 # All wants links are created at %post to make sure they are not owned
 # and hence overriden by rpm if the user deletes them (missingok?)
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
-
-# do not cover /var/run until packages need rpm-provided-only subdirectories
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/local-fs.target.wants/var-run.mount
 
 # it is in rc-scripts pkg
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system/rc-local.service
@@ -396,6 +400,8 @@ fi
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
 %attr(755,root,root) %{_bindir}/systemd-analyze
+%attr(755,root,root) %{_bindir}/systemd-cat
+%attr(755,root,root) %{_bindir}/systemd-cgtop
 %attr(755,root,root) %{_bindir}/systemd-cgls
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
@@ -495,6 +501,7 @@ fi
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
+%{_libexecdir}/sysctl.d/coredump.conf
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %attr(755,root,root) /bin/systemd_booted
