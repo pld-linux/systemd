@@ -309,6 +309,14 @@ if [ $1 -eq 1 ]; then
 
 	# And symlink what we found to the new-style default.target
 	ln -s "$target" %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
+
+	# Setup hostname
+	[ -f /etc/sysconfig/network ] && . /etc/sysconfig/network
+	if [ -n "$HOSTNAME" -a "$HOSTNAME" != "pldmachine" ]; then
+		[ -f /etc/hostname ] && mv -f /etc/hostname /etc/hostname.rpmsave
+		echo $HOSTNAME > /etc/hostname
+		chmod 644 /etc/hostname
+	fi
 fi
 # Enable the services we install by default.
 /bin/systemctl enable \
