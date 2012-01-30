@@ -67,7 +67,7 @@ Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.3.2
 Requires:	dbus-systemd
-Requires:	filesystem >= 4.0
+Requires:	filesystem >= 4.0-2
 Requires:	rc-scripts >= 0.4.5.1-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:172
@@ -497,7 +497,7 @@ fi
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/tmpfiles.d
-%config(noreplace,missingok) %{_sysconfdir}/tmpfiles.d/*.conf
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/tmpfiles.d/*.conf
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
