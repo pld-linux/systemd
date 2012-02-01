@@ -16,7 +16,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	39
-Release:	0.1
+Release:	0.2
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -466,7 +466,7 @@ if [ $1 -ge 1 ]; then
 fi
 
 %post no-compat-tmpfiles
-%{__sed} -i -e '/^/# /g' %{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+%{__sed} -i -e 's/^/# /g' %{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 %files
 %defattr(644,root,root,755)
