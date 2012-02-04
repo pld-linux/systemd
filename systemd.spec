@@ -80,6 +80,7 @@ Suggests:	nss_myhostname
 # python modules required by systemd-analyze
 Suggests:	python-dbus
 Suggests:	python-modules
+Suggests:	service(klogd)
 Suggests:	service(syslog)
 Suggests:	%{name}-no-compat-tmpfiles
 Provides:	udev-acl
