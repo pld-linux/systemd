@@ -16,13 +16,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	39
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 # Source0-md5:	7179b34f6f6553d2a36551ac1dec5f0d
 Source1:	%{name}-sysv-convert
-Source2:	systemd_booted.c
+Source2:	%{name}_booted.c
 Source3:	ifup@.service
 Source4:	network-post.service
 Source5:	network.service
@@ -66,23 +66,21 @@ Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	SysVinit-tools
 Requires:	agetty
-Requires:	dbus >= 1.3.2
-Requires:	dbus-systemd
+Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-2
 Requires:	rc-scripts >= 0.4.5.1-7
 Requires:	setup >= 2.8.0-2
-Requires:	udev-core >= 1:172
-Requires:	udev-systemd >= 1:172
+Requires:	udev-core >= 1:175-5
 Requires:	udev-libs >= 1:172
-Suggests:	ConsoleKit-systemd
+Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
 Suggests:	nss_myhostname
 # python modules required by systemd-analyze
+Suggests:	%{name}-no-compat-tmpfiles
 Suggests:	python-dbus
 Suggests:	python-modules
 Suggests:	service(klogd)
 Suggests:	service(syslog)
-Suggests:	%{name}-no-compat-tmpfiles
 Provides:	udev-acl
 # systemd takes care of that and causes problems
 Conflicts:	binfmt-detector
@@ -136,7 +134,6 @@ Summary(pl.UTF-8):	Pliki konfiguracyjne, katalogi i narzędzie instalacyjne dla 
 Group:		Base
 Requires(post):	coreutils
 Requires(post):	gawk
-Requires:	pkgconfig
 
 %description units
 Basic configuration files, directories and installation tool for the
@@ -208,11 +205,11 @@ Conflicts:	ConsoleKit-dirs < 0.4.5-7
 Conflicts:	NetworkManager < 2:0.9.2.0-3
 Conflicts:	Zope < 2.11.8-2
 Conflicts:	amavisd-new < 1:2.7.0-1
-Conflicts:	apache1-base < 1.3.42-5
-Conflicts:	apache1-mod_fastcgi < 2.4.6-2
 Conflicts:	apache-base < 2.2.21-4
 Conflicts:	apache-mod_bw < 0.92-3
 Conflicts:	apache-mod_fastcgi < 2.4.6-6
+Conflicts:	apache1-base < 1.3.42-5
+Conflicts:	apache1-mod_fastcgi < 2.4.6-2
 Conflicts:	asterisk < 10.0.1-2
 Conflicts:	autossh-init < 1.4b-3
 Conflicts:	balance < 3.54-2
