@@ -84,6 +84,8 @@ Suggests:	service(klogd)
 Suggests:	service(syslog)
 Suggests:	%{name}-no-compat-tmpfiles
 Provides:	udev-acl
+# systemd takes care of that and causes problems
+Conflicts:	binfmt-detector
 Conflicts:	upstart
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
