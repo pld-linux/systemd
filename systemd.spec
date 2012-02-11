@@ -47,6 +47,7 @@ BuildRequires:	gtk+2-devel >= 2:2.24.0
 BuildRequires:	libgee-devel
 BuildRequires:	libnotify-devel >= 0.7.0
 %endif
+BuildRequires:	binutils >= 3:2.22.52.0.1-3
 BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
 BuildRequires:	libcap-devel
@@ -57,7 +58,7 @@ BuildRequires:	libxslt-progs
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
 BuildRequires:	pkgconfig >= 0.9.0
-BuildRequires:	rpmbuild(macros) >= 1.527
+BuildRequires:	rpmbuild(macros) >= 1.627
 BuildRequires:	udev-devel >= 1:172
 # not required for building from release (which contains *.c for *.vala)
 #BuildRequires:	vala >= 0.10.0
@@ -336,14 +337,14 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/shutdown
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
 
 ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
-# disable random and console SYSV service 
-ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/random.service
-ln -s /dev/null $RPM_BUILD_ROOT/lib/systemd/system/console.service
+# disable random and console SYSV service
+ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/random.service
+ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/console.service
 
 # add static (non-NetworkManager) networking
-install %{SOURCE3} $RPM_BUILD_ROOT/lib/systemd/system/ifup@.service
-install %{SOURCE4} $RPM_BUILD_ROOT/lib/systemd/system/network-post.service
-install %{SOURCE5} $RPM_BUILD_ROOT/lib/systemd/system/network.service
+install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/ifup@.service
+install %{SOURCE4} $RPM_BUILD_ROOT%{systemdunitdir}/network-post.service
+install %{SOURCE5} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
 # install compatibility tmpfiles configs
 install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
@@ -354,13 +355,13 @@ install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.c
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
 
 # it is in rc-scripts pkg
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/rc-local.service
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/rc-local.service
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
 #	- syslog _might_ be used by some syslog implementation (none for now),
 #	- isn't dbus populated by dbus-systemd only (so to be moved there)?
-install -d $RPM_BUILD_ROOT/lib/systemd/system/{dbus,halt,kexec,poweroff,reboot,syslog}.target.wants
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/{dbus,halt,kexec,poweroff,reboot,syslog}.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
@@ -400,9 +401,9 @@ if [ $1 -eq 1 ]; then
 	# Try to read default runlevel from the old inittab if it exists
 	runlevel=$(/bin/awk -F ':' '$3 == "initdefault" && $1 !~ "^#" { print $2 }' /etc/inittab 2> /dev/null)
 	if [ -z "$runlevel" ] ; then
-		target="/lib/systemd/system/graphical.target"
+		target="%{systemdunitdir}/graphical.target"
 	else
-		target="/lib/systemd/system/runlevel$runlevel.target"
+		target="%{systemdunitdir}/runlevel$runlevel.target"
 	fi
 
 	# And symlink what we found to the new-style default.target
@@ -439,7 +440,7 @@ for f in /etc/sysconfig/interfaces/ifcfg-* ; do
 		. $f 2>/dev/null
 		[ ${USERS:-no} != no ] && continue
 		if [ "$DEVICE" = "$ff" -a ${ONBOOT:-no} = "yes" ]; then
-			ln -s /lib/systemd/system/ifup@.service \
+			ln -s %{systemdunitdir}/ifup@.service \
 				%{_sysconfdir}/systemd/system/network.target.wants/ifcfg@$ff.service >/dev/null 2>&1 || :
 		fi
 		;;
@@ -604,15 +605,15 @@ fi
 %{_mandir}/man8/systemd-tmpfiles.8*
 %{_npkgconfigdir}/systemd.pc
 
-/lib/systemd/system/*.automount
-/lib/systemd/system/*.mount
-/lib/systemd/system/*.path
-/lib/systemd/system/*.service
-/lib/systemd/system/*.socket
-/lib/systemd/system/*.target
-/lib/systemd/system/*.timer
-%dir /lib/systemd/system/*.wants
-%config(noreplace,missingok) /lib/systemd/system/*.wants/*
+%{systemdunitdir}/*.automount
+%{systemdunitdir}/*.mount
+%{systemdunitdir}/*.path
+%{systemdunitdir}/*.service
+%{systemdunitdir}/*.socket
+%{systemdunitdir}/*.target
+%{systemdunitdir}/*.timer
+%dir %{systemdunitdir}/*.wants
+%config(noreplace,missingok) %{systemdunitdir}/*.wants/*
 
 %if %{with gtk}
 %files gtk
