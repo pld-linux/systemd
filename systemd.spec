@@ -47,7 +47,7 @@ BuildRequires:	gtk+2-devel >= 2:2.24.0
 BuildRequires:	libgee-devel
 BuildRequires:	libnotify-devel >= 0.7.0
 %endif
-BuildRequires:	binutils >= 3:2.22.52.0.1-3
+BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
 BuildRequires:	libcap-devel
