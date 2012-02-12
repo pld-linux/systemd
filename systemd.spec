@@ -142,7 +142,7 @@ Summary:	Configuration files, directories and installation tool for systemd
 Summary(pl.UTF-8):	Pliki konfiguracyjne, katalogi i narzędzie instalacyjne dla systemd
 Group:		Base
 Requires(post):	coreutils
-Requires(post):	gawk
+Requires(post):	/bin/awk
 
 %description units
 Basic configuration files, directories and installation tool for the
