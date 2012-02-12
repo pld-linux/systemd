@@ -9,18 +9,19 @@
 %bcond_without	cryptsetup	# without cryptsetup support
 %bcond_without	gtk		# build gtk tools
 %bcond_without	pam		# PAM authentication support
+%bcond_with	plymouth	# plymouth support
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	39
-Release:	4
+Version:	42
+Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	7179b34f6f6553d2a36551ac1dec5f0d
+# Source0-md5:	7686b44e368d2523901d3e903ed4dcea
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	ifup@.service
@@ -50,6 +51,7 @@ BuildRequires:	libnotify-devel >= 0.7.0
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
+BuildRequires:	kmod-devel >= 5
 BuildRequires:	libcap-devel
 %{?with_selinux:BuildRequires:	libselinux-devel}
 BuildRequires:	libtool >= 2:2.2
@@ -57,6 +59,7 @@ BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
+%{?with_plymouth:BuildRequires:	plymouth-devel}
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	rpmbuild(macros) >= 1.627
 BuildRequires:	udev-devel >= 1:172
@@ -69,6 +72,7 @@ Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-2
+Requires:	kmod >= 5
 Requires:	rc-scripts >= 0.4.5.1-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:175-5
@@ -307,13 +311,15 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	%{__enable_disable cryptsetup libcryptsetup} \
 	%{__enable_disable gtk} \
 	%{__enable_disable pam} \
+	%{__enable_disable plymouth} \
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
 	--disable-static \
 	--with-distro=pld \
 	--with-rootprefix= \
-	--with-rootlibdir=/%{_lib}
+	--with-rootlibdir=/%{_lib} \
+	--enable-split-usr
 
 %{__make}
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
@@ -326,10 +332,13 @@ rm -rf $RPM_BUILD_ROOT
 
 ./libtool --mode=install install -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
 
+# Main binary has been moved, but we don't want to break existing installs
+ln -s ../lib/systemd/systemd $RPM_BUILD_ROOT/bin/systemd
+
 # Create SysV compatibility symlinks. systemctl/systemd are smart
 # enough to detect the way they were called
 install -d $RPM_BUILD_ROOT/sbin
-ln -s ../bin/systemd $RPM_BUILD_ROOT/sbin/init
+ln -s ../lib/systemd/systemd $RPM_BUILD_ROOT/sbin/init
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/halt
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/poweroff
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/reboot
@@ -504,6 +513,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) /lib/systemd/systemd-*
 %dir /lib/systemd/system-generators
+%attr(755,root,root) /lib/systemd/systemd
 %attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
 %dir /lib/systemd/system-shutdown
 /lib/udev/rules.d/99-systemd.rules
