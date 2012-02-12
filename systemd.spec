@@ -16,7 +16,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	39
-Release:	3
+Release:	4
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -85,6 +85,8 @@ Suggests:	service(syslog)
 Provides:	udev-acl
 # systemd takes care of that and causes problems
 Conflicts:	binfmt-detector
+# sytemd wants pam with pam_systemd.so in system-auth 
+Conflicts:	pam < 1:1.1.5-5
 Conflicts:	upstart
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -250,7 +252,6 @@ Conflicts:	openl2tp < 1.8-3
 Conflicts:	openldap-overlay-nssov < 2.4.28-4
 Conflicts:	openldap-servers < 2.4.28-4
 Conflicts:	openvpn < 2.2.2-2
-Conflicts:	pam < 1:1.1.5-3
 Conflicts:	pam-pam_mount < 2.12-3
 Conflicts:	pam-pam_ssh < 1.97-2
 Conflicts:	pcsc-lite < 1.8.1-2
