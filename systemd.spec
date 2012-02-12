@@ -89,8 +89,10 @@ Suggests:	service(syslog)
 Provides:	udev-acl
 # systemd takes care of that and causes problems
 Conflicts:	binfmt-detector
-# sytemd wants pam with pam_systemd.so in system-auth 
+# sytemd wants pam with pam_systemd.so in system-auth...
 Conflicts:	pam < 1:1.1.5-5
+# ...and sudo hates it
+Conflicts:	sudo < 1:1.7.8p2-4
 Conflicts:	upstart
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -232,7 +234,8 @@ Conflicts:	dspam < 3.9.0-6
 Conflicts:	fail2ban < 0.8.4-4
 Conflicts:	filesystem < 4.0-3
 Conflicts:	gammu-smsd < 1:1.31.0-3
-Conflicts:	gdm < 2:3.2.1.1-9
+# Break gdm2.20 installs
+#Conflicts:	gdm < 2:3.2.1.1-9
 Conflicts:	greylistd < 0.8.8-2
 Conflicts:	inn < 2.4.6-7
 Conflicts:	ipsec-tools < 0.8.0-3
@@ -277,7 +280,6 @@ Conflicts:	speech-dispatcher < 0.7.1-2
 Conflicts:	sphinx < 2.0.3-4
 Conflicts:	splashutils < 1.5.4.3-3
 Conflicts:	stunnel < 4.50-2
-Conflicts:	sudo < 1:1.7.8p2-2
 Conflicts:	tenshi < 0.12-2
 Conflicts:	tor < 0.2.2.35-2
 Conflicts:	ucarp < 1.5.2-3
@@ -296,7 +298,7 @@ Force update of packages that provide tmpfiles.d configuration
 %setup -q
 %patch0 -p1
 %patch1 -p1
-#%patch2 -p1
+%patch2 -p1
 %patch3 -p1
 %patch4 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
@@ -477,7 +479,7 @@ if [ $1 -ge 1 ]; then
 fi
 
 %post no-compat-tmpfiles
-%{__sed} -i -e 's/^/# /g' %{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+%{__sed} -i -e '/^#/!s/^/# /g' %{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 %files
 %defattr(644,root,root,755)
