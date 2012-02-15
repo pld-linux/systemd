@@ -72,13 +72,14 @@ Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-2
-Requires:	kmod >= 5
 Requires:	rc-scripts >= 0.4.5.1-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:175-5
 Requires:	udev-libs >= 1:172
+Requires:	virtual(module-tools)
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
+Suggests:	kmod >= 5
 Suggests:	nss_myhostname
 # python modules required by systemd-analyze
 Suggests:	%{name}-no-compat-tmpfiles
