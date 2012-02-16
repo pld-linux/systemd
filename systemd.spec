@@ -68,6 +68,7 @@ BuildRequires:	udev-devel >= 1:172
 BuildRequires:	xz-devel
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
+Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.4.16-6
