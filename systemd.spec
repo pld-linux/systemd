@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	43
-Release:	1
+Release:	2
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -378,7 +378,7 @@ install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.c
 install -d $RPM_BUILD_ROOT%{systemdunitdir}/{dbus,halt,kexec,poweroff,reboot,syslog}.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
-touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,os-release,timezone,vconsole.conf}
+touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,timezone,vconsole.conf}
 
 # Install SysV conversion tool for systemd
 install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
@@ -495,7 +495,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/locale.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/machine-info
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/os-release
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/timezone
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/*.conf
