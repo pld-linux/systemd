@@ -66,14 +66,6 @@ diff --git a/configure.ac b/configure.ac
 index 596a32a..f701bfd 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -361,6 +361,7 @@ if test "z$with_distro" = "z"; then
-                 AC_MSG_WARN([Target distribution cannot be reliably detected when cross-compiling. You should specify it with --with-distro (see $0 --help for recognized distros)])
-         else
-                 test -f "/etc/redhat-release" && with_distro="fedora"
-+                test -f "/etc/pld-release" && with_distro="pld"
-                 test -f "/etc/SuSE-release" && with_distro="suse"
-                 test -f "/etc/debian_version" &&  with_distro="debian"
-                 test -f "/etc/arch-release" && with_distro="arch"
 @@ -448,6 +449,12 @@ case $with_distro in
                  M4_DEFINES=-DTARGET_MANDRIVA=1
                  have_plymouth=yes
@@ -178,30 +170,6 @@ index 16f54b5..758b9df 100644
                  r = parse_env_file("/etc/sysconfig/clock", NEWLINE,
                                     "ZONE", &zone,
                                     NULL);
-diff --git a/src/util.c b/src/util.c
-index da71e4d..0df1a7d 100644
---- a/src/util.c
-+++ b/src/util.c
-@@ -3599,6 +3599,19 @@ void status_welcome(void) {
-                         const_color = "0;34"; /* Blue for Fedora */
-         }
- 
-+#elif defined(TARGET_PLD)
-+
-+        if (!pretty_name) {
-+                if ((r = read_one_line_file("/etc/pld-release", &pretty_name)) < 0) {
-+
-+                        if (r != -ENOENT)
-+                                log_warning("Failed to read /etc/pld-release: %s", strerror(-r));
-+                }
-+        }
-+
-+        if (!ansi_color)
-+                const_color = "0;32"; /* Green for PLD */
-+
- #elif defined(TARGET_SUSE)
- 
-         if (!pretty_name) {
 diff --git a/src/vconsole/vconsole-setup.c b/src/vconsole/vconsole-setup.c
 index 9196789..1d1a916 100644
 --- a/src/vconsole/vconsole-setup.c
