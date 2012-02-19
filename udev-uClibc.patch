@@ -1,6 +1,6 @@
-diff -ur udev-150/extras/ata_id/ata_id.c udev-150-uclibc/extras/ata_id/ata_id.c
---- udev-150/extras/ata_id/ata_id.c        2009-12-08 18:43:09.000000000 +0100
-+++ udev-150-uclibc/extras/ata_id/ata_id.c        2010-01-19 17:10:19.000000000 +0100
+diff -ur udev-150/src/extras/ata_id/ata_id.c udev-150-uclibc/src/extras/ata_id/ata_id.c
+--- udev-150/src/extras/ata_id/ata_id.c        2009-12-08 18:43:09.000000000 +0100
++++ udev-150-uclibc/src/extras/ata_id/ata_id.c        2010-01-19 17:10:19.000000000 +0100
 @@ -168,7 +168,11 @@
          uint16_t *p;
  
@@ -13,9 +13,9 @@ diff -ur udev-150/extras/ata_id/ata_id.c udev-150-uclibc/extras/ata_id/ata_id.c
  }
  
  /**
-diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
---- udev-150/udev/udevadm-info.c        2009-12-24 20:40:34.000000000 +0100
-+++ udev-150-uclibc/udev/udevadm-info.c        2010-01-19 17:47:00.000000000 +0100
+diff -ur udev-150/src/udevadm-info.c udev-150-uclibc/src/udevadm-info.c
+--- udev-150/src/udevadm-info.c        2009-12-24 20:40:34.000000000 +0100
++++ udev-150-uclibc/src/udevadm-info.c        2010-01-19 17:47:00.000000000 +0100
 @@ -200,8 +200,14 @@
          return 0;
  }
@@ -112,8 +112,8 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
                  closedir(dir);
          }
  }
---- udev-168/udev/udev-event.c.orig        2011-04-21 14:05:13.000000000 +0200
-+++ udev-168/udev/udev-event.c        2011-04-26 01:09:16.813273489 +0200
+--- udev-168/src/udev-event.c.orig        2011-04-21 14:05:13.000000000 +0200
++++ udev-168/src/udev-event.c        2011-04-26 01:09:16.813273489 +0200
 @@ -508,11 +508,18 @@
          if (fd_stdout < 0 && fd_stderr < 0)
                  return;
@@ -179,9 +179,9 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
 +#endif
          }
  
-         /* allow programs in /lib/udev/ to be called without the path */
---- udev-168/udev/udevd.c.orig        2011-04-21 14:05:13.000000000 +0200
-+++ udev-168/udev/udevd.c        2011-04-26 01:13:39.984103209 +0200
+         /* allow programs in /lib/src/ to be called without the path */
+--- udev-168/src/udevd.c.orig        2011-04-21 14:05:13.000000000 +0200
++++ udev-168/src/udevd.c        2011-04-26 01:13:39.984103209 +0200
 @@ -256,12 +256,19 @@
                          goto out;
                  }
@@ -232,8 +232,8 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
          if (epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd_ctrl, &ep_ctrl) < 0 ||
              epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd_inotify, &ep_inotify) < 0 ||
              epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd_signal, &ep_signal) < 0 ||
---- udev-172/udev/udev-ctrl.c.orig        2011-04-26 01:20:36.150103207 +0200
-+++ udev-172/udev/udev-ctrl.c        2011-04-26 01:21:48.940103224 +0200
+--- udev-172/src/udev-ctrl.c.orig        2011-04-26 01:20:36.150103207 +0200
++++ udev-172/src/udev-ctrl.c        2011-04-26 01:21:48.940103224 +0200
 @@ -15,6 +15,7 @@
  #include <stddef.h>
  #include <string.h>
@@ -265,8 +265,8 @@ diff -ur udev-150/udev/udevadm-info.c udev-150-uclibc/udev/udevadm-info.c
          /* check peer credential of connection */
          slen = sizeof(ucred);
          if (getsockopt(conn->sock, SOL_SOCKET, SO_PEERCRED, &ucred, &slen) < 0) {
---- udev-168/udev/udevadm-monitor.c.orig        2011-04-26 01:53:44.361103209 +0200
-+++ udev-168/udev/udevadm-monitor.c        2011-04-26 01:54:41.946103207 +0200
+--- udev-168/src/udevadm-monitor.c.orig        2011-04-26 01:53:44.361103209 +0200
++++ udev-168/src/udevadm-monitor.c        2011-04-26 01:54:41.946103207 +0200
 @@ -157,11 +157,18 @@
          sigaddset(&mask, SIGTERM);
          sigprocmask(SIG_UNBLOCK, &mask, NULL);
