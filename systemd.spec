@@ -47,7 +47,7 @@ BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
 BuildRequires:	kmod-devel >= 5
 BuildRequires:	libcap-devel
-%{?with_selinux:BuildRequires:	libselinux-devel}
+%{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.0}
 BuildRequires:	libtool >= 2:2.2
 %{?with_tcpd:BuildRequires:	libwrap-devel}
 BuildRequires:	libxslt-progs
