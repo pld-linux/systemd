@@ -39,16 +39,10 @@ BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf >= 2.63
 BuildRequires:	automake >= 1:1.11
+BuildRequires:	binutils >= 3:2.22.52.0.1-2
 %{?with_cryptsetup:BuildRequires:	cryptsetup-luks-devel}
 BuildRequires:	dbus-devel >= 1.3.2
 BuildRequires:	docbook-style-xsl
-%if %{with gtk}
-BuildRequires:	glib2-devel >= 1:2.26.1
-BuildRequires:	gtk+2-devel >= 2:2.24.0
-BuildRequires:	libgee-devel
-BuildRequires:	libnotify-devel >= 0.7.0
-%endif
-BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
 BuildRequires:	kmod-devel >= 5
@@ -59,13 +53,18 @@ BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
-%{?with_plymouth:BuildRequires:	plymouth-devel}
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	rpmbuild(macros) >= 1.627
 BuildRequires:	udev-devel >= 1:172
 # not required for building from release (which contains *.c for *.vala)
 #BuildRequires:	vala >= 0.10.0
 BuildRequires:	xz-devel
+%if %{with gtk}
+BuildRequires:	glib2-devel >= 1:2.26.1
+BuildRequires:	gtk+2-devel >= 2:2.24.0
+BuildRequires:	libgee-devel
+BuildRequires:	libnotify-devel >= 0.7.0
+%endif
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	/etc/os-release
@@ -158,6 +157,18 @@ zarządcy systemu i usług systemd.
 
 Ten pakiet zawiera ogólną konfigurację, ustawienia można nadpisać
 poprzez katalog %{_sysconfdir}/systemd/system.
+
+%package plymouth
+Summary:	Plymouth support units for systemd
+Summary(pl.UTF-8):	Jednostki wspierające Plymouth dla systemd
+Group:		Base
+Requires:	%{name}-units = %{version}-%{release}
+
+%description plymouth
+Plymouth (graphical boot) support units for systemd.
+
+%description plymouth -l pl.UTF-8
+Jednostki wspierające Plymouth (graficzny start systemu) dla systemd.
 
 %package gtk
 Summary:	Graphical frontend for systemd
@@ -626,8 +637,66 @@ fi
 %{systemdunitdir}/*.socket
 %{systemdunitdir}/*.target
 %{systemdunitdir}/*.timer
-%dir %{systemdunitdir}/*.wants
-%config(noreplace,missingok) %{systemdunitdir}/*.wants/*
+%if %{with plymouth}
+%exclude %{systemdunitdir}/plymouth*.service
+%exclude %{systemdunitdir}/systemd-ask-password-plymouth.*
+%endif
+%dir %{systemdunitdir}/basic.target.wants
+%dir %{systemdunitdir}/dbus.target.wants
+%dir %{systemdunitdir}/final.target.wants
+%dir %{systemdunitdir}/graphical.target.wants
+%dir %{systemdunitdir}/halt.target.wants
+%dir %{systemdunitdir}/kexec.target.wants
+%dir %{systemdunitdir}/local-fs.target.wants
+%dir %{systemdunitdir}/multi-user.target.wants
+%dir %{systemdunitdir}/poweroff.target.wants
+%dir %{systemdunitdir}/reboot.target.wants
+%dir %{systemdunitdir}/runlevel[12345].target.wants
+%dir %{systemdunitdir}/shutdown.target.wants
+%dir %{systemdunitdir}/sockets.target.wants
+%dir %{systemdunitdir}/sysinit.target.wants
+%dir %{systemdunitdir}/syslog.target.wants
+%config(noreplace,missingok) %{systemdunitdir}/basic.target.wants/*
+%config(noreplace,missingok) %{systemdunitdir}/final.target.wants/*
+%config(noreplace,missingok) %{systemdunitdir}/graphical.target.wants/*
+%config(noreplace,missingok) %{systemdunitdir}/local-fs.target.wants/*
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/getty.target
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/rc-local.service
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
+%config(noreplace,missingok) %{systemdunitdir}/runlevel[12345].target.wants/*
+%config(noreplace,missingok) %{systemdunitdir}/shutdown.target.wants/*
+%config(noreplace,missingok) %{systemdunitdir}/sockets.target.wants/*
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/cryptsetup.target
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/sys-*.mount
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/systemd-*
+
+%if %{with plymouth}
+%files plymouth
+%defattr(644,root,root,755)
+%{systemdunitdir}/plymouth-halt.service
+%{systemdunitdir}/plymouth-kexec.service
+%{systemdunitdir}/plymouth-poweroff.service
+%{systemdunitdir}/plymouth-quit-wait.service
+%{systemdunitdir}/plymouth-quit.service
+%{systemdunitdir}/plymouth-read-write.service
+%{systemdunitdir}/plymouth-reboot.service
+%{systemdunitdir}/plymouth-start.service
+%{systemdunitdir}/systemd-ask-password-plymouth.path
+%{systemdunitdir}/systemd-ask-password-plymouth.service
+%config(noreplace,missingok) %{systemdunitdir}/halt.target.wants/plymouth-halt.service
+%config(noreplace,missingok) %{systemdunitdir}/kexec.target.wants/plymouth-kexec.service
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/plymouth-quit.service
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/plymouth-quit-wait.service
+%config(noreplace,missingok) %{systemdunitdir}/poweroff.target.wants/plymouth-poweroff.service
+%config(noreplace,missingok) %{systemdunitdir}/reboot.target.wants/plymouth-reboot.service
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/plymouth-read-write.service
+%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/plymouth-start.service
+%endif
 
 %if %{with gtk}
 %files gtk
