@@ -68,8 +68,8 @@ ret=0
 show "Starting udev"
 busy
 
-# mount the tmpfs on ${udev_root%/}, if not already done
-LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/mounts && {
+# mount the devtmpfs on ${udev_root%/}, if not already done
+LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
     	if LANG=C fgrep -q "none ${udev_root%/}/pts " /proc/mounts; then
     		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/pts "$PTSDIR"
@@ -78,7 +78,7 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"tmpfs\" { exit 1 }" /proc/moun
 		SHMDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/shm "$SHMDIR"
 	fi
-	mount -n -o mode=0755 -t tmpfs none "$udev_root"
+	mount -n -o mode=0755 -t devtmpfs devtmpfs "$udev_root"
 	mkdir -m 0755 $udev_root/pts
 	mkdir -m 0755 $udev_root/shm
 	if [ -n "$PTSDIR" ]; then
