@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	43
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -94,7 +94,6 @@ Conflicts:	binfmt-detector
 Conflicts:	pam < 1:1.1.5-5
 # ...and sudo hates it
 Conflicts:	sudo < 1:1.7.8p2-4
-Conflicts:	upstart
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
@@ -130,6 +129,7 @@ Provides:	virtual(init-daemon)
 Obsoletes:	SysVinit
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
+Conflicts:	upstart
 
 %description init
 Install this package when you are ready to final switch to systemd.
