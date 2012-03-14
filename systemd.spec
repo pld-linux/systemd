@@ -24,9 +24,9 @@ Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 # Source0-md5:	446cc6db7625617af67e2d8e5f503a49
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
-Source5:	network.service
-Source6:	compat-pld-media.tmpfiles
-Source7:	compat-pld-var-run.tmpfiles
+Source3:	network.service
+Source4:	compat-pld-media.tmpfiles
+Source5:	compat-pld-var-run.tmpfiles
 Source10:	pld-storage-init-late.service
 Source11:	pld-storage-init.service
 Source12:	pld-wait-storage.service
@@ -374,11 +374,11 @@ ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/netfs.service
 ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/random.service
 
 # add static (non-NetworkManager) networking
-install %{SOURCE5} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
+install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
 # install compatibility tmpfiles configs
-install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
-install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
+install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 # Install and enable storage subsystems support services (RAID, LVM, etc.)
 install %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
