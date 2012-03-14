@@ -1,0 +1,18 @@
+[Unit]
+Description=Wait for storage scan
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=udev-settle.service
+Before=local-fs.target shutdown.target
+Wants=udev.service udev-settle.service
+
+[Service]
+ExecStart=-/sbin/rmmod scsi_wait_scan
+ExecStart=-/sbin/modprobe scsi_wait_scan
+ExecStart=-/sbin/rmmod scsi_wait_scan
+Type=oneshot
+TimeoutSec=0
+RemainAfterExit=yes
+StandardInput=null
+StandardOutput=null
+StandardError=null

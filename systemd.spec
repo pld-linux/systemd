@@ -17,18 +17,20 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	43
-Release:	3
+Release:	4
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 # Source0-md5:	446cc6db7625617af67e2d8e5f503a49
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
-Source3:	ifup@.service
-Source4:	network-post.service
 Source5:	network.service
 Source6:	compat-pld-media.tmpfiles
 Source7:	compat-pld-var-run.tmpfiles
+Source10:	pld-storage-init-late.service
+Source11:	pld-storage-init.service
+Source12:	pld-wait-storage.service
+Source13:	pld-storage-init.sh
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
@@ -362,22 +364,30 @@ ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/shutdown
 ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
 
 ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
-# disable random and console SYSV service
-ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/random.service
+
+# disable redundant SYSV services
+ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/allowlogin.service
 ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/console.service
+ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/cpusets.service
+ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/killall.service
+ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/netfs.service
+ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/random.service
 
 # add static (non-NetworkManager) networking
-install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/ifup@.service
-install %{SOURCE4} $RPM_BUILD_ROOT%{systemdunitdir}/network-post.service
 install %{SOURCE5} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
 # install compatibility tmpfiles configs
 install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
 install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
-# All wants links are created at %post to make sure they are not owned
-# and hence overriden by rpm if the user deletes them (missingok?)
-%{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants
+# Install and enable storage subsystems support services (RAID, LVM, etc.)
+install %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
+install %{SOURCE11} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init.service
+install %{SOURCE12} $RPM_BUILD_ROOT%{systemdunitdir}/pld-wait-storage.service
+install %{SOURCE13} $RPM_BUILD_ROOT/lib/systemd/pld-storage-init
+
+ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init-late.service
+ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init.service
 
 # it is in rc-scripts pkg
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/rc-local.service
@@ -441,55 +451,38 @@ if [ $1 -eq 1 ]; then
 		echo $HOSTNAME > /etc/hostname
 		chmod 644 /etc/hostname
 	fi
-fi
-# Enable the services we install by default.
-/bin/systemctl enable \
-	getty@.service \
-	network.service \
-	network-post.service \
-	remote-fs.target \
-	systemd-readahead-replay.service \
-	systemd-readahead-collect.service >/dev/null 2>&1 || :
 
-# Find and enable all installed interfaces
-mkdir -p %{_sysconfdir}/systemd/system/network.target.wants >/dev/null 2>&1 || :
-for f in /etc/sysconfig/interfaces/ifcfg-* ; do
-	ff=$(basename $f)
-	ff=${ff##ifcfg-}
-	case "$ff" in
-	*.rpmorig|*.rpmnew|*.rpmsave|*~|*.orig)
-		continue
-		;;
-	*)
-		DEVICE="" ; ONBOOT="" ; USERS=""
-		. $f 2>/dev/null
-		[ ${USERS:-no} != no ] && continue
-		if [ "$DEVICE" = "$ff" -a ${ONBOOT:-no} = "yes" ]; then
-			ln -s %{systemdunitdir}/ifup@.service \
-				%{_sysconfdir}/systemd/system/network.target.wants/ifcfg@$ff.service >/dev/null 2>&1 || :
-		fi
-		;;
-	esac
-done
+	# Enable the services we install by default.
+	/bin/systemctl enable \
+		getty@.service \
+		network.service \
+		remote-fs.target \
+		systemd-readahead-replay.service \
+		systemd-readahead-collect.service >/dev/null 2>&1 || :
+fi
 
 %preun units
 if [ $1 -eq 0 ] ; then
 	/bin/systemctl disable \
 		getty@.service \
 		network.service \
-		network-post.service \
 		remote-fs.target \
 		systemd-readahead-replay.service \
 		systemd-readahead-collect.service >/dev/null 2>&1 || :
 
 	%{__rm} -f %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
-	%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
 fi
 
 %postun units
 if [ $1 -ge 1 ]; then
 	/bin/systemctl daemon-reload > /dev/null 2>&1 || :
 fi
+
+%triggerpostun units -- %{name}-units < 43-4
+# Remove design fialures
+/bin/systemctl disable network-post.service >/dev/null 2>&1 || :
+rm -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
+rm -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service >/dev/null 2>&1 || :
 
 %post no-compat-tmpfiles
 %{__sed} -i -e '/^#/!s/^/# /g' %{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
@@ -510,6 +503,9 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/*.conf
 %dir %{_sysconfdir}/systemd/user
+%dir %{_sysconfdir}/systemd/system/*.target.wants
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/*.target.wants/*.service
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/*.target.wants/*.target
 /etc/xdg/systemd
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
@@ -525,6 +521,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
+%attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-*
 %dir /lib/systemd/system-generators
 %attr(755,root,root) /lib/systemd/systemd

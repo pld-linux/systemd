@@ -1,0 +1,13 @@
+[Unit]
+Description=Initialize storage subsystems (RAID, LVM, etc.)
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=pld-wait-storage.service
+Before=local-fs.target shutdown.target
+Wants=pld-wait-storage.service
+
+[Service]
+ExecStart=/lib/systemd/pld-storage-init
+Type=oneshot
+TimeoutSec=0
+RemainAfterExit=yes
