@@ -29,8 +29,8 @@ index 170465a..bce467d 100644
  
 +if TARGET_PLD
 +dist_systemunit_DATA += \
-+	units/fedora/rc-local.service \
-+	units/fedora/halt-local.service
++	units/pld/prefdm.service \
++	units/pld/halt-local.service
 +systemgenerator_PROGRAMS += \
 +	systemd-rc-local-generator
 +endif
@@ -261,3 +261,50 @@ index ac6424a..a247c25 100644
  #define SCRIPT_PATH "/etc/rc.d/rc.local"
  #elif defined(TARGET_SUSE)
  #define SCRIPT_PATH "/etc/init.d/boot.local"
+--- /dev/null
++++ b/units/pld/halt-local.service
+@@ -0,0 +1,20 @@
++#  This file is part of systemd.
++#
++#  systemd is free software; you can redistribute it and/or modify it
++#  under the terms of the GNU General Public License as published by
++#  the Free Software Foundation; either version 2 of the License, or
++#  (at your option) any later version.
++
++[Unit]
++Description=/sbin/halt.local Compatibility
++ConditionFileIsExecutable=/sbin/halt.local
++DefaultDependencies=no
++After=shutdown.target
++Before=final.target
++
++[Service]
++Type=oneshot
++ExecStart=/sbin/halt.local
++TimeoutSec=0
++StandardOutput=tty
++RemainAfterExit=yes
+--- /dev/null
++++ b/units/pld/prefdm.service
+@@ -0,0 +1,21 @@
++#  This file is part of systemd.
++#
++#  systemd is free software; you can redistribute it and/or modify it
++#  under the terms of the GNU General Public License as published by
++#  the Free Software Foundation; either version 2 of the License, or
++#  (at your option) any later version.
++
++[Unit]
++Description=Display Manager
++After=livesys-late.service rc-local.service systemd-user-sessions.service
++After=network.target acpid.service
++
++# Do not stop plymouth, it is done in prefdm if required
++Conflicts=plymouth-quit.service
++After=plymouth-quit.service
++
++[Service]
++ExecStart=/etc/X11/xinit/prefdm -nodaemon
++Restart=always
++RestartSec=0
++IgnoreSIGPIPE=no
