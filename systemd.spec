@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	43
-Release:	5
+Release:	6
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -477,11 +477,12 @@ if [ $1 -ge 1 ]; then
 	/bin/systemctl daemon-reload > /dev/null 2>&1 || :
 fi
 
-%triggerpostun units -- %{name}-units < 43-4
+%triggerpostun units -- %{name}-units < 43-6
 # Remove design fialures
-/bin/systemctl disable network-post.service >/dev/null 2>&1 || :
 rm -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
 rm -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service >/dev/null 2>&1 || :
+rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service >/dev/null 2>&1 || :
+/bin/systemctl reenable network.service >/dev/null 2>&1 || :
 
 %post no-compat-tmpfiles
 %{__sed} -i -e '/^#/!s/^/# /g' %{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
