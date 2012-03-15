@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	43
-Release:	4
+Release:	5
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -96,6 +96,8 @@ Conflicts:	binfmt-detector
 Conflicts:	pam < 1:1.1.5-5
 # ...and sudo hates it
 Conflicts:	sudo < 1:1.7.8p2-4
+# for prefdm script
+Conflicts:	xinitrc-ng < 1.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
@@ -388,9 +390,6 @@ install %{SOURCE13} $RPM_BUILD_ROOT/lib/systemd/pld-storage-init
 
 ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init-late.service
 ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init.service
-
-# it is in rc-scripts pkg
-%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/rc-local.service
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
