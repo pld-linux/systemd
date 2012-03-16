@@ -1,8 +1,8 @@
 [Unit]
 Description=Initialize network
 DefaultDependencies=no
-After=syslog.target
-Wants=network.target
+After=syslog.target udev-settle.service
+Wants=network.target udev.service udev-settle.service
 Before=network.target
 
 [Service]
