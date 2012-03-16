@@ -16,12 +16,12 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	43
-Release:	7
+Version:	44
+Release:	1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	446cc6db7625617af67e2d8e5f503a49
+# Source0-md5:	11f44ff74c87850064e4351518bcff17
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -36,6 +36,7 @@ Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
+Patch5:		CVE-2012-1174.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -318,6 +319,7 @@ Force update of packages that provide tmpfiles.d configuration
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -554,15 +556,6 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %{_datadir}/systemd/kbd-model-map
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-*.1*
-%{_mandir}/man3/sd_booted.3*
-%{_mandir}/man3/sd_is_fifo.3*
-%{_mandir}/man3/sd_is_socket.3
-%{_mandir}/man3/sd_is_socket_inet.3
-%{_mandir}/man3/sd_is_socket_unix.3
-%{_mandir}/man3/sd_listen_fds.3*
-%{_mandir}/man3/sd_notify.3*
-%{_mandir}/man3/sd_notifyf.3
-%{_mandir}/man3/sd_readahead.3*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/locale.conf.5*
@@ -572,6 +565,7 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/systemd.*.5*
+%{_mandir}/man5/systemd-journald.conf.5*
 %{_mandir}/man5/systemd-logind.conf.5*
 %{_mandir}/man5/timezone.5*
 %{_mandir}/man5/vconsole.conf.5*
@@ -725,21 +719,34 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %{_pkgconfigdir}/libsystemd-id128.pc
 %{_pkgconfigdir}/libsystemd-journal.pc
 %{_pkgconfigdir}/libsystemd-login.pc
+%{_mandir}/man3/sd_booted.3*
 %{_mandir}/man3/sd_get_seats.3*
 %{_mandir}/man3/sd_get_sessions.3*
 %{_mandir}/man3/sd_get_uids.3*
+%{_mandir}/man3/sd_is_fifo.3*
 %{_mandir}/man3/sd_is_mq.3*
+%{_mandir}/man3/sd_is_socket.3
+%{_mandir}/man3/sd_is_socket_inet.3
+%{_mandir}/man3/sd_is_socket_unix.3
+%{_mandir}/man3/sd_listen_fds.3*
 %{_mandir}/man3/sd_login_monitor_flush.3*
 %{_mandir}/man3/sd_login_monitor_get_fd.3*
 %{_mandir}/man3/sd_login_monitor_new.3*
 %{_mandir}/man3/sd_login_monitor_unref.3*
+%{_mandir}/man3/sd_notify.3*
+%{_mandir}/man3/sd_notifyf.3
 %{_mandir}/man3/sd_pid_get_owner_uid.3*
 %{_mandir}/man3/sd_pid_get_session.3*
 %{_mandir}/man3/sd_pid_get_unit.3*
+%{_mandir}/man3/sd_readahead.3*
 %{_mandir}/man3/sd_seat_can_multi_session.3*
 %{_mandir}/man3/sd_seat_get_active.3*
 %{_mandir}/man3/sd_seat_get_sessions.3*
+%{_mandir}/man3/sd_session_get_class.3*
+%{_mandir}/man3/sd_session_get_display.3*
 %{_mandir}/man3/sd_session_get_seat.3*
+%{_mandir}/man3/sd_session_get_service.3*
+%{_mandir}/man3/sd_session_get_type.3*
 %{_mandir}/man3/sd_session_get_uid.3*
 %{_mandir}/man3/sd_session_is_active.3*
 %{_mandir}/man3/sd_uid_get_seats.3*
