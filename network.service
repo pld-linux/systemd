@@ -7,8 +7,8 @@ Before=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/sbin/service network start
-ExecStop=/sbin/service network stop
+ExecStart=/etc/rc.d/init.d/network start
+ExecStop=/etc/rc.d/init.d/network stop
 RemainAfterExit=true
 
 [Install]
