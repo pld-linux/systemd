@@ -75,6 +75,7 @@ Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-2
+Requires:	libutempter
 Requires:	rc-scripts >= 0.4.5.1-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:175-5
