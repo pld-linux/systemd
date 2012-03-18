@@ -3,7 +3,7 @@
 # Read functions
 . /lib/rc-scripts/functions
 
-if [ -x /sbin/multipath ] && ! is_no "$DM_MULTIPATH"; then
+if ! is_no "$DM_MULTIPATH" && [ -x /sbin/multipath ]; then
 	modprobe -s dm-mod >/dev/null 2>&1
 	modprobe -s dm-multipath >/dev/null 2>&1
 	/sbin/multipath -u -v 0
