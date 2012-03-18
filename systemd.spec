@@ -348,6 +348,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 
 %install
 rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT/var/lib/%{name}/coredump
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -575,6 +576,8 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %{_mandir}/man7/sd-login.7*
 %{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.special.7*
+%dir /var/lib/%{name}
+%dir /var/lib/%{name}/coredump
 %attr(640,root,root) %ghost /var/log/btmp
 %attr(664,root,utmp) %ghost /var/log/wtmp
 
