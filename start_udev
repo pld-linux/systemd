@@ -21,7 +21,7 @@
 # properly during development...
 
 # default value, if no config present.
-udev_root="/dev/"
+udev_root="/dev"
 sysfs_dir="/sys"
 udevd_timeout=8
 
@@ -68,15 +68,15 @@ ret=0
 show "Starting udev"
 busy
 
-# mount the devtmpfs on ${udev_root%/}, if not already done
-awk "\$2 == \"${udev_root%/}\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
+# mount the devtmpfs on $udev_root, if not already done
+awk "\$2 == \"$udev_root\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
 
-	if grep -qF "none ${udev_root%/}/pts " /proc/mounts; then
+	if grep -qF "none $udev_root/pts " /proc/mounts; then
 		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/pts "$PTSDIR"
 	fi
 
-	if grep -qF "none ${udev_root%/}/shm " /proc/mounts; then
+	if grep -qF "none $udev_root/shm " /proc/mounts; then
 		SHMDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/shm "$SHMDIR"
 	fi
