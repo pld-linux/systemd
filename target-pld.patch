@@ -286,7 +286,7 @@ index ac6424a..a247c25 100644
 +RemainAfterExit=yes
 --- /dev/null
 +++ b/units/pld/prefdm.service
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,20 @@
 +#  This file is part of systemd.
 +#
 +#  systemd is free software; you can redistribute it and/or modify it
@@ -296,8 +296,7 @@ index ac6424a..a247c25 100644
 +
 +[Unit]
 +Description=Display Manager
-+After=livesys-late.service rc-local.service systemd-user-sessions.service
-+After=network.target acpid.service
++After=livesys-late.service local.service systemd-user-sessions.service acpid.service
 +
 +# Do not stop plymouth, it is done in prefdm if required
 +Conflicts=plymouth-quit.service
