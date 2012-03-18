@@ -8,12 +8,12 @@
 #
 # Released under the GPL v2 only.
 #
-# This needs to be run at the earliest possible point in the boot 
+# This needs to be run at the earliest possible point in the boot
 # process.
 #
 # Based on the udev init.d script
 #
-# Thanks go out to the Gentoo developers for proving 
+# Thanks go out to the Gentoo developers for proving
 # that this is possible to do.
 #
 # Yes, it's very verbose, feel free to turn off all of the echo calls,
@@ -39,13 +39,13 @@ udevd=/lib/udev/udevd
 make_extra_nodes () {
 	grep '^[^#]' /etc/udev/links.conf | \
 	while read type name arg1; do
-	    [ "$type" -a "$name" -a ! -e "$udev_root/$name" -a ! -L "/dev/$name" ] ||continue
-	    case "$type" in
-    		L) ln -s $arg1 $udev_root/$name ;;
-	        D) mkdir -p $udev_root/$name ;;
-		M) mknod -m 600 /dev/$name $arg1 ;;
-	        *) echo "links.conf: unparseable line ($type $name $arg1)" ;;
-	    esac
+		[ "$type" -a "$name" -a ! -e "$udev_root/$name" -a ! -L "/dev/$name" ] ||continue
+		case "$type" in
+			L) ln -s $arg1 $udev_root/$name ;;
+			D) mkdir -p $udev_root/$name ;;
+			M) mknod -m 600 /dev/$name $arg1 ;;
+			*) echo "links.conf: unparseable line ($type $name $arg1)" ;;
+		esac
 	done
 	[ -d /lib/udev/devices ] && cp -a /lib/udev/devices/* /dev/ >/dev/null 2>&1 || :
 	[ -d /lib64/udev/devices ] && cp -a /lib64/udev/devices/* /dev/ >/dev/null 2>&1 || :
@@ -53,13 +53,13 @@ make_extra_nodes () {
 
 kill_udevd() {
 	if [ -x /sbin/pidof ]; then
-		pid=`/sbin/pidof -x udevd`
+		pid=$(/sbin/pidof -x udevd)
 		[ -n "$pid" ] && kill $pid
 	fi
 }
 
 set_hotplug_handler() {
-    echo "" > /proc/sys/kernel/hotplug
+	echo "" > /proc/sys/kernel/hotplug
 }
 
 export ACTION=add
@@ -70,14 +70,17 @@ busy
 
 # mount the devtmpfs on ${udev_root%/}, if not already done
 LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
-    	if LANG=C fgrep -q "none ${udev_root%/}/pts " /proc/mounts; then
-    		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
+
+	if LANG=C fgrep -q "none ${udev_root%/}/pts " /proc/mounts; then
+		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/pts "$PTSDIR"
 	fi
+
 	if LANG=C fgrep -q "none ${udev_root%/}/shm " /proc/mounts; then
 		SHMDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
 		mount --move $udev_root/shm "$SHMDIR"
 	fi
+
 	mount -n -o mode=0755 -t devtmpfs devtmpfs "$udev_root"
 	mkdir -m 0755 $udev_root/pts
 	mkdir -m 0755 $udev_root/shm
@@ -95,30 +98,29 @@ LANG=C awk "\$2 == \"${udev_root%/}\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/m
 
 kill_udevd > "$udev_root/null" 2>&1
 
-	# Start udevd daemon
-	$udevd --daemon
-	ret=$(( $ret + $? ))
-	
-	# Making extra nodes
-	make_extra_nodes
-	ret=$(( $ret + $? ))
-	
-if [ -f "/sys/class/tty/console/uevent" ]; then
+# Start udevd daemon
+$udevd --daemon
+ret=$(( $ret + $? ))
 
-    	# Setting default hotplug handler
+# Making extra nodes
+make_extra_nodes
+ret=$(( $ret + $? ))
+
+if [ -f "/sys/class/tty/console/uevent" ]; then
+	# Setting default hotplug handler
 	set_hotplug_handler
 	ret=$(( $ret + $? ))
 
 	# retrigger all events
-	# Udev find's it's own way of making this dir
+	# Udev finds it's own way of making this dir
 	# and making it by hand makes udevsettle
 	# work forever
 	#mkdir -p /dev/.udev/queue
-	udevadm trigger	
+	udevadm trigger
 	ret=$(( $ret + $? ))
-	
+
 	# wait for the events to finish
-	udevadm settle	
+	udevadm settle
 	ret=$(( $ret + $? ))
 else
 	echo "Kernel too old for this udev version"
