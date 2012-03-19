@@ -22,7 +22,7 @@ if [ -x /sbin/dmraid ]; then
 			/sbin/dmraid -ay -i --rm_partitions -p "$dmname"
 			[ -x /sbin/kpartx ] && /sbin/kpartx -u -a -p p "/dev/mapper/$dmname"
 		done
-                IFS=$oldIFS
+		IFS=$oldIFS
 	fi
 fi
 
@@ -35,3 +35,5 @@ if ! is_no "$LVM2" && [ -x /sbin/lvm ]; then
 	run_cmd "Activating LVM volume groups" /sbin/lvm vgchange -a y --sysinit
 	/sbin/lvm vgmknodes --ignorelockingfailure
 fi
+
+exit 0
