@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	44
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -81,14 +81,11 @@ Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:175-5
 Requires:	udev-libs >= 1:172
 Requires:	virtual(module-tools)
+Suggests:	%{name}-no-compat-tmpfiles
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
 Suggests:	kmod >= 5
 Suggests:	nss_myhostname
-# python modules required by systemd-analyze
-Suggests:	%{name}-no-compat-tmpfiles
-Suggests:	python-dbus
-Suggests:	python-modules
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	udev-acl
@@ -188,6 +185,20 @@ Graphical front-end for systemd.
 
 %description gtk -l pl.UTF-8
 Graficzny interfejs do systemd.
+
+%package analyze
+Summary:	Tool for processing systemd profiling information
+Group:		Base
+Requires:	%{name} = %{version}-%{release}
+Requires:	python-dbus
+Requires:	python-modules
+Requires:	python-pycairo
+Conflicts:	%{name} < 44-3
+
+%description analyze
+'systemd-analyze blame' lists which systemd unit needed how much time
+to finish initialization at boot. 'systemd-analyze plot' renders an
+SVG visualizing the parallel start of units at boot.
 
 %package libs
 Summary:	Shared systemd libraries
@@ -518,7 +529,6 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
-%attr(755,root,root) %{_bindir}/systemd-analyze
 %attr(755,root,root) %{_bindir}/systemd-cat
 %attr(755,root,root) %{_bindir}/systemd-cgtop
 %attr(755,root,root) %{_bindir}/systemd-cgls
@@ -700,6 +710,10 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %attr(755,root,root) %{_bindir}/systemd-gnome-ask-password-agent
 %{_mandir}/man1/systemadm.1*
 %endif
+
+%files analyze
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/systemd-analyze
 
 %files libs
 %defattr(644,root,root,755)
