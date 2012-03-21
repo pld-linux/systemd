@@ -409,7 +409,6 @@ ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.targ
 
 # handled by rc-local sysv service, no need for generator
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
-%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/multi-user.target.wants/rc-local.service
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
