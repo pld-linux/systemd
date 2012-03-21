@@ -1,0 +1,55 @@
+--- systemd-44/units/plymouth-quit-wait.service~	2011-02-24 22:00:59.000000000 +0200
++++ systemd-44/units/plymouth-quit-wait.service	2012-03-21 10:11:55.023579373 +0200
+@@ -7,7 +7,7 @@
+ 
+ [Unit]
+ Description=Wait for Plymouth Boot Screen to Quit
+-After=rc-local.service plymouth-start.service
++After=local.service plymouth-start.service
+ 
+ [Service]
+ ExecStart=-/bin/plymouth --wait
+--- systemd-44/units/plymouth-quit.service~	2011-02-22 19:50:32.000000000 +0200
++++ systemd-44/units/plymouth-quit.service	2012-03-21 10:12:37.432190271 +0200
+@@ -7,7 +7,7 @@
+ 
+ [Unit]
+ Description=Terminate Plymouth Boot Screen
+-After=rc-local.service plymouth-start.service
++After=local.service plymouth-start.service
+ 
+ [Service]
+ ExecStart=-/bin/plymouth quit
+--- systemd-44/units/./serial-getty@.service.m4~	2012-03-21 10:13:37.000000000 +0200
++++ systemd-44/units/./serial-getty@.service.m4	2012-03-21 10:15:19.299611109 +0200
+@@ -13,7 +13,7 @@
+ After=rc-local.service
+ )m4_dnl
+ m4_ifdef(`TARGET_PLD',
+-After=rc-local.service
++After=local.service
+ )m4_dnl
+ m4_ifdef(`TARGET_ARCH',
+ After=rc-local.service
+--- systemd-44/units//console-shell.service.m4~	2012-03-21 10:15:55.000000000 +0200
++++ systemd-44/units//console-shell.service.m4	2012-03-21 10:16:08.138516803 +0200
+@@ -12,7 +12,7 @@
+ After=rc-local.service
+ )m4_dnl
+ m4_ifdef(`TARGET_PLD',
+-After=rc-local.service
++After=local.service
+ )m4_dnl
+ m4_ifdef(`TARGET_ARCH',
+ After=rc-local.service
+--- systemd-44/units/./getty@.service.m4~	2012-03-21 10:15:55.000000000 +0200
++++ systemd-44/units/./getty@.service.m4	2012-03-21 10:16:19.025682595 +0200
+@@ -13,7 +13,7 @@
+ After=rc-local.service
+ )m4_dnl
+ m4_ifdef(`TARGET_PLD',
+-After=rc-local.service
++After=local.service
+ )m4_dnl
+ m4_ifdef(`TARGET_ARCH',
+ After=rc-local.service

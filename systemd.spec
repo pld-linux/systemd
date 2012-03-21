@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	44
-Release:	3
+Release:	3.4
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -37,6 +37,7 @@ Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
 Patch5:		CVE-2012-1174.patch
+Patch6:		rc.local.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -76,7 +77,7 @@ Requires:	agetty
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-2
 Requires:	libutempter
-Requires:	rc-scripts >= 0.4.5.1-7
+Requires:	rc-scripts >= 0.4.5.3-6
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:175-5
 Requires:	udev-libs >= 1:172
@@ -166,6 +167,7 @@ Summary:	Plymouth support units for systemd
 Summary(pl.UTF-8):	Jednostki wspierające Plymouth dla systemd
 Group:		Base
 Requires:	%{name}-units = %{version}-%{release}
+Requires:	plymouth
 
 %description plymouth
 Plymouth (graphical boot) support units for systemd.
@@ -332,6 +334,7 @@ Force update of packages that provide tmpfiles.d configuration
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
+%patch6 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -364,7 +367,7 @@ install -d $RPM_BUILD_ROOT/var/lib/%{name}/coredump
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-./libtool --mode=install install -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
+./libtool --mode=install install -p -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
 
 # Main binary has been moved, but we don't want to break existing installs
 ln -s ../lib/systemd/systemd $RPM_BUILD_ROOT/bin/systemd
@@ -391,20 +394,24 @@ ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/netfs.service
 ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/random.service
 
 # add static (non-NetworkManager) networking
-install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
+cp -p %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
 # install compatibility tmpfiles configs
-install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
-install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+cp -p %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
+cp -p %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 # Install and enable storage subsystems support services (RAID, LVM, etc.)
-install %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
-install %{SOURCE11} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init.service
-install %{SOURCE12} $RPM_BUILD_ROOT%{systemdunitdir}/pld-wait-storage.service
-install %{SOURCE13} $RPM_BUILD_ROOT/lib/systemd/pld-storage-init
+cp -p %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
+cp -p %{SOURCE11} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init.service
+cp -p %{SOURCE12} $RPM_BUILD_ROOT%{systemdunitdir}/pld-wait-storage.service
+install -p %{SOURCE13} $RPM_BUILD_ROOT/lib/systemd/pld-storage-init
 
 ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init-late.service
 ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init.service
+
+# handled by rc-local sysv service, no need for generator
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/multi-user.target.wants/rc-local.service
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
@@ -666,7 +673,6 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %config(noreplace,missingok) %{systemdunitdir}/graphical.target.wants/*
 %config(noreplace,missingok) %{systemdunitdir}/local-fs.target.wants/*
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/getty.target
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/rc-local.service
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
