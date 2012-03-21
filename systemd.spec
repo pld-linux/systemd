@@ -9,7 +9,7 @@
 %bcond_without	cryptsetup	# without cryptsetup support
 %bcond_without	gtk		# build gtk tools
 %bcond_without	pam		# PAM authentication support
-%bcond_with	plymouth	# plymouth support
+%bcond_without	plymouth	# do not install plymouth units
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
