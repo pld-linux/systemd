@@ -17,7 +17,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	44
-Release:	3.4
+Release:	4
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -37,7 +37,6 @@ Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
 Patch5:		CVE-2012-1174.patch
-Patch6:		rc.local.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -77,7 +76,7 @@ Requires:	agetty
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-2
 Requires:	libutempter
-Requires:	rc-scripts >= 0.4.5.3-6
+Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:175-5
 Requires:	udev-libs >= 1:172
@@ -334,7 +333,6 @@ Force update of packages that provide tmpfiles.d configuration
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
-%patch6 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -673,6 +671,7 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %config(noreplace,missingok) %{systemdunitdir}/graphical.target.wants/*
 %config(noreplace,missingok) %{systemdunitdir}/local-fs.target.wants/*
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/getty.target
+%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/rc-local.service
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
 %config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
