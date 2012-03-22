@@ -58,8 +58,6 @@ BuildRequires:	m4
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	rpmbuild(macros) >= 1.627
 BuildRequires:	udev-devel >= 1:172
-# not required for building from release (which contains *.c for *.vala)
-#BuildRequires:	vala >= 0.10.0
 BuildRequires:	xz-devel
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
