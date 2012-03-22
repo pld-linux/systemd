@@ -7,7 +7,6 @@
 # Conditional build:
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
-%bcond_without	gtk		# build gtk tools
 %bcond_without	pam		# PAM authentication support
 %bcond_without	plymouth	# do not install plymouth units
 %bcond_without	selinux		# without SELinux support
@@ -17,7 +16,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	44
-Release:	4
+Release:	5
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -62,12 +61,6 @@ BuildRequires:	udev-devel >= 1:172
 # not required for building from release (which contains *.c for *.vala)
 #BuildRequires:	vala >= 0.10.0
 BuildRequires:	xz-devel
-%if %{with gtk}
-BuildRequires:	glib2-devel >= 1:2.26.1
-BuildRequires:	gtk+2-devel >= 2:2.24.0
-BuildRequires:	libgee-devel
-BuildRequires:	libnotify-devel >= 0.7.0
-%endif
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	/etc/os-release
@@ -173,19 +166,6 @@ Plymouth (graphical boot) support units for systemd.
 
 %description plymouth -l pl.UTF-8
 Jednostki wspierające Plymouth (graficzny start systemu) dla systemd.
-
-%package gtk
-Summary:	Graphical frontend for systemd
-Summary(pl.UTF-8):	Graficzny interfejs do systemd
-Group:		Base
-Requires:	%{name} = %{version}-%{release}
-Requires:	polkit
-
-%description gtk
-Graphical front-end for systemd.
-
-%description gtk -l pl.UTF-8
-Graficzny interfejs do systemd.
 
 %package analyze
 Summary:	Tool for processing systemd profiling information
@@ -343,7 +323,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %configure \
 	%{__enable_disable audit} \
 	%{__enable_disable cryptsetup libcryptsetup} \
-	%{__enable_disable gtk} \
+	--disable-gtk \
 	%{__enable_disable pam} \
 	%{__enable_disable plymouth} \
 	%{__enable_disable selinux} \
@@ -426,9 +406,7 @@ install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/btmp
 :> $RPM_BUILD_ROOT/var/log/wtmp
 
-%if %{without gtk}
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
-%endif
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
@@ -705,14 +683,6 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %config(noreplace,missingok) %{systemdunitdir}/reboot.target.wants/plymouth-reboot.service
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/plymouth-read-write.service
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/plymouth-start.service
-%endif
-
-%if %{with gtk}
-%files gtk
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/systemadm
-%attr(755,root,root) %{_bindir}/systemd-gnome-ask-password-agent
-%{_mandir}/man1/systemadm.1*
 %endif
 
 %files analyze
