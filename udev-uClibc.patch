@@ -1,6 +1,6 @@
-diff -ur udev-150/src/extras/ata_id/ata_id.c udev-150-uclibc/src/extras/ata_id/ata_id.c
---- udev-150/src/extras/ata_id/ata_id.c        2009-12-08 18:43:09.000000000 +0100
-+++ udev-150-uclibc/src/extras/ata_id/ata_id.c        2010-01-19 17:10:19.000000000 +0100
+diff -ur udev-150/src/ata_id/ata_id.c udev-150-uclibc/src/ata_id/ata_id.c
+--- udev-150/src/ata_id/ata_id.c        2009-12-08 18:43:09.000000000 +0100
++++ udev-150-uclibc/src/ata_id/ata_id.c        2010-01-19 17:10:19.000000000 +0100
 @@ -168,7 +168,11 @@
          uint16_t *p;
  
