@@ -1,0 +1,33 @@
+# This file blacklists the framebuffer drivers.
+
+blacklist arkfb
+blacklist aty128fb
+blacklist atyfb
+blacklist cirrusfb
+blacklist cyber2000fb
+blacklist hgafb
+blacklist gx1fb
+blacklist gxfb
+blacklist i2c-matroxfb
+blacklist i810fb
+blacklist intelfb
+blacklist kyrofb
+blacklist lxfb
+blacklist matroxfb_base
+blacklist mb862xxfb
+blacklist neofb
+blacklist nvidiafb
+blacklist pm2fb
+blacklist pm3fb
+blacklist radeonfb
+blacklist rivafb
+blacklist s3fb
+blacklist savagefb
+blacklist sstfb
+blacklist sisfb
+blacklist tdfxfb
+blacklist tridentfb
+blacklist vga16fb
+blacklist viafb
+blacklist virgefb
+blacklist vt8623fb
