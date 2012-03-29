@@ -1,0 +1,14 @@
+[Unit]
+Description=Clean /tmp on startup
+DefaultDependencies=no
+After=remount-rootfs.service
+
+[Service]
+ExecStart=/lib/systemd/pld-clean-tmp
+Type=oneshot
+TimeoutSec=0
+RemainAfterExit=yes
+StandardOutput=journal+console
+
+[Install]
+WantedBy=basic.target

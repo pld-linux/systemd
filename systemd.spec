@@ -30,6 +30,8 @@ Source10:	pld-storage-init-late.service
 Source11:	pld-storage-init.service
 Source12:	pld-wait-storage.service
 Source13:	pld-storage-init.sh
+Source14:	pld-clean-tmp.service
+Source15:	pld-clean-tmp.sh
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
@@ -380,10 +382,13 @@ cp -p %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.con
 cp -p %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
 cp -p %{SOURCE11} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init.service
 cp -p %{SOURCE12} $RPM_BUILD_ROOT%{systemdunitdir}/pld-wait-storage.service
+cp -p %{SOURCE14} $RPM_BUILD_ROOT%{systemdunitdir}/pld-clean-tmp.service
 install -p %{SOURCE13} $RPM_BUILD_ROOT/lib/systemd/pld-storage-init
+install -p %{SOURCE15} $RPM_BUILD_ROOT/lib/systemd/pld-clean-tmp
 
-ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init-late.service
-ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/pld-storage-init.service
+ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
+ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
+ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 
 # handled by rc-local sysv service, no need for generator
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
