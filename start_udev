@@ -62,6 +62,18 @@ set_hotplug_handler() {
 	echo "" > /proc/sys/kernel/hotplug
 }
 
+# find subdirs mounted under $udev_root
+get_dev_mounts() {
+	awk -vudev_root="$udev_root/" '
+	BEGIN {
+	  len = length(udev_root);
+	}
+
+	substr($2, 1, len) == udev_root {
+	  print substr($2, len + 1)
+	}' /proc/mounts
+}
+
 export ACTION=add
 prog=udev
 ret=0
@@ -70,30 +82,18 @@ busy
 
 # mount the devtmpfs on $udev_root, if not already done
 awk "\$2 == \"$udev_root\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
-
-	if grep -qF "none $udev_root/pts " /proc/mounts; then
-		PTSDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
-		mount --move $udev_root/pts "$PTSDIR"
-	fi
-
-	if grep -qF "none $udev_root/shm " /proc/mounts; then
-		SHMDIR=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
-		mount --move $udev_root/shm "$SHMDIR"
-	fi
-
-	mount -n -o mode=0755 -t devtmpfs devtmpfs "$udev_root"
-	mkdir -m 0755 $udev_root/pts
-	mkdir -m 0755 $udev_root/shm
-	if [ -n "$PTSDIR" ]; then
-		mount --move "$PTSDIR" $udev_root/pts
-		rmdir "$PTSDIR"
-	fi
-	if [ -n "$SHMDIR" ]; then
-		mount --move "$SHMDIR" $udev_root/shm
-		rmdir "$SHMDIR"
-	fi
-
+	# mount to temporary location to be able to move submounts, if any
+	devdir=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
+	mount -n -o mode=0755 -t devtmpfs devtmpfs "$devdir"
 	ret=$(( $ret + $? ))
+
+	# relocate submounts
+	for dir in $(get_dev_mounts); do
+		mount -n --move $udev_root/$dir $devdir/$dir
+		ret=$(( $ret + $? ))
+	done
+
+	mount -n --move $devdir $udev_root
 }
 
 kill_udevd > "$udev_root/null" 2>&1
