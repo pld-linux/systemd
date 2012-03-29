@@ -35,6 +35,8 @@ udevd_timeout=8
 prog=udev
 bin=/sbin/udev
 udevd=/lib/udev/udevd
+# trim traling slash, code expects it not to be there
+udev_root=${udev_root%/}
 
 make_extra_nodes () {
 	grep '^[^#]' /etc/udev/links.conf | \
