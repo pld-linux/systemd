@@ -209,7 +209,7 @@ Pliki nagłówkowe bibliotek systemd.
 Summary:	bash-completion for systemd
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
 Group:		Applications/Shells
-Requires:	%{name}
+Requires:	%{name} = %{version}
 Requires:	bash-completion
 
 %description -n bash-completion-systemd
@@ -221,6 +221,7 @@ Bashowe dopełnianie składni dla systemd
 %package no-compat-tmpfiles
 Summary:	Force update of packages that provide tmpfiles.d configuration
 Group:		Base
+Requires:	%{name} = %{version}-%{release}
 Requires(post):	sed > 4.0
 Conflicts:	ConsoleKit-dirs < 0.4.5-7
 Conflicts:	NetworkManager < 2:0.9.2.0-3
