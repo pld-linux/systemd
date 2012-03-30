@@ -84,18 +84,29 @@ busy
 
 # mount the devtmpfs on $udev_root, if not already done
 awk "\$2 == \"$udev_root\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
-	# mount to temporary location to be able to move submounts, if any
-	devdir=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
+	submounts=$(get_dev_mounts)
+
+	if [ "$submounts" ]; then
+		# mount to temporary location to be able to move submounts
+		# this needs writable TMPDIR:-/tmp, so it won't work in early boot
+		# but fix is simple: use initramfs instead of romfs
+		devdir=$(mktemp -d ${TMPDIR:-/tmp}/tmpXXXXXX)
+	else
+		devdir=$udev_root
+	fi
 	mount -n -o mode=0755 -t devtmpfs devtmpfs "$devdir"
 	ret=$(( $ret + $? ))
 
 	# relocate submounts
-	for dir in $(get_dev_mounts); do
+	for dir in $submounts; do
 		mount -n --move $udev_root/$dir $devdir/$dir
 		ret=$(( $ret + $? ))
 	done
 
-	mount -n --move $devdir $udev_root
+	if [ "$submounts" ]; then
+		mount -n --move $devdir $udev_root
+		rmdir $devdir
+	fi
 }
 
 kill_udevd > "$udev_root/null" 2>&1
