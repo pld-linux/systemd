@@ -2,6 +2,7 @@
 Description=Clean /tmp on startup
 DefaultDependencies=no
 After=remount-rootfs.service
+Before=systemd-tmpfiles-setup.service
 
 [Service]
 ExecStart=/lib/systemd/pld-clean-tmp
