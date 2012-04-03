@@ -2,8 +2,9 @@
 Description=Initialize network
 DefaultDependencies=no
 After=syslog.target udev-settle.service
+After=systemd-tmpfiles-setup.service
 Wants=network.target udev.service udev-settle.service
-Wants=local-fs.target systemd-tmpfiles-setup.service
+Wants=local-fs.target
 Before=network.target
 
 [Service]
