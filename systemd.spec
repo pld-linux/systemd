@@ -16,7 +16,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	44
-Release:	8
+Release:	9
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -529,6 +529,7 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
+%attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-*
 %dir /lib/systemd/system-generators
