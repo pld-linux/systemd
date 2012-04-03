@@ -92,6 +92,9 @@ Conflicts:	pam < 1:1.1.5-5
 Conflicts:	sudo < 1:1.7.8p2-4
 # for prefdm script
 Conflicts:	xinitrc-ng < 1.0
+# systemd scripts use options not present in older versions
+Conflicts:	kpartx < 0.4.9-7
+Conflicts:	multipath-tools < 0.4.9-7
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
