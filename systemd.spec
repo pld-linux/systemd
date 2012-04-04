@@ -1,8 +1,10 @@
-#
 # TODO:
 #	- remove compat-pld-var-run.tmpfiles and maybe tmpfiles-not-fatal.patch
 #	  after enough packages provide their own tmpfiles.d configs for
 #	  /var/run directories
+# - for systemd-45+
+#   - restore var-{run,lock}: http://cgit.freedesktop.org/systemd/systemd/commit/?id=55d029addf7d97b15faacea597a4ff65542aaf0e
+#   - WARNING: http://cgit.freedesktop.org/systemd/systemd/commit/?id=623ac9d2fce3170125ead9be20f56bfe68ea125e
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
