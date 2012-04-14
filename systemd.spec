@@ -7,8 +7,6 @@
 # - for systemd-45+
 #   - restore var-{run,lock}: http://cgit.freedesktop.org/systemd/systemd/commit/?id=55d029addf7d97b15faacea597a4ff65542aaf0e
 #   - WARNING: http://cgit.freedesktop.org/systemd/systemd/commit/?id=623ac9d2fce3170125ead9be20f56bfe68ea125e
-# - find how utmp group dissapears from system (happened 3+ times on different systems)
-#   libutempter-1.1.5-2 reinstall helps
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
