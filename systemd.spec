@@ -20,7 +20,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	44
-Release:	11
+Release:	12
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -43,6 +43,7 @@ Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
 Patch5:		CVE-2012-1174.patch
 Patch6:		ReleaseSession.patch
+Patch7:		control-subcgroup.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -323,6 +324,7 @@ Force update of packages that provide tmpfiles.d configuration
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
