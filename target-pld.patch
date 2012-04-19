@@ -296,7 +296,7 @@ index ac6424a..a247c25 100644
 +
 +[Unit]
 +Description=Display Manager
-+After=livesys-late.service local.service systemd-user-sessions.service acpid.service
++After=livesys-late.service rc-local.service systemd-user-sessions.service acpid.service
 +
 +# Do not stop plymouth, it is done in prefdm if required
 +Conflicts=plymouth-quit.service
