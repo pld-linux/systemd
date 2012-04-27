@@ -682,7 +682,7 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %config(noreplace,missingok) %{systemdunitdir}/runlevel[12345].target.wants/*
 %config(noreplace,missingok) %{systemdunitdir}/shutdown.target.wants/*
 %config(noreplace,missingok) %{systemdunitdir}/sockets.target.wants/*
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/cryptsetup.target
+%{?with_cryptsetup:%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
