@@ -88,7 +88,7 @@ parse_one_service() {
 	echo "WantedBy=sockets.target" >>$SOCKET_FILE
 }
 
-SERVICES=$(ls -d /etc/sysconfig/rc-inetd/* 2>/dev/null | egrep -v '.*(\.rpm(save|new|orig)|~|CVS)')
+SERVICES=$(ls -d /etc/sysconfig/rc-inetd/* 2>/dev/null | grep -Ev '.*(\.rpm(save|new|orig)|~|CVS)')
 for i in $SERVICES; do
 	# unset everything
 	unset SERVICE_NAME SOCK_TYPE PROTOCOL PORT USER
@@ -100,15 +100,18 @@ for i in $SERVICES; do
 	unset BANNER_SUCCESS BANNER_FAILURE PASSENV
 	unset SERVICE_TYPE ACCESS_TIMES LOG_TYPE
 	unset LOG_SUCCESS LOG_FAILURE REDIRECT MAX_LOAD
+
 	# Read defaults...
 	. /etc/sysconfig/rc-inetd.conf
+
 	# ...and then config of *this* service.
 	. $i
-	CURRENT_SERVICE=`basename $i`
+
+	CURRENT_SERVICE=$(basename $i)
 	DONT_PARSE=0
 	# check if service is in deny list ?
-	for i in $DENY_SERVICES ; do
-		if [ $i = $CURRENT_SERVICE ] ; then
+	for i in $DENY_SERVICES; do
+		if [ $i = $CURRENT_SERVICE ]; then
 			DONT_PARSE=1
 		fi
 	done
