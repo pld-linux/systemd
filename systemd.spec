@@ -20,7 +20,7 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 Version:	44
-Release:	13
+Release:	14
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -28,7 +28,6 @@ Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
-Source4:	compat-pld-media.tmpfiles
 Source5:	compat-pld-var-run.tmpfiles
 Source10:	pld-storage-init-late.service
 Source11:	pld-storage-init.service
@@ -389,7 +388,6 @@ ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/random.service
 cp -p %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
 # install compatibility tmpfiles configs
-cp -p %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-media.conf
 cp -p %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 # Install and enable storage subsystems support services (RAID, LVM, etc.)
