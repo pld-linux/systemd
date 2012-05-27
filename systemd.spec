@@ -4,9 +4,6 @@
 #	  /var/run directories
 # - pldize vconsole setup:
 #   - http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
-# - for systemd-45+
-#   - restore var-{run,lock}: http://cgit.freedesktop.org/systemd/systemd/commit/?id=55d029addf7d97b15faacea597a4ff65542aaf0e
-#   - WARNING: http://cgit.freedesktop.org/systemd/systemd/commit/?id=623ac9d2fce3170125ead9be20f56bfe68ea125e
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
@@ -19,16 +16,18 @@
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
-Version:	44
-Release:	14
+Version:	183
+Release:	0.1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	11f44ff74c87850064e4351518bcff17
+# Source0-md5:	e1e5e0f376fa2a4cb4bc31a2161c09f2
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
 Source5:	compat-pld-var-run.tmpfiles
+Source6:	var-lock.mount
+Source7:	var-run.mount
 Source10:	pld-storage-init-late.service
 Source11:	pld-storage-init.service
 Source12:	pld-wait-storage.service
@@ -99,6 +98,8 @@ Conflicts:	xinitrc-ng < 1.0
 # systemd scripts use options not present in older versions
 Conflicts:	kpartx < 0.4.9-7
 Conflicts:	multipath-tools < 0.4.9-7
+# no tmpfs on /media, use /run/media/$USER for mounting
+Conflicts:	udisks2 < 1.92.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_libexecdir	%{_prefix}/lib
@@ -389,6 +390,14 @@ cp -p %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
 # install compatibility tmpfiles configs
 cp -p %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
+
+# restore bind-mounts /var/run -> run and /var/lock -> /run/lock
+# we don't have those directories symlinked
+cp -p %{SOURCE6} $RPM_BUILD_ROOT%{systemdunitdir}/var-lock.mount
+cp -p %{SOURCE7} $RPM_BUILD_ROOT%{systemdunitdir}/var-run.mount
+
+# and remove tmp on tmpfs mount
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/tmp.mount
 
 # Install and enable storage subsystems support services (RAID, LVM, etc.)
 cp -p %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
