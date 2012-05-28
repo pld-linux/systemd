@@ -1,14 +1,14 @@
 --- udev-146/Makefile.am~	2009-08-14 14:14:06.000000000 +0200
 +++ udev-146/Makefile.am	2009-08-15 20:54:31.651285047 +0200
 @@ -485,8 +485,10 @@
- 		mkdir -p $(DESTDIR)$(rootlib_execdir) && \
+ 		mkdir -p $(DESTDIR)$(rootlibdir) && \
  		so_img_name=$$(readlink $(DESTDIR)$(libdir)/libudev.so) && \
  		so_img_rel_target_prefix=$$(echo $(libdir) | sed 's,\(^/\|\)[^/][^/]*,..,g') && \
--		ln -sf $$so_img_rel_target_prefix$(rootlib_execdir)/$$so_img_name $(DESTDIR)$(libdir)/libudev.so && \
--		mv $(DESTDIR)$(libdir)/libudev.so.* $(DESTDIR)$(rootlib_execdir); \
+-		ln -sf $$so_img_rel_target_prefix$(rootlibdir)/$$so_img_name $(DESTDIR)$(libdir)/libudev.so && \
+-		mv $(DESTDIR)$(libdir)/libudev.so.* $(DESTDIR)$(rootlibdir); \
 +		if test "x$$so_img_name" != "x"; then \
-+			ln -sf $$so_img_rel_target_prefix$(rootlib_execdir)/$$so_img_name $(DESTDIR)$(libdir)/libudev.so && \
-+			mv $(DESTDIR)$(libdir)/libudev.so.* $(DESTDIR)$(rootlib_execdir); \
++			ln -sf $$so_img_rel_target_prefix$(rootlibdir)/$$so_img_name $(DESTDIR)$(libdir)/libudev.so && \
++			mv $(DESTDIR)$(libdir)/libudev.so.* $(DESTDIR)$(rootlibdir); \
 +		fi; true; \
  	fi
  
