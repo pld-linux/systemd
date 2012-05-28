@@ -16,7 +16,7 @@
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
-%bcond_without	initrd		# build without udev-initrd
+%bcond_with	initrd		# build without udev-initrd
 %bcond_with	uClibc		# link initrd version with static uClibc
 %bcond_with	klibc		# link initrd version with static klibc
 %bcond_with	dietlibc	# link initrd version with static dietlibc (currently broken and unsupported)
@@ -77,10 +77,11 @@ Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
-Patch8:		kmsg-to-syslog.patch
-Patch100:	udev-so.patch
-Patch101:	udev-uClibc.patch
-Patch102:	udev-ploop-rules.patch
+Patch5:		kmsg-to-syslog.patch
+Patch6:		udev-so.patch
+Patch7:		udev-uClibc.patch
+Patch8:		udev-ploop-rules.patch
+Patch9:		udevlibexecdir.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -166,7 +167,7 @@ Conflicts:	multipath-tools < 0.4.9-7
 Conflicts:	udisks2 < 1.92.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
-#define		_sbindir	/sbin
+%define		_sbindir	/sbin
 %define		_libexecdir	%{_prefix}/lib
 
 %description
@@ -548,27 +549,41 @@ initrd.
 #patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
+%patch6 -p1
+%if %{with uClibc}
+%patch7 -p1
+%endif
 %patch8 -p1
+%patch9 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
+%{__gtkdocize}
+%{__libtoolize}
 %{__aclocal} -I m4
 %{__autoconf}
 %{__autoheader}
 %{__automake}
 %configure \
+	%{?debug:--enable-debug} \
 	%{__enable_disable audit} \
 	%{__enable_disable cryptsetup libcryptsetup} \
-	--disable-gtk \
 	%{__enable_disable pam} \
 	%{__enable_disable plymouth} \
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
-	--disable-static \
 	--with-distro=pld \
-	--with-rootprefix= \
+	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib} \
+	--with-html-dir=%{_gtkdocdir} \
+	--with-pci-ids-path=%{_sysconfdir}/pci.ids \
+	--with-rootprefix="" \
+	--enable-gtk-doc \
+	--enable-introspection \
+	--enable-shared \
+	--enable-static \
 	--enable-split-usr
 
 %{__make}
@@ -576,12 +591,47 @@ cp -p %{SOURCE2} src/systemd_booted.c
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/var/lib/%{name}/coredump
+install -d $RPM_BUILD_ROOT/var/lib/%{name}/coredump \
+	$RPM_BUILD_ROOT{%{_sysconfdir}/modprobe.d,%{_sbindir}}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
 ./libtool --mode=install install -p -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
+
+# compatibility symlinks to udevd binary
+ln -s /lib/systemd/systemd-udevd $RPM_BUILD_ROOT/lib/udev/udevd
+ln -s /lib/systemd/systemd-udevd $RPM_BUILD_ROOT%{_sbindir}/udevd
+
+# compat symlinks for "/ merged into /usr" programs
+mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}}/udevadm
+ln -s %{_sbindir}/udevadm $RPM_BUILD_ROOT%{_bindir}
+
+# install custom udev rules from pld package
+cp -a %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
+cp -a %{SOURCE102} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-udev-pld.rules
+
+# install udev configs
+cp -a %{SOURCE103} $RPM_BUILD_ROOT%{_sysconfdir}/udev/links.conf
+
+# install udev executables (scripts, helpers, etc.)
+install -p %{SOURCE110} $RPM_BUILD_ROOT/lib/udev/net_helper
+install -p %{SOURCE111} $RPM_BUILD_ROOT%{_sbindir}/start_udev
+
+# install misc udev stuff
+cp -a %{SOURCE120} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/udev_blacklist.conf
+cp -a %{SOURCE121} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
+
+echo ".so man8/systemd-udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/udevd.8
+
+%if %{with initrd}
+install -d $RPM_BUILD_ROOT%{_libdir}/initrd/udev
+install -p udev-initrd/sbin/udevadm $RPM_BUILD_ROOT%{_libdir}/initrd
+install -p udev-initrd/lib/udev/udevd $RPM_BUILD_ROOT%{_libdir}/initrd
+ln -s udevd $RPM_BUILD_ROOT%{_libdir}/initrd/udevstart
+install -p udev-initrd/lib/udev/*_id $RPM_BUILD_ROOT%{_libdir}/initrd/udev
+install -p udev-initrd/lib/udev/collect $RPM_BUILD_ROOT%{_libdir}/initrd/udev
+%endif
 
 # Main binary has been moved, but we don't want to break existing installs
 ln -s ../lib/systemd/systemd $RPM_BUILD_ROOT/bin/systemd
@@ -651,8 +701,6 @@ install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
 install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/btmp
 :> $RPM_BUILD_ROOT/var/log/wtmp
-
-%{__rm} $RPM_BUILD_ROOT%{_mandir}/man1/systemadm.1*
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
@@ -797,28 +845,61 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/machine-info
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/timezone
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/*.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
 %dir %{_sysconfdir}/systemd/user
 %dir %{_sysconfdir}/systemd/system/*.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/*.target.wants/*.service
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/*.target.wants/*.target
 /etc/xdg/systemd
+%attr(755,root,root) /bin/journalctl
+%attr(755,root,root) /bin/loginctl
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
-%attr(755,root,root) /bin/systemd-journalctl
-%attr(755,root,root) /bin/systemd-loginctl
+%attr(755,root,root) /bin/systemd-inhibit
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
 %attr(755,root,root) %{_bindir}/systemd-cat
 %attr(755,root,root) %{_bindir}/systemd-cgtop
 %attr(755,root,root) %{_bindir}/systemd-cgls
+%attr(755,root,root) %{_bindir}/systemd-delta
+%attr(755,root,root) %{_bindir}/systemd-detect-virt
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/pld-storage-init
-%attr(755,root,root) /lib/systemd/systemd-*
+%attr(755,root,root) /lib/systemd/systemd-ac-power
+%attr(755,root,root) /lib/systemd/systemd-binfmt
+%attr(755,root,root) /lib/systemd/systemd-cgroups-agent
+%attr(755,root,root) /lib/systemd/systemd-coredump
+%attr(755,root,root) /lib/systemd/systemd-cryptsetup
+%attr(755,root,root) /lib/systemd/systemd-fsck
+%attr(755,root,root) /lib/systemd/systemd-hostnamed
+%attr(755,root,root) /lib/systemd/systemd-initctl
+%attr(755,root,root) /lib/systemd/systemd-journald
+%attr(755,root,root) /lib/systemd/systemd-localed
+%attr(755,root,root) /lib/systemd/systemd-logind
+%attr(755,root,root) /lib/systemd/systemd-modules-load
+%attr(755,root,root) /lib/systemd/systemd-multi-seat-x
+%attr(755,root,root) /lib/systemd/systemd-quotacheck
+%attr(755,root,root) /lib/systemd/systemd-random-seed
+%attr(755,root,root) /lib/systemd/systemd-readahead-collect
+%attr(755,root,root) /lib/systemd/systemd-readahead-replay
+%attr(755,root,root) /lib/systemd/systemd-remount-fs
+%attr(755,root,root) /lib/systemd/systemd-reply-password
+%attr(755,root,root) /lib/systemd/systemd-shutdown
+%attr(755,root,root) /lib/systemd/systemd-shutdownd
+%attr(755,root,root) /lib/systemd/systemd-sleep
+%attr(755,root,root) /lib/systemd/systemd-sysctl
+%attr(755,root,root) /lib/systemd/systemd-timedated
+%attr(755,root,root) /lib/systemd/systemd-timestamp
+%attr(755,root,root) /lib/systemd/systemd-update-utmp
+%attr(755,root,root) /lib/systemd/systemd-user-sessions
+%attr(755,root,root) /lib/systemd/systemd-vconsole-setup
 %dir /lib/systemd/system-generators
 %attr(755,root,root) /lib/systemd/systemd
 %attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
@@ -830,7 +911,10 @@ fi
 %dir %{_libexecdir}/systemd
 %{_libexecdir}/systemd/user
 %dir %{_libexecdir}/systemd/user-generators
-%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/*.conf
+%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/legacy.conf
+%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/systemd.conf
+%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/tmp.conf
+%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/x11.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -848,19 +932,30 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
 %dir %{_datadir}/systemd
 %{_datadir}/systemd/kbd-model-map
+%{_mandir}/man1/journalctl.1*
+%{_mandir}/man1/loginctl.1*
 %{_mandir}/man1/systemd.1*
-%{_mandir}/man1/systemd-*.1*
+%{_mandir}/man1/systemd-ask-password.1*
+%{_mandir}/man1/systemd-cat.1*
+%{_mandir}/man1/systemd-cgls.1*
+%{_mandir}/man1/systemd-cgtop.1*
+%{_mandir}/man1/systemd-delta.1*
+%{_mandir}/man1/systemd-detect-virt.1*
+%{_mandir}/man1/systemd-inhibit.1*
+%{_mandir}/man1/systemd-machine-id-setup.1*
+%{_mandir}/man1/systemd-notify.1*
+%{_mandir}/man1/systemd-nspawn.1*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/hostname.5*
+%{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/locale.conf.5*
+%{_mandir}/man5/logind.conf.5*
 %{_mandir}/man5/machine-id.5*
 %{_mandir}/man5/machine-info.5*
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/systemd.*.5*
-%{_mandir}/man5/systemd-journald.conf.5*
-%{_mandir}/man5/systemd-logind.conf.5*
 %{_mandir}/man5/timezone.5*
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/daemon.7*
@@ -868,6 +963,7 @@ fi
 %{_mandir}/man7/sd-login.7*
 %{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.special.7*
+%{_mandir}/man7/systemd.journal-fields.7*
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
 %attr(640,root,root) %ghost /var/log/btmp
@@ -1065,7 +1161,6 @@ fi
 
 %files -n udev-core
 %defattr(644,root,root,755)
-%doc ChangeLog TODO
 
 %dir /lib/udev
 
@@ -1075,7 +1170,6 @@ fi
 # files.
 %dir /lib/udev/devices
 
-%attr(755,root,root) /lib/udev/create_floppy_devices
 %attr(755,root,root) /lib/udev/collect
 
 %attr(755,root,root) /lib/udev/keyboard-force-release.sh
@@ -1088,6 +1182,7 @@ fi
 %attr(755,root,root) /lib/udev/scsi_id
 %attr(755,root,root) /lib/udev/v4l_id
 
+%attr(755,root,root) /lib/systemd/systemd-udevd
 %attr(755,root,root) /lib/udev/udevd
 
 %attr(755,root,root) /lib/udev/keymap
@@ -1117,7 +1212,6 @@ fi
 /lib/udev/rules.d/42-usb-hid-pm.rules
 /lib/udev/rules.d/50-udev-default.rules
 /lib/udev/rules.d/60-cdrom_id.rules
-/lib/udev/rules.d/60-floppy.rules
 /lib/udev/rules.d/60-persistent-alsa.rules
 /lib/udev/rules.d/60-persistent-input.rules
 /lib/udev/rules.d/60-persistent-serial.rules
@@ -1135,27 +1229,28 @@ fi
 /lib/udev/rules.d/95-udev-late.rules
 
 %{_mandir}/man7/udev.7*
-%{_mandir}/man8/*
+%{_mandir}/man8/systemd-udevd.8*
+%{_mandir}/man8/udevadm.8*
+%{_mandir}/man8/udevd.8*
 
-%{systemdunitdir}/basic.target.wants/udev-trigger.service
-%{systemdunitdir}/basic.target.wants/udev.service
-%{systemdunitdir}/sockets.target.wants/udev-control.socket
-%{systemdunitdir}/sockets.target.wants/udev-kernel.socket
-%{systemdunitdir}/udev-control.socket
-%{systemdunitdir}/udev-kernel.socket
-%{systemdunitdir}/udev-settle.service
-%{systemdunitdir}/udev-trigger.service
-%{systemdunitdir}/udev.service
+#{systemdunitdir}/basic.target.wants/udev-trigger.service
+#{systemdunitdir}/basic.target.wants/udev.service
+%{systemdunitdir}/sockets.target.wants/systemd-udev-control.socket
+%{systemdunitdir}/sockets.target.wants/systemd-udev-kernel.socket
+%{systemdunitdir}/systemd-udev-control.socket
+%{systemdunitdir}/systemd-udev-kernel.socket
+%{systemdunitdir}/systemd-udev-settle.service
+%{systemdunitdir}/systemd-udev-trigger.service
+%{systemdunitdir}/systemd-udev.service
 
 %files -n udev-libs
 %defattr(644,root,root,755)
 %attr(755,root,root) /%{_lib}/libudev.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libudev.so.0
+%attr(755,root,root) %ghost /%{_lib}/libudev.so.1
 
 %files -n udev-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libudev.so
-%{_libdir}/libudev.la
 %{_includedir}/libudev.h
 %{_pkgconfigdir}/libudev.pc
 %{_npkgconfigdir}/udev.pc
@@ -1177,7 +1272,6 @@ fi
 %files -n udev-glib-devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libgudev-1.0.so
-%{_libdir}/libgudev-1.0.la
 %{_includedir}/gudev-1.0
 %{_pkgconfigdir}/gudev-1.0.pc
 %{_datadir}/gir-1.0/GUdev-1.0.gir
