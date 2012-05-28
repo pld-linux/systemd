@@ -1,9 +1,12 @@
 # TODO:
-#	- remove compat-pld-var-run.tmpfiles and maybe tmpfiles-not-fatal.patch
-#	  after enough packages provide their own tmpfiles.d configs for
-#	  /var/run directories
+# - remove compat-pld-var-run.tmpfiles and maybe tmpfiles-not-fatal.patch
+#	after enough packages provide their own tmpfiles.d configs for
+#	/var/run directories
 # - pldize vconsole setup:
-#   - http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
+# 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
+# - udev initrd needs love (is probably completly unusable in current form)
+# - udev stores it's data now to /run/udev, but that dir is not owned and not even on tmpfs
+#
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
@@ -13,11 +16,36 @@
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
+%bcond_without	initrd		# build without udev-initrd
+%bcond_with	uClibc		# link initrd version with static uClibc
+%bcond_with	klibc		# link initrd version with static klibc
+%bcond_with	dietlibc	# link initrd version with static dietlibc (currently broken and unsupported)
+%bcond_without	glibc		# link initrd version with static glibc
+
+%ifarch sparc sparc64
+%define		with_glibc 1
+%endif
+
+# if one of the *libc is enabled disable default uClibc
+%if %{with dietlibc} && %{with uClibc}
+%undefine	with_uClibc
+%endif
+
+%if %{with glibc} && %{with uClibc}
+%undefine	with_uClibc
+%endif
+
+%if %{with klibc} && %{with uClibc}
+%undefine	with_uClibc
+%endif
+
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
+# Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	183
 Release:	0.1
+Epoch:		1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
@@ -34,12 +62,25 @@ Source12:	pld-wait-storage.service
 Source13:	pld-storage-init.sh
 Source14:	pld-clean-tmp.service
 Source15:	pld-clean-tmp.sh
+# rules
+Source101:	udev-alsa.rules
+Source102:	udev.rules
+Source103:	udev-links.conf
+# scripts / helpers
+Source110:	udev-net.helper
+Source111:	start_udev
+# misc
+Source120:	udev.blacklist
+Source121:	fbdev.blacklist
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
 Patch8:		kmsg-to-syslog.patch
+Patch100:	udev-so.patch
+Patch101:	udev-uClibc.patch
+Patch102:	udev-ploop-rules.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -49,9 +90,14 @@ BuildRequires:	binutils >= 3:2.22.52.0.1-2
 %{?with_cryptsetup:BuildRequires:	cryptsetup-luks-devel}
 BuildRequires:	dbus-devel >= 1.3.2
 BuildRequires:	docbook-style-xsl
+BuildRequires:	glib2-devel >= 1:2.22.0
+BuildRequires:	glibc-misc
+BuildRequires:	gobject-introspection-devel >= 0.6.2
 BuildRequires:	gperf
+BuildRequires:	gtk-doc >= 1.10
 BuildRequires:	intltool >= 0.40.0
 BuildRequires:	kmod-devel >= 5
+BuildRequires:	libblkid-devel >= 2.20
 BuildRequires:	libcap-devel
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.0}
 BuildRequires:	libtool >= 2:2.2
@@ -59,10 +105,31 @@ BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
+BuildRequires:	pciutils
 BuildRequires:	pkgconfig >= 0.9.0
-BuildRequires:	rpmbuild(macros) >= 1.627
-BuildRequires:	udev-devel >= 1:172
+BuildRequires:	python-modules
+BuildRequires:	rpmbuild(macros) >= 1.628
+BuildRequires:	sed >= 4.0
+BuildRequires:	usbutils >= 0.82
 BuildRequires:	xz-devel
+BuildRequires:	zlib-devel
+%if %{with initrd}
+BuildRequires:	acl-static
+BuildRequires:	attr-static
+%{?with_dietlibc:BuildRequires:	dietlibc-static}
+BuildRequires:	glib2-static >= 1:2.22.0
+%{?with_glibc:BuildRequires:	glibc-static}
+%{?with_klibc:BuildRequires:	klibc-static}
+BuildRequires:	kmod-libs-static >= 5
+BuildRequires:	libblkid-static >= 2.20
+%{?with_glibc:BuildRequires:	libselinux-static}
+%{?with_glibc:BuildRequires:	libsepol-static}
+%{?with_klibc:BuildRequires:	linux-libc-headers}
+BuildRequires:	pcre-static
+%{?with_uClibc:BuildRequires:	uClibc-static >= 4:0.9.30.3}
+BuildRequires:	xz-static
+BuildRequires:	zlib-static
+%endif
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	%{name}-units = %{version}-%{release}
 Requires:	/etc/os-release
@@ -99,6 +166,7 @@ Conflicts:	multipath-tools < 0.4.9-7
 Conflicts:	udisks2 < 1.92.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
+#define		_sbindir	/sbin
 %define		_libexecdir	%{_prefix}/lib
 
 %description
@@ -313,6 +381,166 @@ Conflicts:	xl2tpd < 1.3.0-2
 %description no-compat-tmpfiles
 Force update of packages that provide tmpfiles.d configuration
 
+%package -n udev
+Summary:	Device manager for the Linux 2.6 kernel series
+Summary(pl.UTF-8):	Zarządca urządzeń dla Linuksa 2.6
+Group:		Base
+Requires:	udev-core = %{epoch}:%{version}-%{release}
+Provides:	dev = 3.5.0
+Obsoletes:	dev
+Obsoletes:	hotplug
+Obsoletes:	hotplug-input
+Obsoletes:	hotplug-net
+Obsoletes:	hotplug-pci
+Obsoletes:	udev-compat
+Obsoletes:	udev-dev
+Obsoletes:	udev-extras < 20090628
+Obsoletes:	udev-tools
+
+%description -n udev
+udev is the device manager for the Linux 2.6 kernel series. Its
+primary function is managing device nodes in /dev. It is the successor
+of devfs and hotplug.
+
+%description -n udev -l pl.UTF-8
+udev jest zarządcą urządzeń dla Linuksa 2.6. Jego główną funkcją jest
+zarządzanie węzłami urządzeń w katalogu /dev. Jest następcą devfs i
+hotpluga.
+
+%package -n udev-core
+Summary:	A userspace implementation of devfs - core part of udev
+Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - główna część udev
+Group:		Base
+Requires(post,preun,postun):	systemd-units >= 38
+Requires:	udev-libs = %{epoch}:%{version}-%{release}
+Requires:	coreutils
+Requires:	filesystem >= 3.0-45
+Requires:	setup >= 2.6.1-1
+Requires:	systemd-units >= 0.38
+Requires:	uname(release) >= 2.6.32
+Obsoletes:	udev-systemd
+Conflicts:	rc-scripts < 0.4.5.3-1
+Conflicts:	udev < 1:118-1
+
+%description -n udev-core
+A userspace implementation of devfs - core part of udev.
+
+%description -n udev-core -l pl.UTF-8
+Implementacja devfs w przestrzeni użytkownika - główna część udev.
+
+%package -n udev-libs
+Summary:	Shared library to access udev device information
+Summary(pl.UTF-8):	Biblioteka współdzielona do dostępu do informacji o urządzeniach udev
+Group:		Libraries
+
+%description -n udev-libs
+Shared libudev library to access udev device information.
+
+%description -n udev-libs -l pl.UTF-8
+Biblioteka współdzielona libudev służąca do dostępu do informacji o
+urządzeniach udev.
+
+%package -n udev-devel
+Summary:	Header file for libudev library
+Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libudev
+Group:		Development/Libraries
+Requires:	udev-libs = %{epoch}:%{version}-%{release}
+
+%description -n udev-devel
+Header file for libudev library.
+
+%description -n udev-devel -l pl.UTF-8
+Plik nagłówkowy biblioteki libudev.
+
+%package -n udev-static
+Summary:	Static libudev library
+Summary(pl.UTF-8):	Biblioteka statyczna libudev
+Group:		Development/Libraries
+Requires:	udev-devel = %{epoch}:%{version}-%{release}
+
+%description -n udev-static
+Static libudev library.
+
+%description -n udev-static -l pl.UTF-8
+Biblioteka statyczna libudev.
+
+%package -n udev-apidocs
+Summary:	libudev API documentation
+Summary(pl.UTF-8):	Dokumentacja API libudev
+Group:		Documentation
+Requires:	gtk-doc-common
+
+%description -n udev-apidocs
+libudev API documentation.
+
+%description -n udev-apidocs -l pl.UTF-8
+Dokumentacja API libudev.
+
+%package -n udev-glib
+Summary:	Shared libgudev library - GObject bindings for libudev
+Summary(pl.UTF-8):	Biblioteka współdzielona libgudev - wiązania GObject do libudev
+Group:		Libraries
+Requires:	udev-libs = %{epoch}:%{version}-%{release}
+Requires:	glib2 >= 1:2.22.0
+
+%description -n udev-glib
+Shared libgudev library - GObject bindings for libudev.
+
+%description -n udev-glib -l pl.UTF-8
+Biblioteka współdzielona libgudev - wiązania GObject do libudev.
+
+%package -n udev-glib-devel
+Summary:	Header file for libgudev library
+Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libgudev
+Group:		Development/Libraries
+Requires:	udev-devel = %{epoch}:%{version}-%{release}
+Requires:	udev-glib = %{epoch}:%{version}-%{release}
+Requires:	glib2-devel >= 1:2.22.0
+
+%description -n udev-glib-devel
+Header file for libgudev library.
+
+%description -n udev-glib-devel -l pl.UTF-8
+Plik nagłówkowy biblioteki libgudev.
+
+%package -n udev-glib-static
+Summary:	Static libgudev library
+Summary(pl.UTF-8):	Biblioteka statyczna libgudev
+Group:		Development/Libraries
+Requires:	udev-glib-devel = %{epoch}:%{version}-%{release}
+
+%description -n udev-glib-static
+Static libgudev library.
+
+%description -n udev-glib-static -l pl.UTF-8
+Biblioteka statyczna libgudev.
+
+%package -n udev-glib-apidocs
+Summary:	libgudev API documentation
+Summary(pl.UTF-8):	Dokumentacja API libgudev
+Group:		Documentation
+Requires:	gtk-doc-common
+
+%description -n udev-glib-apidocs
+libgudev API documentation.
+
+%description -n udev-glib-apidocs -l pl.UTF-8
+Dokumentacja API libgudev.
+
+%package -n udev-initrd
+Summary:	A userspace implementation of devfs - static binary for initrd
+Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - statyczna binarka dla initrd
+Group:		Base
+Requires:	udev-core = %{epoch}:%{version}-%{release}
+Conflicts:	geninitrd < 10000.10
+
+%description -n udev-initrd
+A userspace implementation of devfs - static binary for initrd.
+
+%description -n udev-initrd -l pl.UTF-8
+Implementacja devfs w przestrzeni użytkownika - statyczna binarka dla
+initrd.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -507,6 +735,53 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 
 %postun plymouth
 %systemd_reload
+
+%triggerpostun -n udev-core -- dev
+if [ "$2" = 0 ]; then
+	# need to kill and restart udevd as after obsoleting dev package the
+	# /dev tree will remain empty. umask is needed as otherwise udev will
+	# create devices with strange permissions (udev bug probably)
+	umask 000
+	/sbin/start_udev || exit 0
+fi
+
+%triggerpostun -n udev-core -- udev < 108
+%{__sed} -i -e 's#IMPORT{program}="/sbin/#IMPORT{program}="#g' /etc/udev/rules.d/*.rules
+%if "%{_lib}" != "lib"
+%{__sed} -i -e 's#/%{_lib}/udev/#/lib/udev/#g' /etc/udev/rules.d/*.rules
+%endif
+
+%triggerpostun -n udev-core -- udev < 165
+/sbin/udevadm info --convert-db
+
+%triggerpostun -n udev-core -- %{name}-core < 1:175-4
+%systemd_trigger udev-settle.service
+
+%post -n udev-core
+if [ $1 -gt 1 ]; then
+	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
+		if grep -qs devtmpfs /proc/mounts && [ -n "$(pidof udevd)" ]; then
+			/sbin/udevadm control --exit
+			/lib/udev/udevd --daemon
+		fi
+	else
+		SYSTEMD_LOG_LEVEL=warning SYSTEMD_LOG_TARGET=syslog \
+		/bin/systemctl --quiet try-restart udev.service || :
+	fi
+fi
+%systemd_post udev-settle.service
+
+%preun -n udev-core
+%systemd_preun udev-settle.service
+
+%postun -n udev-core
+%systemd_reload
+
+%post	-n udev-libs -p /sbin/ldconfig
+%postun	-n udev-libs -p /sbin/ldconfig
+
+%post	-n udev-glib -p /sbin/ldconfig
+%postun	-n udev-glib -p /sbin/ldconfig
 
 %files
 %defattr(644,root,root,755)
@@ -781,3 +1056,147 @@ rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service
 %files no-compat-tmpfiles
 %defattr(644,root,root,755)
 # empty package
+
+%files -n udev
+%defattr(644,root,root,755)
+%dev(c,1,3) %attr(666,root,root) /dev/null
+%dev(c,5,1) %attr(660,root,console) /dev/console
+%dev(c,1,5) %attr(666,root,root) /dev/zero
+
+%files -n udev-core
+%defattr(644,root,root,755)
+%doc ChangeLog TODO
+
+%dir /lib/udev
+
+# /lib/udev/devices is recommended as a directory where packages or
+# the user can place real device nodes, which get copied over to /dev at
+# every boot. This should replace the various solutions with custom config
+# files.
+%dir /lib/udev/devices
+
+%attr(755,root,root) /lib/udev/create_floppy_devices
+%attr(755,root,root) /lib/udev/collect
+
+%attr(755,root,root) /lib/udev/keyboard-force-release.sh
+
+%attr(755,root,root) /lib/udev/net_helper
+
+%attr(755,root,root) /lib/udev/ata_id
+%attr(755,root,root) /lib/udev/cdrom_id
+%attr(755,root,root) /lib/udev/mtd_probe
+%attr(755,root,root) /lib/udev/scsi_id
+%attr(755,root,root) /lib/udev/v4l_id
+
+%attr(755,root,root) /lib/udev/udevd
+
+%attr(755,root,root) /lib/udev/keymap
+%dir /lib/udev/keymaps
+/lib/udev/keymaps/*
+
+%attr(755,root,root) /lib/udev/accelerometer
+%attr(755,root,root) /lib/udev/findkeyboards
+
+%attr(755,root,root) %{_sbindir}/start_udev
+%attr(755,root,root) %{_sbindir}/udevd
+%attr(755,root,root) %{_sbindir}/udevadm
+%attr(755,root,root) %{_bindir}/udevadm
+
+%dir %{_sysconfdir}/udev
+%dir %{_sysconfdir}/udev/rules.d
+
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/udev_blacklist.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/links.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-udev-pld.rules
+
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/udev.conf
+
+# rules below are NOT supposed to be changed by users
+/lib/udev/rules.d/42-usb-hid-pm.rules
+/lib/udev/rules.d/50-udev-default.rules
+/lib/udev/rules.d/60-cdrom_id.rules
+/lib/udev/rules.d/60-floppy.rules
+/lib/udev/rules.d/60-persistent-alsa.rules
+/lib/udev/rules.d/60-persistent-input.rules
+/lib/udev/rules.d/60-persistent-serial.rules
+/lib/udev/rules.d/60-persistent-storage-tape.rules
+/lib/udev/rules.d/60-persistent-storage.rules
+/lib/udev/rules.d/60-persistent-v4l.rules
+/lib/udev/rules.d/61-accelerometer.rules
+/lib/udev/rules.d/75-net-description.rules
+/lib/udev/rules.d/75-probe_mtd.rules
+/lib/udev/rules.d/75-tty-description.rules
+/lib/udev/rules.d/78-sound-card.rules
+/lib/udev/rules.d/80-drivers.rules
+/lib/udev/rules.d/95-keyboard-force-release.rules
+/lib/udev/rules.d/95-keymap.rules
+/lib/udev/rules.d/95-udev-late.rules
+
+%{_mandir}/man7/udev.7*
+%{_mandir}/man8/*
+
+%{systemdunitdir}/basic.target.wants/udev-trigger.service
+%{systemdunitdir}/basic.target.wants/udev.service
+%{systemdunitdir}/sockets.target.wants/udev-control.socket
+%{systemdunitdir}/sockets.target.wants/udev-kernel.socket
+%{systemdunitdir}/udev-control.socket
+%{systemdunitdir}/udev-kernel.socket
+%{systemdunitdir}/udev-settle.service
+%{systemdunitdir}/udev-trigger.service
+%{systemdunitdir}/udev.service
+
+%files -n udev-libs
+%defattr(644,root,root,755)
+%attr(755,root,root) /%{_lib}/libudev.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libudev.so.0
+
+%files -n udev-devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libudev.so
+%{_libdir}/libudev.la
+%{_includedir}/libudev.h
+%{_pkgconfigdir}/libudev.pc
+%{_npkgconfigdir}/udev.pc
+
+%files -n udev-static
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libudev.a
+
+%files -n udev-apidocs
+%defattr(644,root,root,755)
+%{_gtkdocdir}/libudev
+
+%files -n udev-glib
+%defattr(644,root,root,755)
+%attr(755,root,root) /%{_lib}/libgudev-1.0.so.*.*.*
+%attr(755,root,root) %ghost /%{_lib}/libgudev-1.0.so.0
+%{_libdir}/girepository-1.0/GUdev-1.0.typelib
+
+%files -n udev-glib-devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libgudev-1.0.so
+%{_libdir}/libgudev-1.0.la
+%{_includedir}/gudev-1.0
+%{_pkgconfigdir}/gudev-1.0.pc
+%{_datadir}/gir-1.0/GUdev-1.0.gir
+
+%files -n udev-glib-static
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libgudev-1.0.a
+
+%files -n udev-glib-apidocs
+%defattr(644,root,root,755)
+%{_gtkdocdir}/gudev
+
+%if %{with initrd}
+%files -n udev-initrd
+%defattr(644,root,root,755)
+%dir %{_libdir}/initrd/udev
+%attr(755,root,root) %{_libdir}/initrd/udevd
+%attr(755,root,root) %{_libdir}/initrd/udevadm
+%attr(755,root,root) %{_libdir}/initrd/udevstart
+%attr(755,root,root) %{_libdir}/initrd/udev/*_id
+%attr(755,root,root) %{_libdir}/initrd/udev/collect
+%endif
