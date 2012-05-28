@@ -87,10 +87,10 @@ index 596a32a..f701bfd 100644
  AM_CONDITIONAL(TARGET_SUSE, test x"$with_distro" = xsuse)
  AM_CONDITIONAL(TARGET_DEBIAN, test x"$with_distro" = xdebian)
  AM_CONDITIONAL(TARGET_UBUNTU, test x"$with_distro" = xubuntu)
-diff --git a/src/fsck.c b/src/fsck.c
+diff --git a/src/fsck/fsck.c b/src/fsck/fsck.c
 index 3477ba1..d32718d 100644
---- a/src/fsck.c
-+++ b/src/fsck.c
+--- a/src/fsck/fsck.c
++++ b/src/fsck/fsck.c
 @@ -127,7 +127,7 @@ static int parse_proc_cmdline(void) {
                          arg_skip = true;
                  else if (startswith(w, "fsck.mode"))
@@ -100,10 +100,10 @@ index 3477ba1..d32718d 100644
                  else if (strneq(w, "fastboot", l))
                          arg_skip = true;
                  else if (strneq(w, "forcefsck", l))
-diff --git a/src/hostname-setup.c b/src/hostname-setup.c
+diff --git a/src/core/hostname-setup.c b/src/core/hostname-setup.c
 index 2c2f10c..754f0c7 100644
---- a/src/hostname-setup.c
-+++ b/src/hostname-setup.c
+--- a/src/core/hostname-setup.c
++++ b/src/core/hostname-setup.c
 @@ -30,7 +30,7 @@
  #include "util.h"
  #include "log.h"
@@ -122,10 +122,10 @@ index 2c2f10c..754f0c7 100644
          int r;
          FILE *f;
  
-diff --git a/src/locale-setup.c b/src/locale-setup.c
+diff --git a/src/core/locale-setup.c b/src/core/locale-setup.c
 index 7f692e9..0a45854 100644
---- a/src/locale-setup.c
-+++ b/src/locale-setup.c
+--- a/src/core/locale-setup.c
++++ b/src/core/locale-setup.c
 @@ -74,7 +74,7 @@ int locale_setup(void) {
  
          if (detect_container(NULL) <= 0)
@@ -144,10 +144,10 @@ index 7f692e9..0a45854 100644
          if (r <= 0 &&
              (r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
                                  "LANG", &variables[VARIABLE_LANG],
-diff --git a/src/systemctl.c b/src/systemctl.c
+diff --git a/src/systemctl/systemctl.c b/src/systemctl/systemctl.c
 index 298cb4e..cec3974 100644
---- a/src/systemctl.c
-+++ b/src/systemctl.c
+--- a/src/systemctl/systemctl.c
++++ b/src/systemctl/systemctl.c
 @@ -3460,7 +3460,7 @@ finish:
  static int enable_sysv_units(char **args) {
          int r = 0;
@@ -180,13 +180,13 @@ index 9196789..1d1a916 100644
          if (r <= 0) {
 -#if defined(TARGET_FEDORA) || defined(TARGET_MEEGO)
 +#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MEEGO)
-                 if ((r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
+                 r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
                                          "SYSFONT", &vc_font,
                                          "SYSFONTACM", &vc_font_map,
-diff --git a/units/console-shell.service.m4 b/units/console-shell.service.m4
+diff --git a/units/console-shell.service.m4.in b/units/console-shell.service.m4.in
 index 02adc84..a9f31fd 100644
---- a/units/console-shell.service.m4
-+++ b/units/console-shell.service.m4
+--- a/units/console-shell.service.m4.in
++++ b/units/console-shell.service.m4.in
 @@ -11,6 +11,9 @@ After=systemd-user-sessions.service plymouth-quit-wait.service
  m4_ifdef(`TARGET_FEDORA',
  After=rc-local.service
@@ -211,10 +211,10 @@ index d2a145d..cae4ae5 100644
  m4_ifdef(`TARGET_ARCH',
  After=rc-local.service
  )m4_dnl
-diff --git a/units/rescue.service.m4 b/units/rescue.service.m4
+diff --git a/units/rescue.service.m4.in b/units/rescue.service.m4.in
 index 7dd8a22..5a9c363 100644
---- a/units/rescue.service.m4
-+++ b/units/rescue.service.m4
+--- a/units/rescue.service.m4.in
++++ b/units/rescue.service.m4.in
 @@ -22,6 +22,9 @@ ExecStartPre=-/bin/echo 'Welcome to rescue mode. Use "systemctl default" or ^D t
  m4_ifdef(`TARGET_FEDORA',
  `EnvironmentFile=/etc/sysconfig/init
@@ -231,7 +231,7 @@ index 7dd8a22..5a9c363 100644
  ExecStart=-/bin/bash -c "exec ${SINGLE}"',
 -`ExecStart=-/sbin/sulogin'))))
 +`ExecStart=-/sbin/sulogin')))))
- ExecStopPost=-/bin/systemctl --fail --no-block default
+ ExecStopPost=-@SYSTEMCTL@ --fail --no-block default
  StandardInput=tty-force
  StandardOutput=inherit
 diff --git a/units/serial-getty@.service.m4 b/units/serial-getty@.service.m4
@@ -248,19 +248,19 @@ index e5f0ca6..69b7fc2 100644
  m4_ifdef(`TARGET_ARCH',
  After=rc-local.service
  )m4_dnl
-diff --git a/src/rc-local-generator.c b/src/rc-local-generator.c
+diff --git a/src/rc-local-generator/rc-local-generator.c b/src/rc-local-generator/rc-local-generator.c
 index ac6424a..a247c25 100644
---- a/src/rc-local-generator.c
-+++ b/src/rc-local-generator.c
+--- a/src/rc-local-generator/rc-local-generator.c
++++ b/src/rc-local-generator/rc-local-generator.c
 @@ -27,7 +27,7 @@
- #include "log.h"
  #include "util.h"
+ #include "mkdir.h"
  
 -#if defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
 +#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
- #define SCRIPT_PATH "/etc/rc.d/rc.local"
+ #define SCRIPT_PATH_START "/etc/rc.d/rc.local"
  #elif defined(TARGET_SUSE)
- #define SCRIPT_PATH "/etc/init.d/boot.local"
+ #define SCRIPT_PATH_START "/etc/init.d/boot.local"
 --- /dev/null
 +++ b/units/pld/halt-local.service
 @@ -0,0 +1,20 @@

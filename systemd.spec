@@ -39,9 +39,6 @@ Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
-Patch5:		CVE-2012-1174.patch
-Patch6:		ReleaseSession.patch
-Patch7:		control-subcgroup.patch
 Patch8:		kmsg-to-syslog.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
@@ -320,12 +317,9 @@ Force update of packages that provide tmpfiles.d configuration
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
+#patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
-%patch6 -p1
-%patch7 -p1
 %patch8 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
