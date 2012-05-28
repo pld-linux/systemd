@@ -1,0 +1,40 @@
+--- systemd-183/Makefile.am~	2012-05-28 12:46:43.097747775 +0200
++++ systemd-183/Makefile.am	2012-05-28 13:02:55.879128360 +0200
+@@ -70,8 +70,8 @@
+ systemsleepdir=$(rootlibexecdir)/system-sleep
+ systemunitdir=$(rootprefix)/lib/systemd/system
+ udevlibexecdir=$(rootprefix)/lib/udev
+-udevhomedir = $(libexecdir)/udev
+-udevrulesdir = $(libexecdir)/udev/rules.d
++udevhomedir=$(udevlibexecdir)
++udevrulesdir=$(udevlibexecdir)/rules.d
+ 
+ # And these are the special ones for /
+ rootprefix=@rootprefix@
+@@ -1434,7 +1434,7 @@
+ 
+ udev-confdirs:
+ 	-mkdir -p $(DESTDIR)$(sysconfdir)/udev/rules.d
+-	-mkdir -p $(DESTDIR)$(libexecdir)/udev/devices
++	-mkdir -p $(DESTDIR)$(udevlibexecdir)/devices
+ 
+ INSTALL_DATA_HOOKS += udev-confdirs
+ 
+@@ -1913,7 +1913,7 @@
+ 	src/udev/keymap/keys.txt \
+ 	src/udev/keymap/keys-from-name.gperf
+ 
+-udevkeymapdir = $(libexecdir)/udev/keymaps
++udevkeymapdir = $(udevlibexecdir)/keymaps
+ dist_udevkeymap_DATA = \
+ 	keymaps/acer \
+ 	keymaps/acer-aspire_5720 \
+@@ -1974,7 +1974,7 @@
+ 	keymaps/toshiba-satellite_m30x \
+ 	keymaps/zepto-znote
+ 
+-udevkeymapforcereldir = $(libexecdir)/udev/keymaps/force-release
++udevkeymapforcereldir = $(udevlibexecdir)/keymaps/force-release
+ dist_udevkeymapforcerel_DATA = \
+ 	keymaps-force-release/dell-touchpad \
+ 	keymaps-force-release/dell-xps \
