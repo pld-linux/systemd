@@ -16,7 +16,7 @@
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
-%bcond_with	initrd		# build without udev-initrd
+%bcond_without	initrd		# build without udev-initrd
 %bcond_with	uClibc		# link initrd version with static uClibc
 %bcond_with	klibc		# link initrd version with static klibc
 %bcond_with	dietlibc	# link initrd version with static dietlibc (currently broken and unsupported)
@@ -82,6 +82,7 @@ Patch6:		udev-so.patch
 Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
 Patch9:		udevlibexecdir.patch
+Patch10:	static-udev.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -558,6 +559,8 @@ initrd.
 %patch9 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
+%{__mv} src/udev/keymap/keyboard-force-release.sh{,.in}
+
 %build
 %{__gtkdocize}
 %{__libtoolize}
@@ -565,6 +568,67 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__autoconf}
 %{__autoheader}
 %{__automake}
+%if %{with initrd}
+patch -p1 <%{PATCH10}
+%configure \
+%if "%{?configure_cache}" == "1"
+	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}-initrd.cache \
+%endif
+	%{?with_uClibc:CC="%{_target_cpu}-uclibc-gcc"} \
+	%{?with_dietlibc:CC="diet %{__cc} %{rpmcflags} %{rpmldflags} -Os -D_BSD_SOURCE"} \
+	%{?with_klibc:CC="%{_bindir}/klcc"} \
+	%{?debug:--enable-debug} \
+	--disable-silent-rules \
+	--disable-shared \
+	--enable-static \
+	--with-distro=pld \
+	--with-rootprefix="" \
+	--with-rootlibdir=/%{_lib} \
+	--disable-rule_generator \
+	--disable-gudev \
+	--disable-keymap \
+	--disable-gtk-doc \
+	--disable-introspection \
+	--disable-logging \
+	--with-pci-ids-path=%{_sysconfdir}/pci.ids \
+	--disable-audit \
+	--disable-cryptsetup \
+	--disable-pam \
+	--disable-plymouth \
+	--disable-selinux \
+	--disable-tcpd \
+	--enable-split-usr
+
+%{__make} \
+	libudev-core.la \
+	systemd-udevd \
+	udevadm \
+	ata_id \
+	cdrom_id \
+	collect \
+	scsi_id \
+	v4l_id \
+	accelerometer \
+	mtd_probe \
+	LDFLAGS="-all-static" \
+	KMOD_LIBS="-lkmod -lz -llzma"
+
+mkdir udev-initrd
+cp -a systemd-udevd \
+	udevadm \
+	ata_id \
+	cdrom_id \
+	collect \
+	scsi_id \
+	v4l_id \
+	accelerometer \
+	mtd_probe \
+	udev-initrd/
+
+%{__make} clean
+patch -p1 -R <%{PATCH10}
+%endif
+
 %configure \
 	%{?debug:--enable-debug} \
 	%{__enable_disable audit} \
@@ -574,16 +638,15 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
 	--disable-silent-rules \
+	--enable-shared \
+	--enable-static \
 	--with-distro=pld \
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib} \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-pci-ids-path=%{_sysconfdir}/pci.ids \
-	--with-rootprefix="" \
 	--enable-gtk-doc \
 	--enable-introspection \
-	--enable-shared \
-	--enable-static \
 	--enable-split-usr
 
 %{__make}
@@ -606,6 +669,7 @@ ln -s /lib/systemd/systemd-udevd $RPM_BUILD_ROOT%{_sbindir}/udevd
 # compat symlinks for "/ merged into /usr" programs
 mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}}/udevadm
 ln -s %{_sbindir}/udevadm $RPM_BUILD_ROOT%{_bindir}
+ln -s /lib/udev $RPM_BUILD_ROOT/usr/lib/
 
 # install custom udev rules from pld package
 cp -a %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
@@ -626,11 +690,14 @@ echo ".so man8/systemd-udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/udevd.8
 
 %if %{with initrd}
 install -d $RPM_BUILD_ROOT%{_libdir}/initrd/udev
-install -p udev-initrd/sbin/udevadm $RPM_BUILD_ROOT%{_libdir}/initrd
-install -p udev-initrd/lib/udev/udevd $RPM_BUILD_ROOT%{_libdir}/initrd
+install -p udev-initrd/udevadm $RPM_BUILD_ROOT%{_libdir}/initrd
+install -p udev-initrd/systemd-udevd $RPM_BUILD_ROOT%{_libdir}/initrd
+# hardlink udevd -> systemd-udevd
+ln $RPM_BUILD_ROOT%{_libdir}/initrd/{systemd-,}udevd
 ln -s udevd $RPM_BUILD_ROOT%{_libdir}/initrd/udevstart
-install -p udev-initrd/lib/udev/*_id $RPM_BUILD_ROOT%{_libdir}/initrd/udev
-install -p udev-initrd/lib/udev/collect $RPM_BUILD_ROOT%{_libdir}/initrd/udev
+install -p udev-initrd/*_id $RPM_BUILD_ROOT%{_libdir}/initrd/udev
+install -p udev-initrd/collect $RPM_BUILD_ROOT%{_libdir}/initrd/udev
+install -p udev-initrd/mtd_probe $RPM_BUILD_ROOT%{_libdir}/initrd/udev
 %endif
 
 # Main binary has been moved, but we don't want to break existing installs
@@ -670,6 +737,7 @@ cp -p %{SOURCE7} $RPM_BUILD_ROOT%{systemdunitdir}/var-run.mount
 
 # and remove tmp on tmpfs mount
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/tmp.mount
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/tmp.mount
 
 # Install and enable storage subsystems support services (RAID, LVM, etc.)
 cp -p %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
@@ -1163,11 +1231,11 @@ fi
 %defattr(644,root,root,755)
 
 %dir /lib/udev
+/usr/lib/udev
 
-# /lib/udev/devices is recommended as a directory where packages or
-# the user can place real device nodes, which get copied over to /dev at
-# every boot. This should replace the various solutions with custom config
-# files.
+# /lib/udev/devices/ are not read anymore; systemd-tmpfiles
+# should be used to create dead device nodes as workarounds for broken
+# subsystems.
 %dir /lib/udev/devices
 
 %attr(755,root,root) /lib/udev/collect
@@ -1288,9 +1356,11 @@ fi
 %files -n udev-initrd
 %defattr(644,root,root,755)
 %dir %{_libdir}/initrd/udev
+%attr(755,root,root) %{_libdir}/initrd/systemd-udevd
 %attr(755,root,root) %{_libdir}/initrd/udevd
 %attr(755,root,root) %{_libdir}/initrd/udevadm
 %attr(755,root,root) %{_libdir}/initrd/udevstart
 %attr(755,root,root) %{_libdir}/initrd/udev/*_id
 %attr(755,root,root) %{_libdir}/initrd/udev/collect
+%attr(755,root,root) %{_libdir}/initrd/udev/mtd_probe
 %endif
