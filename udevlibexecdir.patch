@@ -29,6 +29,16 @@
  
  INSTALL_DATA_HOOKS += udev-confdirs
  
+@@ -1906,7 +1906,8 @@
+ 	src/udev/keymap/check-keymaps.sh
+ 
+ EXTRA_DIST += \
+-	src/udev/keymap/check-keymaps.sh
++	src/udev/keymap/check-keymaps.sh \
++	src/udev/keymap/keyboard-force-release.sh.in
+ 
+ CLEANFILES += \
+ 	$(nodist_keymap_SOURCES) \
 @@ -1913,7 +1913,7 @@
  	src/udev/keymap/keys.txt \
  	src/udev/keymap/keys-from-name.gperf
