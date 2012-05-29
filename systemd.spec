@@ -48,8 +48,8 @@ Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
-Source6:	var-lock.mount
-Source7:	var-run.mount
+Source4:	var-lock.mount
+Source5:	var-run.mount
 Source10:	pld-storage-init-late.service
 Source11:	pld-storage-init.service
 Source12:	pld-wait-storage.service
@@ -716,8 +716,8 @@ cp -p %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
 # restore bind-mounts /var/run -> run and /var/lock -> /run/lock
 # we don't have those directories symlinked
-cp -p %{SOURCE6} $RPM_BUILD_ROOT%{systemdunitdir}/var-lock.mount
-cp -p %{SOURCE7} $RPM_BUILD_ROOT%{systemdunitdir}/var-run.mount
+cp -p %{SOURCE4} $RPM_BUILD_ROOT%{systemdunitdir}/var-lock.mount
+cp -p %{SOURCE5} $RPM_BUILD_ROOT%{systemdunitdir}/var-run.mount
 
 # and remove tmp on tmpfs mount
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/tmp.mount
