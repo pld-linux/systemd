@@ -1,7 +1,4 @@
 # TODO:
-# - remove compat-pld-var-run.tmpfiles and maybe tmpfiles-not-fatal.patch
-#	after enough packages provide their own tmpfiles.d configs for
-#	/var/run directories
 # - pldize vconsole setup:
 # 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
 # - udev initrd needs love (is probably completly unusable in current form)
@@ -51,7 +48,6 @@ Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
-Source5:	compat-pld-var-run.tmpfiles
 Source6:	var-lock.mount
 Source7:	var-run.mount
 Source10:	pld-storage-init-late.service
@@ -143,7 +139,6 @@ Requires:	setup >= 2.8.0-2
 Requires:	udev-core >= 1:175-5
 Requires:	udev-libs >= 1:172
 Requires:	virtual(module-tools)
-Suggests:	%{name}-no-compat-tmpfiles
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
 Suggests:	kmod >= 5
@@ -151,6 +146,7 @@ Suggests:	nss_myhostname
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	udev-acl
+Obsoletes:	systemd-no-compat-tmpfiles
 # systemd takes care of that and causes problems
 Conflicts:	binfmt-detector
 # sytemd wants pam with pam_systemd.so in system-auth...
@@ -164,6 +160,88 @@ Conflicts:	kpartx < 0.4.9-7
 Conflicts:	multipath-tools < 0.4.9-7
 # no tmpfs on /media, use /run/media/$USER for mounting
 Conflicts:	udisks2 < 1.92.0
+# packages that have dirs under /var/run and/or /var/lock must provide tmpfiles configs
+Conflicts:	ConsoleKit-dirs < 0.4.5-7
+Conflicts:	NetworkManager < 2:0.9.2.0-3
+Conflicts:	Zope < 2.11.8-2
+Conflicts:	amavisd-new < 1:2.7.0-1
+Conflicts:	apache-base < 2.2.21-4
+Conflicts:	apache-mod_bw < 0.92-3
+Conflicts:	apache-mod_fastcgi < 2.4.6-6
+Conflicts:	apache1-base < 1.3.42-5
+Conflicts:	apache1-mod_fastcgi < 2.4.6-2
+Conflicts:	asterisk < 10.0.1-2
+Conflicts:	autossh-init < 1.4b-3
+Conflicts:	balance < 3.54-2
+Conflicts:	bind < 7:9.8.1.P1-4
+Conflicts:	bopm < 3.1.3-4
+Conflicts:	callweaver < 1.2.1-9
+Conflicts:	cassandra-bin < 0.8.9-2
+Conflicts:	clamav < 0.97.3-3
+Conflicts:	cups < 1:1.5.0-10
+Conflicts:	dbus < 1.4.16-4
+Conflicts:	dovecot < 1:2.0.16-3
+Conflicts:	dspam < 3.9.0-6
+Conflicts:	fail2ban < 0.8.4-4
+Conflicts:	filesystem < 4.0-3
+Conflicts:	gammu-smsd < 1:1.31.0-3
+# Break gdm2.20 installs
+#Conflicts:	gdm < 2:3.2.1.1-9
+Conflicts:	greylistd < 0.8.8-2
+Conflicts:	inn < 2.4.6-7
+Conflicts:	ipsec-tools < 0.8.0-3
+Conflicts:	jabber-common < 0-9
+Conflicts:	laptop-mode-tools < 1.58-2
+Conflicts:	libgpod < 0.8.0-6
+Conflicts:	libvirt-utils < 0.9.9-4
+Conflicts:	lighttpd < 1.4.30-5
+Conflicts:	lirc < 0.9.0-20
+Conflicts:	mailman < 5:2.1.14-4
+Conflicts:	memcached < 1.4.11-2
+Conflicts:	mpd < 0.16.5-4
+Conflicts:	mrtg < 2.17.0-3
+Conflicts:	munin-common < 1.4.5-5
+Conflicts:	nagios-nrpe < 2.13-2
+Conflicts:	ndisc6-rdnssd < 1.0.1-3
+Conflicts:	nscd < 6:2.14.1-5
+Conflicts:	nss_ldapd-nslcd < 0.8.4-2
+Conflicts:	openct < 0.6.20-3
+Conflicts:	openl2tp < 1.8-3
+Conflicts:	openldap-overlay-nssov < 2.4.28-4
+Conflicts:	openldap-servers < 2.4.28-4
+Conflicts:	openvpn < 2.2.2-2
+Conflicts:	pam-pam_mount < 2.12-3
+Conflicts:	pam-pam_ssh < 1.97-2
+Conflicts:	pcsc-lite < 1.8.1-2
+Conflicts:	php-dirs < 1.2-3
+Conflicts:	policyd < 2.0.10-3
+Conflicts:	pound < 2.6-2
+Conflicts:	pptp < 1.7.2-3
+Conflicts:	proftpd-common < 2:1.3.4a-2
+Conflicts:	pulseaudio-server < 1.1-2
+Conflicts:	quagga < 0.99.20-3
+Conflicts:	radvd < 1.8.5-2
+Conflicts:	rc-scripts < 0.4.5.2-3
+Conflicts:	red5 < 0.9.0-2
+Conflicts:	redis-server < 2.4.2-4
+Conflicts:	smokeping < 2.4.2-10
+Conflicts:	smtp-gated < 1.4.17-2
+Conflicts:	socat < 1.7.2.0-2
+Conflicts:	speech-dispatcher < 0.7.1-2
+Conflicts:	sphinx < 2.0.3-4
+Conflicts:	splashutils < 1.5.4.3-3
+Conflicts:	stunnel < 4.50-2
+Conflicts:	tenshi < 0.12-2
+Conflicts:	tor < 0.2.2.35-2
+Conflicts:	ucarp < 1.5.2-3
+Conflicts:	udisks < 1.0.4-3
+Conflicts:	util-vserver < 0.30.216-1.pre3002.3
+Conflicts:	vpnc < 0.5.3-2
+Conflicts:	web2ldap < 1.1.0rc1-2
+Conflicts:	wesnoth-server < 1:1.10-2
+Conflicts:	wpa_supplicant < 0.7.3-10
+Conflicts:	xl2tpd < 1.3.0-2
+# end of tmpfiles conflicts
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_sbindir	/sbin
@@ -291,95 +369,6 @@ bash-completion for systemd.
 
 %description -n bash-completion-systemd -l pl.UTF-8
 Bashowe dopełnianie składni dla systemd
-
-%package no-compat-tmpfiles
-Summary:	Force update of packages that provide tmpfiles.d configuration
-Group:		Base
-Requires:	%{name} = %{version}-%{release}
-Requires(post):	sed > 4.0
-Conflicts:	ConsoleKit-dirs < 0.4.5-7
-Conflicts:	NetworkManager < 2:0.9.2.0-3
-Conflicts:	Zope < 2.11.8-2
-Conflicts:	amavisd-new < 1:2.7.0-1
-Conflicts:	apache-base < 2.2.21-4
-Conflicts:	apache-mod_bw < 0.92-3
-Conflicts:	apache-mod_fastcgi < 2.4.6-6
-Conflicts:	apache1-base < 1.3.42-5
-Conflicts:	apache1-mod_fastcgi < 2.4.6-2
-Conflicts:	asterisk < 10.0.1-2
-Conflicts:	autossh-init < 1.4b-3
-Conflicts:	balance < 3.54-2
-Conflicts:	bind < 7:9.8.1.P1-4
-Conflicts:	bopm < 3.1.3-4
-Conflicts:	callweaver < 1.2.1-9
-Conflicts:	cassandra-bin < 0.8.9-2
-Conflicts:	clamav < 0.97.3-3
-Conflicts:	cups < 1:1.5.0-10
-Conflicts:	dbus < 1.4.16-4
-Conflicts:	dovecot < 1:2.0.16-3
-Conflicts:	dspam < 3.9.0-6
-Conflicts:	fail2ban < 0.8.4-4
-Conflicts:	filesystem < 4.0-3
-Conflicts:	gammu-smsd < 1:1.31.0-3
-# Break gdm2.20 installs
-#Conflicts:	gdm < 2:3.2.1.1-9
-Conflicts:	greylistd < 0.8.8-2
-Conflicts:	inn < 2.4.6-7
-Conflicts:	ipsec-tools < 0.8.0-3
-Conflicts:	jabber-common < 0-9
-Conflicts:	laptop-mode-tools < 1.58-2
-Conflicts:	libgpod < 0.8.0-6
-Conflicts:	libvirt-utils < 0.9.9-4
-Conflicts:	lighttpd < 1.4.30-5
-Conflicts:	lirc < 0.9.0-20
-Conflicts:	mailman < 5:2.1.14-4
-Conflicts:	memcached < 1.4.11-2
-Conflicts:	mpd < 0.16.5-4
-Conflicts:	mrtg < 2.17.0-3
-Conflicts:	munin-common < 1.4.5-5
-Conflicts:	nagios-nrpe < 2.13-2
-Conflicts:	ndisc6-rdnssd < 1.0.1-3
-Conflicts:	nscd < 6:2.14.1-5
-Conflicts:	nss_ldapd-nslcd < 0.8.4-2
-Conflicts:	openct < 0.6.20-3
-Conflicts:	openl2tp < 1.8-3
-Conflicts:	openldap-overlay-nssov < 2.4.28-4
-Conflicts:	openldap-servers < 2.4.28-4
-Conflicts:	openvpn < 2.2.2-2
-Conflicts:	pam-pam_mount < 2.12-3
-Conflicts:	pam-pam_ssh < 1.97-2
-Conflicts:	pcsc-lite < 1.8.1-2
-Conflicts:	php-dirs < 1.2-3
-Conflicts:	policyd < 2.0.10-3
-Conflicts:	pound < 2.6-2
-Conflicts:	pptp < 1.7.2-3
-Conflicts:	proftpd-common < 2:1.3.4a-2
-Conflicts:	pulseaudio-server < 1.1-2
-Conflicts:	quagga < 0.99.20-3
-Conflicts:	radvd < 1.8.5-2
-Conflicts:	rc-scripts < 0.4.5.2-3
-Conflicts:	red5 < 0.9.0-2
-Conflicts:	redis-server < 2.4.2-4
-Conflicts:	smokeping < 2.4.2-10
-Conflicts:	smtp-gated < 1.4.17-2
-Conflicts:	socat < 1.7.2.0-2
-Conflicts:	speech-dispatcher < 0.7.1-2
-Conflicts:	sphinx < 2.0.3-4
-Conflicts:	splashutils < 1.5.4.3-3
-Conflicts:	stunnel < 4.50-2
-Conflicts:	tenshi < 0.12-2
-Conflicts:	tor < 0.2.2.35-2
-Conflicts:	ucarp < 1.5.2-3
-Conflicts:	udisks < 1.0.4-3
-Conflicts:	util-vserver < 0.30.216-1.pre3002.3
-Conflicts:	vpnc < 0.5.3-2
-Conflicts:	web2ldap < 1.1.0rc1-2
-Conflicts:	wesnoth-server < 1:1.10-2
-Conflicts:	wpa_supplicant < 0.7.3-10
-Conflicts:	xl2tpd < 1.3.0-2
-
-%description no-compat-tmpfiles
-Force update of packages that provide tmpfiles.d configuration
 
 %package -n udev
 Summary:	Device manager for the Linux 2.6 kernel series
@@ -725,9 +714,6 @@ ln -s /dev/null $RPM_BUILD_ROOT%{systemdunitdir}/random.service
 # add static (non-NetworkManager) networking
 cp -p %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 
-# install compatibility tmpfiles configs
-cp -p %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
-
 # restore bind-mounts /var/run -> run and /var/lock -> /run/lock
 # we don't have those directories symlinked
 cp -p %{SOURCE6} $RPM_BUILD_ROOT%{systemdunitdir}/var-lock.mount
@@ -840,9 +826,6 @@ rm -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/n
 rm -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service >/dev/null 2>&1 || :
 rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service >/dev/null 2>&1 || :
 /bin/systemctl reenable network.service >/dev/null 2>&1 || :
-
-%post no-compat-tmpfiles
-%{__sed} -i -e '/^#/!s/^/# /g' %{_sysconfdir}/tmpfiles.d/compat-pld-var-run.conf
 
 %post plymouth
 %systemd_reload
@@ -1066,7 +1049,6 @@ fi
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/tmpfiles.d
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/tmpfiles.d/*.conf
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
@@ -1214,10 +1196,6 @@ fi
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
 /etc/bash_completion.d/systemd-bash-completion.sh
-
-%files no-compat-tmpfiles
-%defattr(644,root,root,755)
-# empty package
 
 %files -n udev
 %defattr(644,root,root,755)
