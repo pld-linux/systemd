@@ -5,8 +5,6 @@
 # - pldize vconsole setup:
 # 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
 # - udev initrd needs love (is probably completly unusable in current form)
-# - udev stores it's data now to /run/udev, but that dir is not owned and not even on tmpfs
-#
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
