@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	183
-Release:	0.3
+Release:	0.5
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -78,6 +78,7 @@ Patch8:		udev-ploop-rules.patch
 Patch9:		udevlibexecdir.patch
 Patch10:	static-udev.patch
 Patch11:	systemd-udev-service.patch
+Patch12:	udevadm-in-sbin.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -546,6 +547,7 @@ initrd.
 %patch8 -p1
 %patch9 -p1
 %patch11 -p1
+%patch12 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %{__mv} src/udev/keymap/keyboard-force-release.sh{,.in}
@@ -855,8 +857,9 @@ fi
 %triggerpostun -n udev-core -- udev < 165
 /sbin/udevadm info --convert-db
 
-%triggerpostun -n udev-core -- %{name}-core < 1:175-4
-%systemd_trigger systemd-udev-settle.service
+%triggerpostun -n udev-core -- %{name}-core < 1:183
+/bin/systemctl --quiet enable systemd-udev-settle.service || :
+%{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service || :
 
 %post -n udev-core
 if [ $1 -gt 1 ]; then
@@ -1075,6 +1078,7 @@ fi
 %{systemdunitdir}/*.socket
 %{systemdunitdir}/*.target
 %{systemdunitdir}/*.timer
+%exclude %{systemdunitdir}/systemd-udev.*
 %if %{with plymouth}
 %exclude %{systemdunitdir}/plymouth*.service
 %exclude %{systemdunitdir}/systemd-ask-password-plymouth.*
@@ -1281,8 +1285,6 @@ fi
 %{_mandir}/man8/udevadm.8*
 %{_mandir}/man8/udevd.8*
 
-#{systemdunitdir}/basic.target.wants/udev-trigger.service
-#{systemdunitdir}/basic.target.wants/udev.service
 %{systemdunitdir}/sockets.target.wants/systemd-udev-control.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udev-kernel.socket
 %{systemdunitdir}/systemd-udev-control.socket
