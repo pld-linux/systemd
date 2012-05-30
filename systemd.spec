@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	183
-Release:	0.2
+Release:	0.3
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -718,6 +718,8 @@ cp -p %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/network.service
 # we don't have those directories symlinked
 cp -p %{SOURCE4} $RPM_BUILD_ROOT%{systemdunitdir}/var-lock.mount
 cp -p %{SOURCE5} $RPM_BUILD_ROOT%{systemdunitdir}/var-run.mount
+ln -s ../var-lock.mount $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
+ln -s ../var-run.mount $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 
 # and remove tmp on tmpfs mount
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/tmp.mount
