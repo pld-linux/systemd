@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	183
-Release:	0.6
+Release:	0.7
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -826,7 +826,7 @@ if [ $1 -ge 1 ]; then
 	/bin/systemctl daemon-reload > /dev/null 2>&1 || :
 fi
 
-%triggerpostun units -- %{name}-units < 43-7
+%triggerpostun units -- systemd-units < 43-7
 # Remove design fialures
 rm -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
 rm -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service >/dev/null 2>&1 || :
@@ -857,7 +857,7 @@ fi
 %triggerpostun -n udev-core -- udev < 165
 /sbin/udevadm info --convert-db
 
-%triggerpostun -n udev-core -- %{name}-core < 1:183
+%triggerpostun -n udev-core -- udev-core < 1:183
 /bin/systemctl --quiet enable systemd-udev-settle.service || :
 %{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service || :
 
