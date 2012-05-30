@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	183
-Release:	0.1
+Release:	0.2
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -126,8 +126,8 @@ BuildRequires:	pcre-static
 BuildRequires:	xz-static
 BuildRequires:	zlib-static
 %endif
-Requires:	%{name}-libs = %{version}-%{release}
-Requires:	%{name}-units = %{version}-%{release}
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
@@ -311,7 +311,7 @@ poprzez katalog %{_sysconfdir}/systemd/system.
 Summary:	Plymouth support units for systemd
 Summary(pl.UTF-8):	Jednostki wspierające Plymouth dla systemd
 Group:		Base
-Requires:	%{name}-units = %{version}-%{release}
+Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Requires:	plymouth
 
 %description plymouth
@@ -323,7 +323,7 @@ Jednostki wspierające Plymouth (graficzny start systemu) dla systemd.
 %package analyze
 Summary:	Tool for processing systemd profiling information
 Group:		Base
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	python-dbus
 Requires:	python-modules
 Requires:	python-pycairo
@@ -349,7 +349,7 @@ Biblioteki współdzielone systemd.
 Summary:	Header files for systemd libraries
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
 Group:		Development/Libraries
-Requires:	%{name}-libs = %{version}-%{release}
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 
 %description devel
 Header files for systemd libraries.
@@ -361,7 +361,7 @@ Pliki nagłówkowe bibliotek systemd.
 Summary:	bash-completion for systemd
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
 Group:		Applications/Shells
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{epoch}:%{version}
 Requires:	bash-completion
 
 %description -n bash-completion-systemd
