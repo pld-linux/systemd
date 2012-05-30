@@ -1,3 +1,13 @@
+--- systemd-183/Makefile.am~	2012-05-30 14:28:53.647009365 +0200
++++ systemd-183/Makefile.am	2012-05-30 14:35:41.593661644 +0200
+@@ -2965,6 +2965,7 @@
+ 	$(SED)	-e 's,@rootlibexecdir\@,$(rootlibexecdir),g' \
+ 		-e 's,@rootbindir\@,$(rootbindir),g' \
+ 		-e 's,@bindir\@,$(bindir),g' \
++		-e 's,@sbindir\@,$(sbindir),g' \
+ 		-e 's,@SYSTEMCTL\@,$(rootbindir)/systemctl,g' \
+ 		-e 's,@SYSTEMD_NOTIFY\@,$(rootbindir)/systemd-notify,g' \
+ 		-e 's,@pkgsysconfdir\@,$(pkgsysconfdir),g' \
 --- systemd-183/units/systemd-udev-trigger.service.in~	2012-05-21 15:14:51.642981269 +0200
 +++ systemd-183/units/systemd-udev-trigger.service.in	2012-05-30 13:55:20.229509590 +0200
 @@ -17,4 +17,4 @@
