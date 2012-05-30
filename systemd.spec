@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	183
-Release:	0.5
+Release:	0.6
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -1078,7 +1078,7 @@ fi
 %{systemdunitdir}/*.socket
 %{systemdunitdir}/*.target
 %{systemdunitdir}/*.timer
-%exclude %{systemdunitdir}/systemd-udev.*
+%exclude %{systemdunitdir}/systemd-udev*.*
 %if %{with plymouth}
 %exclude %{systemdunitdir}/plymouth*.service
 %exclude %{systemdunitdir}/systemd-ask-password-plymouth.*
