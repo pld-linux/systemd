@@ -854,24 +854,24 @@ fi
 /sbin/udevadm info --convert-db
 
 %triggerpostun -n udev-core -- %{name}-core < 1:175-4
-%systemd_trigger udev-settle.service
+%systemd_trigger systemd-udev-settle.service
 
 %post -n udev-core
 if [ $1 -gt 1 ]; then
 	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
 		if grep -qs devtmpfs /proc/mounts && [ -n "$(pidof udevd)" ]; then
 			/sbin/udevadm control --exit
-			/lib/udev/udevd --daemon
+			/lib/systemd/systemd-udevd --daemon
 		fi
 	else
 		SYSTEMD_LOG_LEVEL=warning SYSTEMD_LOG_TARGET=syslog \
-		/bin/systemctl --quiet try-restart udev.service || :
+		/bin/systemctl --quiet try-restart systemd-udev.service || :
 	fi
 fi
-%systemd_post udev-settle.service
+%systemd_post systemd-udev-settle.service
 
 %preun -n udev-core
-%systemd_preun udev-settle.service
+%systemd_preun systemd-udev-settle.service
 
 %postun -n udev-core
 %systemd_reload
