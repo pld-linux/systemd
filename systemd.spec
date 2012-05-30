@@ -77,6 +77,7 @@ Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
 Patch9:		udevlibexecdir.patch
 Patch10:	static-udev.patch
+Patch11:	systemd-udev-service.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -544,6 +545,7 @@ initrd.
 %endif
 %patch8 -p1
 %patch9 -p1
+%patch11 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %{__mv} src/udev/keymap/keyboard-force-release.sh{,.in}

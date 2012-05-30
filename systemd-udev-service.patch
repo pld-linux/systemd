@@ -1,0 +1,22 @@
+--- systemd-183/units/systemd-udev-settle.service.in~	2012-05-21 15:14:51.642981269 +0200
++++ systemd-183/units/systemd-udev-settle.service.in	2012-05-30 13:26:59.999569567 +0200
+@@ -21,7 +21,7 @@
+ Documentation=man:udevd(8)
+ DefaultDependencies=no
+ Wants=systemd-udev.service
+-After=udev-trigger.service
++After=systemd-udev-trigger.service
+ Before=basic.target
+ ConditionCapability=CAP_MKNOD
+ 
+--- systemd-183/units/plymouth-start.service~	2012-04-12 00:24:39.579670098 +0200
++++ systemd-183/units/plymouth-start.service	2012-05-30 13:28:23.779566612 +0200
+@@ -9,7 +9,7 @@
+ Description=Show Plymouth Boot Screen
+ DefaultDependencies=no
+ Wants=systemd-ask-password-plymouth.path
+-After=systemd-vconsole-setup.service udev-settle.service
++After=systemd-vconsole-setup.service systemd-udev-settle.service
+ Before=systemd-ask-password-plymouth.service
+ 
+ # Dracut informs us with this flag file if plymouth is already running
