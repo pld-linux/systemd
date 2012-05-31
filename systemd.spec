@@ -839,6 +839,15 @@ fi
 %triggerpostun units -- systemd-units < 1:183
 /bin/systemctl --quiet enable systemd-udev-settle.service >/dev/null 2>&1 || :
 %{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service >/dev/null 2>&1 || :
+# preserve renamed configs
+if [ -f /etc/systemd/systemd-journald.conf.rpmsave ]; then
+	%{__mv} /etc/systemd/journald.conf{,.rpmnew}
+	%{__mv} -f /etc/systemd/systemd-journald.conf.rpmsave /etc/systemd/journald.conf
+fi
+if [ -f /etc/systemd/systemd-logind.conf.rpmsave ]; then
+	%{__mv} /etc/systemd/logind.conf{,.rpmnew}
+	%{__mv} -f /etc/systemd/systemd-logind.conf.rpmsave /etc/systemd/logind.conf
+fi
 
 %post plymouth
 %systemd_reload
