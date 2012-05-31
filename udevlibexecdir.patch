@@ -77,3 +77,11 @@
  esac
  
  read attr <"/sys/$1/force_release"
+--- systemd-183/src/udev/udev.pc.in~	2012-04-05 17:49:14.329482586 +0200
++++ systemd-183/src/udev/udev.pc.in	2012-05-31 12:38:37.835904467 +0200
+@@ -2,4 +2,4 @@
+ Description: udev
+ Version: @VERSION@
+ 
+-udevdir=@pkglibexecdir@
++udevdir=@udevlibexecdir@
