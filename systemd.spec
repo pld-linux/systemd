@@ -869,7 +869,7 @@ if [ $1 -gt 1 ]; then
 	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
 		if grep -qs devtmpfs /proc/mounts && [ -n "$(pidof udevd)" ]; then
 			/sbin/udevadm control --exit
-			/lib/systemd/systemd-udevd --daemon
+			/lib/udev/udevd --daemon
 		fi
 	else
 		SYSTEMD_LOG_LEVEL=warning SYSTEMD_LOG_TARGET=syslog \
