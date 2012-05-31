@@ -836,7 +836,7 @@ fi
 %{__rm} -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service >/dev/null 2>&1 || :
 /bin/systemctl reenable network.service >/dev/null 2>&1 || :
 
-%triggerpostun units -- udev-core < 1:183
+%triggerpostun units -- systemd-units < 1:183
 /bin/systemctl --quiet enable systemd-udev-settle.service >/dev/null 2>&1 || :
 %{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service >/dev/null 2>&1 || :
 
