@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	183
-Release:	0.7
+Release:	0.9
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -138,8 +138,8 @@ Requires:	filesystem >= 4.0-2
 Requires:	libutempter
 Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
-Requires:	udev-core >= 1:175-5
-Requires:	udev-libs >= 1:172
+Requires:	udev-core = %{epoch}:%{version}-%{release}
+Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	virtual(module-tools)
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
@@ -149,6 +149,7 @@ Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	udev-acl
 Obsoletes:	systemd-no-compat-tmpfiles
+Obsoletes:	udev-systemd
 # systemd takes care of that and causes problems
 Conflicts:	binfmt-detector
 # sytemd wants pam with pam_systemd.so in system-auth...
@@ -402,15 +403,13 @@ hotpluga.
 Summary:	A userspace implementation of devfs - core part of udev
 Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - główna część udev
 Group:		Base
-Requires(post,preun,postun):	systemd-units >= 38
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	coreutils
 Requires:	filesystem >= 3.0-45
 Requires:	setup >= 2.6.1-1
-Requires:	systemd-units >= 0.38
 Requires:	uname(release) >= 2.6.32
-Obsoletes:	udev-systemd
 Conflicts:	rc-scripts < 0.4.5.3-1
+Conflicts:	systemd-units < 1:183
 Conflicts:	udev < 1:118-1
 
 %description -n udev-core
@@ -654,8 +653,9 @@ install -d $RPM_BUILD_ROOT/var/lib/%{name}/coredump \
 ./libtool --mode=install install -p -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
 
 # compatibility symlinks to udevd binary
-ln -s /lib/systemd/systemd-udevd $RPM_BUILD_ROOT/lib/udev/udevd
-ln -s /lib/systemd/systemd-udevd $RPM_BUILD_ROOT%{_sbindir}/udevd
+mv $RPM_BUILD_ROOT/lib/{systemd/systemd-,udev/}udevd
+ln -s /lib/udev/udevd $RPM_BUILD_ROOT/lib/systemd/systemd-udevd
+ln -s /lib/udev/udevd $RPM_BUILD_ROOT%{_sbindir}/udevd
 
 # compat symlinks for "/ merged into /usr" programs
 mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}}/udevadm
@@ -677,7 +677,8 @@ install -p %{SOURCE111} $RPM_BUILD_ROOT%{_sbindir}/start_udev
 cp -a %{SOURCE120} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/udev_blacklist.conf
 cp -a %{SOURCE121} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 
-echo ".so man8/systemd-udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/udevd.8
+mv $RPM_BUILD_ROOT%{_mandir}/man8/{systemd-,}udevd.8
+echo ".so man8/udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/syatemd-udevd.8
 
 %if %{with initrd}
 install -d $RPM_BUILD_ROOT%{_libdir}/initrd/udev
@@ -806,7 +807,8 @@ if [ $1 -eq 1 ]; then
 		network.service \
 		remote-fs.target \
 		systemd-readahead-replay.service \
-		systemd-readahead-collect.service >/dev/null 2>&1 || :
+		systemd-readahead-collect.service \
+		systemd-udev-settle.service >/dev/null 2>&1 || :
 fi
 
 %preun units
@@ -816,7 +818,8 @@ if [ $1 -eq 0 ] ; then
 		network.service \
 		remote-fs.target \
 		systemd-readahead-replay.service \
-		systemd-readahead-collect.service >/dev/null 2>&1 || :
+		systemd-readahead-collect.service \
+		systemd-udev-settle.service >/dev/null 2>&1 || :
 
 	%{__rm} -f %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
 fi
@@ -828,10 +831,14 @@ fi
 
 %triggerpostun units -- systemd-units < 43-7
 # Remove design fialures
-rm -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
-rm -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service >/dev/null 2>&1 || :
-rm -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service >/dev/null 2>&1 || :
+%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
+%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service >/dev/null 2>&1 || :
+%{__rm} -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service >/dev/null 2>&1 || :
 /bin/systemctl reenable network.service >/dev/null 2>&1 || :
+
+%triggerpostun units -- udev-core < 1:183
+/bin/systemctl --quiet enable systemd-udev-settle.service >/dev/null 2>&1 || :
+%{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service >/dev/null 2>&1 || :
 
 %post plymouth
 %systemd_reload
@@ -857,10 +864,6 @@ fi
 %triggerpostun -n udev-core -- udev < 165
 /sbin/udevadm info --convert-db
 
-%triggerpostun -n udev-core -- udev-core < 1:183
-/bin/systemctl --quiet enable systemd-udev-settle.service || :
-%{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service || :
-
 %post -n udev-core
 if [ $1 -gt 1 ]; then
 	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
@@ -873,13 +876,12 @@ if [ $1 -gt 1 ]; then
 		/bin/systemctl --quiet try-restart systemd-udev.service || :
 	fi
 fi
-%systemd_post systemd-udev-settle.service
-
-%preun -n udev-core
-%systemd_preun systemd-udev-settle.service
 
 %postun -n udev-core
-%systemd_reload
+if [ -x /bin/systemd_booted ] && /bin/systemd_booted; then
+	SYSTEMD_LOG_LEVEL=warning SYSTEMD_LOG_TARGET=syslog \
+	/bin/systemctl --quiet daemon-reload || :
+fi
 
 %post	-n udev-libs -p /sbin/ldconfig
 %postun	-n udev-libs -p /sbin/ldconfig
@@ -953,6 +955,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-sysctl
 %attr(755,root,root) /lib/systemd/systemd-timedated
 %attr(755,root,root) /lib/systemd/systemd-timestamp
+%attr(755,root,root) /lib/systemd/systemd-udevd
 %attr(755,root,root) /lib/systemd/systemd-update-utmp
 %attr(755,root,root) /lib/systemd/systemd-user-sessions
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
@@ -1020,6 +1023,7 @@ fi
 %{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man7/systemd.journal-fields.7*
+%{_mandir}/man8/systemd-udevd.8*
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
 %attr(640,root,root) %ghost /var/log/btmp
@@ -1078,7 +1082,6 @@ fi
 %{systemdunitdir}/*.socket
 %{systemdunitdir}/*.target
 %{systemdunitdir}/*.timer
-%exclude %{systemdunitdir}/systemd-udev*.*
 %if %{with plymouth}
 %exclude %{systemdunitdir}/plymouth*.service
 %exclude %{systemdunitdir}/systemd-ask-password-plymouth.*
@@ -1234,7 +1237,6 @@ fi
 %attr(755,root,root) /lib/udev/scsi_id
 %attr(755,root,root) /lib/udev/v4l_id
 
-%attr(755,root,root) /lib/systemd/systemd-udevd
 %attr(755,root,root) /lib/udev/udevd
 
 %attr(755,root,root) /lib/udev/keymap
@@ -1281,17 +1283,8 @@ fi
 /lib/udev/rules.d/95-udev-late.rules
 
 %{_mandir}/man7/udev.7*
-%{_mandir}/man8/systemd-udevd.8*
 %{_mandir}/man8/udevadm.8*
 %{_mandir}/man8/udevd.8*
-
-%{systemdunitdir}/sockets.target.wants/systemd-udev-control.socket
-%{systemdunitdir}/sockets.target.wants/systemd-udev-kernel.socket
-%{systemdunitdir}/systemd-udev-control.socket
-%{systemdunitdir}/systemd-udev-kernel.socket
-%{systemdunitdir}/systemd-udev-settle.service
-%{systemdunitdir}/systemd-udev-trigger.service
-%{systemdunitdir}/systemd-udev.service
 
 %files -n udev-libs
 %defattr(644,root,root,755)
