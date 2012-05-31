@@ -134,7 +134,7 @@ Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.4.16-6
-Requires:	filesystem >= 4.0-2
+Requires:	filesystem >= 4.0-3
 Requires:	libutempter
 Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
@@ -182,11 +182,9 @@ Conflicts:	callweaver < 1.2.1-9
 Conflicts:	cassandra-bin < 0.8.9-2
 Conflicts:	clamav < 0.97.3-3
 Conflicts:	cups < 1:1.5.0-10
-Conflicts:	dbus < 1.4.16-4
 Conflicts:	dovecot < 1:2.0.16-3
 Conflicts:	dspam < 3.9.0-6
 Conflicts:	fail2ban < 0.8.4-4
-Conflicts:	filesystem < 4.0-3
 Conflicts:	gammu-smsd < 1:1.31.0-3
 # Break gdm2.20 installs
 #Conflicts:	gdm < 2:3.2.1.1-9
@@ -224,7 +222,6 @@ Conflicts:	proftpd-common < 2:1.3.4a-2
 Conflicts:	pulseaudio-server < 1.1-2
 Conflicts:	quagga < 0.99.20-3
 Conflicts:	radvd < 1.8.5-2
-Conflicts:	rc-scripts < 0.4.5.2-3
 Conflicts:	red5 < 0.9.0-2
 Conflicts:	redis-server < 2.4.2-4
 Conflicts:	smokeping < 2.4.2-10
