@@ -678,7 +678,7 @@ cp -a %{SOURCE120} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/udev_blacklist.conf
 cp -a %{SOURCE121} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 
 mv $RPM_BUILD_ROOT%{_mandir}/man8/{systemd-,}udevd.8
-echo ".so man8/udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/syatemd-udevd.8
+echo ".so man8/udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/systemd-udevd.8
 
 %if %{with initrd}
 install -d $RPM_BUILD_ROOT%{_libdir}/initrd/udev
