@@ -82,7 +82,7 @@ Patch12:	udevadm-in-sbin.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
-BuildRequires:	autoconf >= 2.63
+BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
 %{?with_cryptsetup:BuildRequires:	cryptsetup-luks-devel}
@@ -90,9 +90,9 @@ BuildRequires:	dbus-devel >= 1.3.2
 BuildRequires:	docbook-style-xsl
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
-BuildRequires:	gobject-introspection-devel >= 0.6.2
+BuildRequires:	gobject-introspection-devel >= 1.31.1
 BuildRequires:	gperf
-BuildRequires:	gtk-doc >= 1.10
+BuildRequires:	gtk-doc >= 1.18
 BuildRequires:	intltool >= 0.40.0
 BuildRequires:	kmod-devel >= 5
 BuildRequires:	libblkid-devel >= 2.20
@@ -322,6 +322,7 @@ Jednostki wspierające Plymouth (graficzny start systemu) dla systemd.
 
 %package analyze
 Summary:	Tool for processing systemd profiling information
+Summary(pl.UTF-8):	Narzędzie do przetwarzania informacji profilujących systemd
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	python-dbus
@@ -333,6 +334,12 @@ Conflicts:	%{name} < 44-3
 'systemd-analyze blame' lists which systemd unit needed how much time
 to finish initialization at boot. 'systemd-analyze plot' renders an
 SVG visualizing the parallel start of units at boot.
+
+%description analyze -l pl.UTF-8
+'systemd-analyze blame' wypisuje, ile czasu wymagały poszczególne
+jednostki systemd na zakończenie podczas rozruchu systemu.
+'systemd-analyze plot' tworzy wykres SVG wizualizujący równoległy
+start jednostek podczas rozruchu.
 
 %package libs
 Summary:	Shared systemd libraries
@@ -368,7 +375,7 @@ Requires:	bash-completion
 bash-completion for systemd.
 
 %description -n bash-completion-systemd -l pl.UTF-8
-Bashowe dopełnianie składni dla systemd
+Bashowe dopełnianie składni dla systemd.
 
 %package -n udev
 Summary:	Device manager for the Linux 2.6 kernel series
