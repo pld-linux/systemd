@@ -1223,7 +1223,6 @@ fi
 %files -n udev-core
 %defattr(644,root,root,755)
 
-%dir /lib/udev
 /usr/lib/udev
 
 # /lib/udev/devices/ are not read anymore; systemd-tmpfiles
