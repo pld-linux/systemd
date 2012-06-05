@@ -38,13 +38,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	183
-Release:	1
+Version:	185
+Release:	0.1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	e1e5e0f376fa2a4cb4bc31a2161c09f2
+# Source0-md5:	a7dbbf05986eb0d2c164ec8e570eb78f
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -553,8 +553,6 @@ initrd.
 %patch12 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
-%{__mv} src/udev/keymap/keyboard-force-release.sh{,.in}
-
 %build
 %{__gtkdocize}
 %{__libtoolize}
@@ -578,19 +576,15 @@ patch -p1 <%{PATCH10}
 	--with-distro=pld \
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib} \
-	--disable-rule_generator \
 	--disable-gudev \
 	--disable-keymap \
 	--disable-gtk-doc \
 	--disable-introspection \
-	--disable-logging \
 	--with-pci-ids-path=%{_sysconfdir}/pci.ids \
 	--disable-audit \
-	--disable-cryptsetup \
 	--disable-pam \
 	--disable-plymouth \
 	--disable-selinux \
-	--disable-tcpd \
 	--enable-split-usr
 
 %{__make} \
@@ -1036,6 +1030,16 @@ fi
 %{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man7/systemd.journal-fields.7*
+%{_mandir}/man8/systemd-binfmt.8*
+%{_mandir}/man8/systemd-binfmt.service.8*
+%{_mandir}/man8/systemd-journald.8*
+%{_mandir}/man8/systemd-journald.service.8*
+%{_mandir}/man8/systemd-logind.8*
+%{_mandir}/man8/systemd-logind.service.8*
+%{_mandir}/man8/systemd-modules-load.8*
+%{_mandir}/man8/systemd-modules-load.service.8*
+%{_mandir}/man8/systemd-sysctl.8*
+%{_mandir}/man8/systemd-sysctl.service.8*
 %{_mandir}/man8/systemd-udevd.8*
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
@@ -1285,6 +1289,7 @@ fi
 /lib/udev/rules.d/60-persistent-storage.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/61-accelerometer.rules
+/lib/udev/rules.d/70-power-switch.rules
 /lib/udev/rules.d/75-net-description.rules
 /lib/udev/rules.d/75-probe_mtd.rules
 /lib/udev/rules.d/75-tty-description.rules

@@ -29,16 +29,6 @@
  
  INSTALL_DATA_HOOKS += udev-confdirs
  
-@@ -1906,7 +1906,8 @@
- 	src/udev/keymap/check-keymaps.sh
- 
- EXTRA_DIST += \
--	src/udev/keymap/check-keymaps.sh
-+	src/udev/keymap/check-keymaps.sh \
-+	src/udev/keymap/keyboard-force-release.sh.in
- 
- CLEANFILES += \
- 	$(nodist_keymap_SOURCES) \
 @@ -1913,7 +1913,7 @@
  	src/udev/keymap/keys.txt \
  	src/udev/keymap/keys-from-name.gperf
@@ -66,22 +56,3 @@
  		< $< > $@ || rm $@
  
  units/%: units/%.in Makefile
---- systemd-183/src/udev/keymap/keyboard-force-release.sh~	2012-04-10 22:32:29.934866904 +0200
-+++ systemd-183/src/udev/keymap/keyboard-force-release.sh	2012-05-29 12:52:33.283726546 +0200
-@@ -6,7 +6,7 @@
- 
- case "$2" in
-         /*) scf="$2" ;;
--        *)  scf="@pkglibexecdir@/keymaps/force-release/$2" ;;
-+        *)  scf="@udevlibexecdir@/keymaps/force-release/$2" ;;
- esac
- 
- read attr <"/sys/$1/force_release"
---- systemd-183/src/udev/udev.pc.in~	2012-04-05 17:49:14.329482586 +0200
-+++ systemd-183/src/udev/udev.pc.in	2012-05-31 12:38:37.835904467 +0200
-@@ -2,4 +2,4 @@
- Description: udev
- Version: @VERSION@
- 
--udevdir=@pkglibexecdir@
-+udevdir=@udevlibexecdir@
