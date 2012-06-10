@@ -117,8 +117,6 @@ rm -f $destunitdir/rc-inetd-*.service \
 mkdir -p $destunitdir/sockets.target.wants \
 	/run/rc-inetd
 
-[ "$1" = "stop" ] && exit 0
-
 SERVICES=$(ls -d /etc/sysconfig/rc-inetd/* 2>/dev/null | grep -Ev '.*(\.rpm(save|new|orig)|~|CVS)')
 for i in $SERVICES; do
 	# unset everything
