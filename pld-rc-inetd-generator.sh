@@ -1,8 +1,5 @@
 #!/bin/sh
-#
-# TODO:
-#	pre_start_service() and pre_stop_service()
-#
+
 parse_one_service() {
 	SOCKET_FILE="${CURRENT_SERVICE}.socket"
 	SERVICE_FILE="${CURRENT_SERVICE}.service"
@@ -76,6 +73,22 @@ parse_one_service() {
 		echo >>$SERVICE_FILE
 	else
 		echo "$DAEMONARGS" >>$SERVICE_FILE
+	fi
+
+	if typeset -f pre_start_service 2>&1 >/dev/null ; then
+		echo "#!/bin/sh" >${CURRENT_SERVICE}_pre_start.sh
+		typeset -f pre_start_service >>${CURRENT_SERVICE}_pre_start.sh
+		echo "pre_start_service" >>${CURRENT_SERVICE}_pre_start.sh
+		chmod u+x ${CURRENT_SERVICE}_pre_start.sh
+		echo "ExecStartPre=${CURRENT_SERVICE}_pre_start.sh" >>$SERVICE_FILE
+	fi
+
+	if typeset -f pre_stop_service 2>&1 >/dev/null ; then
+		echo "#!/bin/sh" >${CURRENT_SERVICE}_post_stop.sh
+		typeset -f pre_stop_service >>${CURRENT_SERVICE}_post_stop.sh
+		echo "pre_stop_service" >>${CURRENT_SERVICE}_post_stop.sh
+		chmod u+x ${CURRENT_SERVICE}_post_stop.sh
+		echo "ExecStopPost=${CURRENT_SERVICE}_post_stop.sh" >>$SERVICE_FILE
 	fi
 
 	echo >>$SERVICE_FILE
