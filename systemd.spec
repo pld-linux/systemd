@@ -56,6 +56,8 @@ Source12:	pld-wait-storage.service
 Source13:	pld-storage-init.sh
 Source14:	pld-clean-tmp.service
 Source15:	pld-clean-tmp.sh
+Source16:	pld-rc-inetd-generator.sh
+Source17:	rc-inetd.service
 # rules
 Source101:	udev-alsa.rules
 Source102:	udev.rules
@@ -306,6 +308,32 @@ zarządcy systemu i usług systemd.
 
 Ten pakiet zawiera ogólną konfigurację, ustawienia można nadpisać
 poprzez katalog %{_sysconfdir}/systemd/system.
+
+%package inetd
+Summary:	Native inet service support for systemd via socket activation
+Summary(pl.UTF-8):	Natywna obsługa usług inet dla systemd
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	rc-inetd
+Provides:	inetdaemon
+Obsoletes:	inetd
+Obsoletes:	inetdaemon
+Obsoletes:	rlinetd
+Obsoletes:	xinetd
+
+%description inetd
+Native inet service support for systemd via socket activation.
+
+This package contains inet service generator that provides
+the functionality of rc-inetd service and replaces a separate
+inet daemon with systemd socket activation feature.
+
+%description inetd -l pl.UTF-8
+Natywna obsługa usług inet dla systemd.
+
+Ten pakiet zawiera generator usług inet udostępniający funkcjonalność
+serwisu rc-inetd i zastępujący osobny demon inet przez systemd i
+aktywację usług przez gniazda.
 
 %package plymouth
 Summary:	Plymouth support units for systemd
@@ -740,6 +768,10 @@ ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs
 ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 
+# Install rc-inetd replacement
+cp -p %{SOURCE16} $RPM_BUILD_ROOT/lib/systemd/system-generators/pld-rc-inetd-generator
+cp -p %{SOURCE17} $RPM_BUILD_ROOT%{systemdunitdir}/rc-inetd.service
+
 # handled by rc-local sysv service, no need for generator
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
 
@@ -846,6 +878,12 @@ if [ -f /etc/systemd/systemd-logind.conf.rpmsave ]; then
 	%{__mv} /etc/systemd/logind.conf{,.rpmnew}
 	%{__mv} -f /etc/systemd/systemd-logind.conf.rpmsave /etc/systemd/logind.conf
 fi
+
+%post inetd
+%systemd_reload
+
+%postun inetd
+%systemd_reload
 
 %post plymouth
 %systemd_reload
@@ -1136,6 +1174,11 @@ fi
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/sys-*.mount
 %config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/systemd-*
+
+%files inetd
+%defattr(644,root,root,755)
+%attr(755,root,root) /lib/systemd/system-generators/pld-rc-inetd-generator
+%{systemdunitdir}/rc-inetd.service
 
 %if %{with plymouth}
 %files plymouth
