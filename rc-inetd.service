@@ -1,0 +1,13 @@
+#
+# rc-inetd services are started natively by systemd,
+# use "systemctl --system damon-reload" to regenerate rc-inetd services
+#
+
+[Unit]
+Description=rc-inetd services are started natively by systemd, use "systemctl --system damon-reload" to regenerate rc-inetd services
+
+[Service]
+Type=oneshot
+StandardOutput=syslog+console
+RemainAfterExit=true
+ExecStart=-/bin/echo 'rc-inetd services are started natively by systemd, use "systemctl --system damon-reload" to regenerate rc-inetd services.'
