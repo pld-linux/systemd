@@ -149,7 +149,7 @@ Suggests:	kmod >= 5
 Suggests:	nss_myhostname
 Suggests:	service(klogd)
 Suggests:	service(syslog)
-Provides:	udev-acl
+Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
 # systemd takes care of that and causes problems
