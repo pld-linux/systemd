@@ -356,7 +356,7 @@ Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	python-dbus
 Requires:	python-modules
 Requires:	python-pycairo
-Conflicts:	%{name} < 44-3
+Conflicts:	systemd < 44-3
 
 %description analyze
 'systemd-analyze blame' lists which systemd unit needed how much time
