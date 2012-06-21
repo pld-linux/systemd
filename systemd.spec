@@ -997,10 +997,10 @@ fi
 %dir %{_libexecdir}/systemd
 %{_libexecdir}/systemd/user
 %dir %{_libexecdir}/systemd/user-generators
-%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/legacy.conf
-%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/systemd.conf
-%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/tmp.conf
-%config(noreplace,missingok) %{_libexecdir}/tmpfiles.d/x11.conf
+%{_libexecdir}/tmpfiles.d/legacy.conf
+%{_libexecdir}/tmpfiles.d/systemd.conf
+%{_libexecdir}/tmpfiles.d/tmp.conf
+%{_libexecdir}/tmpfiles.d/x11.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -1134,24 +1134,24 @@ fi
 %dir %{systemdunitdir}/sockets.target.wants
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
-%config(noreplace,missingok) %{systemdunitdir}/basic.target.wants/*
-%config(noreplace,missingok) %{systemdunitdir}/final.target.wants/*
-%config(noreplace,missingok) %{systemdunitdir}/graphical.target.wants/*
-%config(noreplace,missingok) %{systemdunitdir}/local-fs.target.wants/*
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/getty.target
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/rc-local.service
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
-%config(noreplace,missingok) %{systemdunitdir}/runlevel[12345].target.wants/*
-%config(noreplace,missingok) %{systemdunitdir}/shutdown.target.wants/*
-%config(noreplace,missingok) %{systemdunitdir}/sockets.target.wants/*
-%{?with_cryptsetup:%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/sys-*.mount
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/systemd-*
+%{systemdunitdir}/basic.target.wants/*
+%{systemdunitdir}/final.target.wants/*
+%{systemdunitdir}/graphical.target.wants/*
+%{systemdunitdir}/local-fs.target.wants/*
+%{systemdunitdir}/multi-user.target.wants/getty.target
+%{systemdunitdir}/multi-user.target.wants/rc-local.service
+%{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
+%{systemdunitdir}/multi-user.target.wants/systemd-logind.service
+%{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
+%{systemdunitdir}/runlevel[12345].target.wants/*
+%{systemdunitdir}/shutdown.target.wants/*
+%{systemdunitdir}/sockets.target.wants/*
+%{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
+%{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
+%{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
+%{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
+%{systemdunitdir}/sysinit.target.wants/sys-*.mount
+%{systemdunitdir}/sysinit.target.wants/systemd-*
 
 %files inetd
 %defattr(644,root,root,755)
