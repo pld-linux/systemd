@@ -7,7 +7,6 @@
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
 %bcond_without	pam		# PAM authentication support
-%bcond_without	plymouth	# do not install plymouth units
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
@@ -335,19 +334,6 @@ Ten pakiet zawiera generator usług inet udostępniający funkcjonalność
 serwisu rc-inetd i zastępujący osobny demon inet przez systemd i
 aktywację usług przez gniazda.
 
-%package plymouth
-Summary:	Plymouth support units for systemd
-Summary(pl.UTF-8):	Jednostki wspierające Plymouth dla systemd
-Group:		Base
-Requires:	%{name}-units = %{epoch}:%{version}-%{release}
-Requires:	plymouth
-
-%description plymouth
-Plymouth (graphical boot) support units for systemd.
-
-%description plymouth -l pl.UTF-8
-Jednostki wspierające Plymouth (graficzny start systemu) dla systemd.
-
 %package analyze
 Summary:	Tool for processing systemd profiling information
 Summary(pl.UTF-8):	Narzędzie do przetwarzania informacji profilujących systemd
@@ -650,9 +636,9 @@ patch -p1 -R <%{PATCH10}
 	%{__enable_disable audit} \
 	%{__enable_disable cryptsetup libcryptsetup} \
 	%{__enable_disable pam} \
-	%{__enable_disable plymouth} \
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
+	--disable-plymouth \
 	--disable-silent-rules \
 	--enable-shared \
 	--enable-static \
@@ -885,12 +871,6 @@ fi
 %systemd_service_start sockets.target
 
 %postun inetd
-%systemd_reload
-
-%post plymouth
-%systemd_reload
-
-%postun plymouth
 %systemd_reload
 
 %triggerpostun -n udev-core -- dev
@@ -1139,10 +1119,6 @@ fi
 %{systemdunitdir}/*.socket
 %{systemdunitdir}/*.target
 %{systemdunitdir}/*.timer
-%if %{with plymouth}
-%exclude %{systemdunitdir}/plymouth*.service
-%exclude %{systemdunitdir}/systemd-ask-password-plymouth.*
-%endif
 %dir %{systemdunitdir}/basic.target.wants
 %dir %{systemdunitdir}/dbus.target.wants
 %dir %{systemdunitdir}/final.target.wants
@@ -1181,29 +1157,6 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) /lib/systemd/system-generators/pld-rc-inetd-generator
 %{systemdunitdir}/rc-inetd.service
-
-%if %{with plymouth}
-%files plymouth
-%defattr(644,root,root,755)
-%{systemdunitdir}/plymouth-halt.service
-%{systemdunitdir}/plymouth-kexec.service
-%{systemdunitdir}/plymouth-poweroff.service
-%{systemdunitdir}/plymouth-quit-wait.service
-%{systemdunitdir}/plymouth-quit.service
-%{systemdunitdir}/plymouth-read-write.service
-%{systemdunitdir}/plymouth-reboot.service
-%{systemdunitdir}/plymouth-start.service
-%{systemdunitdir}/systemd-ask-password-plymouth.path
-%{systemdunitdir}/systemd-ask-password-plymouth.service
-%config(noreplace,missingok) %{systemdunitdir}/halt.target.wants/plymouth-halt.service
-%config(noreplace,missingok) %{systemdunitdir}/kexec.target.wants/plymouth-kexec.service
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/plymouth-quit.service
-%config(noreplace,missingok) %{systemdunitdir}/multi-user.target.wants/plymouth-quit-wait.service
-%config(noreplace,missingok) %{systemdunitdir}/poweroff.target.wants/plymouth-poweroff.service
-%config(noreplace,missingok) %{systemdunitdir}/reboot.target.wants/plymouth-reboot.service
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/plymouth-read-write.service
-%config(noreplace,missingok) %{systemdunitdir}/sysinit.target.wants/plymouth-start.service
-%endif
 
 %files analyze
 %defattr(644,root,root,755)
