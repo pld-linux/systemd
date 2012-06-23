@@ -38,7 +38,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	185
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -989,7 +989,6 @@ fi
 %dir /lib/systemd/system-generators
 %attr(755,root,root) /lib/systemd/systemd
 %attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
-%dir /lib/systemd/system-shutdown
 /lib/udev/rules.d/99-systemd.rules
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
@@ -1100,6 +1099,7 @@ fi
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
+%dir /lib/systemd/system-shutdown
 # Don't package the kernel.core_pattern setting until systemd-coredump
 # is a part of an actual systemd release and it's made clear how to
 # get the core dumps out of the journal.
