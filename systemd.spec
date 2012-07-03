@@ -402,7 +402,6 @@ Obsoletes:	hotplug
 Obsoletes:	hotplug-input
 Obsoletes:	hotplug-net
 Obsoletes:	hotplug-pci
-Obsoletes:	udev-compat
 Obsoletes:	udev-dev
 Obsoletes:	udev-extras < 20090628
 Obsoletes:	udev-tools
@@ -429,6 +428,7 @@ Requires:	uname(release) >= 2.6.32
 Conflicts:	rc-scripts < 0.4.5.3-1
 Conflicts:	systemd-units < 1:183
 Conflicts:	udev < 1:118-1
+Obsoletes:	udev-compat
 
 %description -n udev-core
 A userspace implementation of devfs - core part of udev.
