@@ -2,6 +2,7 @@
 # - pldize vconsole setup:
 # 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
 # - udev initrd needs love (is probably completly unusable in current form)
+# - replace our rpm macros with systemd provided?
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
@@ -37,13 +38,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	185
-Release:	3
+Version:	186
+Release:	0.1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	a7dbbf05986eb0d2c164ec8e570eb78f
+# Source0-md5:	17eff1d31e6e49bf82e129fe57efd59b
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -76,9 +77,7 @@ Patch5:		kmsg-to-syslog.patch
 Patch6:		udev-so.patch
 Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
-Patch9:		udevlibexecdir.patch
 Patch10:	static-udev.patch
-Patch11:	systemd-udev-service.patch
 Patch12:	udevadm-in-sbin.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
@@ -562,8 +561,6 @@ initrd.
 %patch7 -p1
 %endif
 %patch8 -p1
-%patch9 -p1
-%patch11 -p1
 %patch12 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -972,8 +969,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-multi-seat-x
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
-%attr(755,root,root) /lib/systemd/systemd-readahead-collect
-%attr(755,root,root) /lib/systemd/systemd-readahead-replay
+%attr(755,root,root) /lib/systemd/systemd-readahead
 %attr(755,root,root) /lib/systemd/systemd-remount-fs
 %attr(755,root,root) /lib/systemd/systemd-reply-password
 %attr(755,root,root) /lib/systemd/systemd-shutdown
@@ -1030,7 +1026,10 @@ fi
 %{_mandir}/man1/systemd-machine-id-setup.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
+%{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man5/binfmt.d.5*
+# cfl with rc-scripts
+#%{_mandir}/man5/crypttab.5*
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/locale.conf.5*
@@ -1043,23 +1042,38 @@ fi
 %{_mandir}/man5/systemd.*.5*
 %{_mandir}/man5/timezone.5*
 %{_mandir}/man5/vconsole.conf.5*
+%{_mandir}/man7/bootup.7*
 %{_mandir}/man7/daemon.7*
+%{_mandir}/man7/kernel-command-line.7*
 %{_mandir}/man7/sd-daemon.7*
 %{_mandir}/man7/sd-login.7*
 %{_mandir}/man7/sd-readahead.7*
-%{_mandir}/man7/systemd.special.7*
 %{_mandir}/man7/systemd.journal-fields.7*
+%{_mandir}/man7/systemd.special.7*
 %{_mandir}/man8/systemd-binfmt.8*
-%{_mandir}/man8/systemd-binfmt.service.8*
+%{_mandir}/man8/systemd-cryptsetup-generator.8*
+%{_mandir}/man8/systemd-fstab-generator.8*
+%{_mandir}/man8/systemd-getty-generator.8*
+%{_mandir}/man8/systemd-hostnamed.8*
+%{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald.8*
-%{_mandir}/man8/systemd-journald.service.8*
+%{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
-%{_mandir}/man8/systemd-logind.service.8*
 %{_mandir}/man8/systemd-modules-load.8*
-%{_mandir}/man8/systemd-modules-load.service.8*
+%{_mandir}/man8/systemd-quotacheck.8*
+%{_mandir}/man8/systemd-random-seed.8*
+%{_mandir}/man8/systemd-readahead.8*
+%{_mandir}/man8/systemd-remount-fs.8*
+%{_mandir}/man8/systemd-shutdown.8*
+%{_mandir}/man8/systemd-shutdownd.8*
+%{_mandir}/man8/systemd-sleep.8*
 %{_mandir}/man8/systemd-sysctl.8*
-%{_mandir}/man8/systemd-sysctl.service.8*
+%{_mandir}/man8/systemd-system-update-generator.8*
+%{_mandir}/man8/systemd-timedated.8*
 %{_mandir}/man8/systemd-udevd.8*
+%{_mandir}/man8/systemd-update-utmp.8*
+%{_mandir}/man8/systemd-user-sessions.8*
+%{_mandir}/man8/systemd-vconsole-setup.8*
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
 %attr(640,root,root) %ghost /var/log/btmp
@@ -1152,6 +1166,49 @@ fi
 %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/sysinit.target.wants/sys-*.mount
 %{systemdunitdir}/sysinit.target.wants/systemd-*
+%{_mandir}/man8/systemd-ask-password-console.path.8*
+%{_mandir}/man8/systemd-ask-password-console.service.8*
+%{_mandir}/man8/systemd-ask-password-wall.path.8*
+%{_mandir}/man8/systemd-ask-password-wall.service.8*
+%{_mandir}/man8/systemd-binfmt.service.8*
+%{_mandir}/man8/systemd-cryptsetup.8*
+%{_mandir}/man8/systemd-cryptsetup@.service.8*
+%{_mandir}/man8/systemd-fsck-root.service.8*
+%{_mandir}/man8/systemd-fsck@.service.8*
+%{_mandir}/man8/systemd-halt.service.8*
+%{_mandir}/man8/systemd-hibernate.service.8*
+%{_mandir}/man8/systemd-hostnamed.service.8*
+%{_mandir}/man8/systemd-initctl.service.8*
+%{_mandir}/man8/systemd-initctl.socket.8*
+%{_mandir}/man8/systemd-journald.service.8*
+%{_mandir}/man8/systemd-journald.socket.8*
+%{_mandir}/man8/systemd-kexec.service.8*
+%{_mandir}/man8/systemd-localed.service.8*
+%{_mandir}/man8/systemd-logind.service.8*
+%{_mandir}/man8/systemd-modules-load.service.8*
+%{_mandir}/man8/systemd-poweroff.service.8*
+%{_mandir}/man8/systemd-quotacheck.service.8*
+%{_mandir}/man8/systemd-random-seed-load.service.8*
+%{_mandir}/man8/systemd-random-seed-save.service.8*
+%{_mandir}/man8/systemd-readahead-collect.service.8*
+%{_mandir}/man8/systemd-readahead-done.service.8*
+%{_mandir}/man8/systemd-readahead-done.timer.8*
+%{_mandir}/man8/systemd-readahead-replay.service.8*
+%{_mandir}/man8/systemd-reboot.service.8*
+%{_mandir}/man8/systemd-remount-fs.service.8*
+%{_mandir}/man8/systemd-shutdownd.service.8*
+%{_mandir}/man8/systemd-shutdownd.socket.8*
+%{_mandir}/man8/systemd-suspend.service.8*
+%{_mandir}/man8/systemd-sysctl.service.8*
+%{_mandir}/man8/systemd-timedated.service.8*
+%{_mandir}/man8/systemd-tmpfiles-clean.service.8*
+%{_mandir}/man8/systemd-tmpfiles-clean.timer.8*
+%{_mandir}/man8/systemd-tmpfiles-setup.service.8*
+%{_mandir}/man8/systemd-udevd.service.8*
+%{_mandir}/man8/systemd-update-utmp-runlevel.service.8*
+%{_mandir}/man8/systemd-update-utmp-shutdown.service.8*
+%{_mandir}/man8/systemd-user-sessions.service.8*
+%{_mandir}/man8/systemd-vconsole-setup.service.8*
 
 %files inetd
 %defattr(644,root,root,755)
@@ -1161,6 +1218,7 @@ fi
 %files analyze
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/systemd-analyze
+%{_mandir}/man1/systemd-analyze.1*
 
 %files libs
 %defattr(644,root,root,755)
@@ -1233,11 +1291,6 @@ fi
 %defattr(644,root,root,755)
 
 /usr/lib/udev
-
-# /lib/udev/devices/ are not read anymore; systemd-tmpfiles
-# should be used to create dead device nodes as workarounds for broken
-# subsystems.
-%dir /lib/udev/devices
 
 %attr(755,root,root) /lib/udev/collect
 

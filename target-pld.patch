@@ -93,8 +93,8 @@ index 3477ba1..d32718d 100644
 +++ b/src/fsck/fsck.c
 @@ -127,7 +127,7 @@ static int parse_proc_cmdline(void) {
                          arg_skip = true;
-                 else if (startswith(w, "fsck.mode"))
-                         log_warning("Invalid fsck.mode= parameter. Ignoring.");
+                 else if (startswith(w, "fsck"))
+                         log_warning("Invalid fsck parameter. Ignoring.");
 -#if defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
 +#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
                  else if (strneq(w, "fastboot", l))
