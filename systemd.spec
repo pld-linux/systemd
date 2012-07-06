@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	186
-Release:	0.1
+Release:	1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -77,8 +77,9 @@ Patch5:		kmsg-to-syslog.patch
 Patch6:		udev-so.patch
 Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
-Patch10:	static-udev.patch
-Patch12:	udevadm-in-sbin.patch
+Patch9:		udevadm-in-sbin.patch
+# hack set to allow static udev build
+Patch100:	static-udev.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -561,7 +562,7 @@ initrd.
 %patch7 -p1
 %endif
 %patch8 -p1
-%patch12 -p1
+%patch9 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -572,7 +573,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__autoheader}
 %{__automake}
 %if %{with initrd}
-patch -p1 <%{PATCH10}
+patch -p1 <%{PATCH100}
 %configure \
 %if "%{?configure_cache}" == "1"
 	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}-initrd.cache \
@@ -625,7 +626,7 @@ cp -a systemd-udevd \
 	udev-initrd/
 
 %{__make} clean
-patch -p1 -R <%{PATCH10}
+patch -p1 -R <%{PATCH100}
 %endif
 
 %configure \
