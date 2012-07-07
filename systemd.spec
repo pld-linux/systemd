@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	186
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -898,7 +898,7 @@ if [ $1 -gt 1 ]; then
 		fi
 	else
 		SYSTEMD_LOG_LEVEL=warning SYSTEMD_LOG_TARGET=syslog \
-		/bin/systemctl --quiet try-restart systemd-udev.service || :
+		/bin/systemctl --quiet try-restart systemd-udevd.service || :
 	fi
 fi
 
