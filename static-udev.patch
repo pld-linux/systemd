@@ -57,7 +57,7 @@ diff -ur systemd-183.orig/src/shared/install.c systemd-183/src/shared/install.c
  
 -                if (!path_is_absolute(*i) ||
 +                if (!sd_path_is_absolute(*i) ||
-                     !unit_name_is_valid_no_type(fn, true)) {
+                     !unit_name_is_valid(fn, true)) {
                          if (r == 0)
                                  r = -EINVAL;
 @@ -972,7 +972,7 @@
@@ -122,7 +122,7 @@ diff -ur systemd-183.orig/src/shared/path-util.c systemd-183/src/shared/path-uti
 +        if (sd_path_is_absolute(p) || !prefix)
                  return strdup(p);
  
-         return join(prefix, "/", p, NULL);
+         return strjoin(prefix, "/", p, NULL);
  }
  
 -char *path_make_absolute_cwd(const char *p) {

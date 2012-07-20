@@ -76,9 +76,9 @@ index 596a32a..f701bfd 100644
 +    		AC_DEFINE(TARGET_PLD, [], [Target is PLD Linux])
 +    		M4_DISTRO_FLAG=-DTARGET_PLD=1
 +    		;;
-         meego)
-                 SYSTEM_SYSVINIT_PATH=
-                 SYSTEM_SYSVRCND_PATH=
+         angstrom)
+                 SYSTEM_SYSVRCND_PATH=/etc
+                 AC_DEFINE(TARGET_ANGSTROM, [], [Target is Ångström])
 @@ -510,6 +517,7 @@ if test -n "$enable_plymouth"; then
  fi
  
@@ -108,8 +108,8 @@ index 2c2f10c..754f0c7 100644
  #include "util.h"
  #include "log.h"
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO) || defined(TARGET_MAGEIA)
+-#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
  #define FILENAME "/etc/sysconfig/network"
  #elif defined(TARGET_SUSE) || defined(TARGET_SLACKWARE)
  #define FILENAME "/etc/HOSTNAME"
@@ -117,8 +117,8 @@ index 2c2f10c..754f0c7 100644
  
  static int read_distro_hostname(char **hn) {
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MEEGO) || defined(TARGET_MAGEIA)
+-#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
          int r;
          FILE *f;
  
@@ -130,8 +130,8 @@ index 7f692e9..0a45854 100644
  
          if (detect_container(NULL) <= 0)
                  if ((r = parse_env_file("/proc/cmdline", WHITESPACE,
--#if defined(TARGET_FEDORA) || defined(TARGET_MEEGO)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MEEGO)
+-#if defined(TARGET_FEDORA)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD)
                                          "LANG",                     &variables[VARIABLE_LANG],
  #endif
                                          "locale.LANG",              &variables[VARIABLE_LANG],
@@ -139,8 +139,8 @@ index 7f692e9..0a45854 100644
                          log_warning("Failed to read /etc/locale.conf: %s", strerror(-r));
          }
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MEEGO)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MEEGO)
+-#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX)
          if (r <= 0 &&
              (r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
                                  "LANG", &variables[VARIABLE_LANG],
@@ -152,8 +152,8 @@ index 298cb4e..cec3974 100644
  static int enable_sysv_units(char **args) {
          int r = 0;
  
--#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_MEEGO) || defined(TARGET_ALTLINUX) || defined(TARGET_MAGEIA))
-+#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_MEEGO) || defined(TARGET_ALTLINUX) || defined(TARGET_MAGEIA))
+-#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_ALTLINUX) || defined(TARGET_MAGEIA))
++#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_ALTLINUX) || defined(TARGET_MAGEIA))
          const char *verb = args[0];
          unsigned f = 1, t = 1;
          LookupPaths paths;
@@ -178,8 +178,8 @@ index 9196789..1d1a916 100644
          }
  
          if (r <= 0) {
--#if defined(TARGET_FEDORA) || defined(TARGET_MEEGO)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MEEGO)
+-#if defined(TARGET_FEDORA)
++#if defined(TARGET_FEDORA) || defined(TARGET_PLD)
                  r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
                                          "SYSFONT", &vc_font,
                                          "SYSFONTACM", &vc_font_map,
@@ -226,11 +226,11 @@ index 7dd8a22..5a9c363 100644
  `EnvironmentFile=/etc/sysconfig/init
  ExecStart=-/bin/bash -c "exec ${SINGLE}"',
 @@ -31,7 +34,7 @@ ExecStart=-/bin/bash -c "exec ${SINGLE}"',
- m4_ifdef(`TARGET_MEEGO',
+ m4_ifdef(`TARGET_MAGEIA',
  `EnvironmentFile=/etc/sysconfig/init
  ExecStart=-/bin/bash -c "exec ${SINGLE}"',
--`ExecStart=-/sbin/sulogin'))))
-+`ExecStart=-/sbin/sulogin')))))
+-`ExecStart=-/sbin/sulogin')))
++`ExecStart=-/sbin/sulogin'))))
  ExecStopPost=-@SYSTEMCTL@ --fail --no-block default
  StandardInput=tty-force
  StandardOutput=inherit

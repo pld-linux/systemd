@@ -38,13 +38,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	186
-Release:	2
+Version:	187
+Release:	1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	17eff1d31e6e49bf82e129fe57efd59b
+# Source0-md5:	26606e3c84448800ef0b3ffd57e6e8b6
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -86,7 +86,7 @@ BuildRequires:	acl-devel
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
-%{?with_cryptsetup:BuildRequires:	cryptsetup-luks-devel}
+%{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.4.3}
 BuildRequires:	dbus-devel >= 1.3.2
 BuildRequires:	docbook-style-xsl
 BuildRequires:	glib2-devel >= 1:2.22.0
@@ -1046,9 +1046,6 @@ fi
 %{_mandir}/man7/bootup.7*
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/kernel-command-line.7*
-%{_mandir}/man7/sd-daemon.7*
-%{_mandir}/man7/sd-login.7*
-%{_mandir}/man7/sd-readahead.7*
 %{_mandir}/man7/systemd.journal-fields.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man8/systemd-binfmt.8*
@@ -1243,40 +1240,8 @@ fi
 %{_pkgconfigdir}/libsystemd-id128.pc
 %{_pkgconfigdir}/libsystemd-journal.pc
 %{_pkgconfigdir}/libsystemd-login.pc
-%{_mandir}/man3/sd_booted.3*
-%{_mandir}/man3/sd_get_seats.3*
-%{_mandir}/man3/sd_get_sessions.3*
-%{_mandir}/man3/sd_get_uids.3*
-%{_mandir}/man3/sd_is_fifo.3*
-%{_mandir}/man3/sd_is_mq.3*
-%{_mandir}/man3/sd_is_socket.3
-%{_mandir}/man3/sd_is_socket_inet.3
-%{_mandir}/man3/sd_is_socket_unix.3
-%{_mandir}/man3/sd_listen_fds.3*
-%{_mandir}/man3/sd_login_monitor_flush.3*
-%{_mandir}/man3/sd_login_monitor_get_fd.3*
-%{_mandir}/man3/sd_login_monitor_new.3*
-%{_mandir}/man3/sd_login_monitor_unref.3*
-%{_mandir}/man3/sd_notify.3*
-%{_mandir}/man3/sd_notifyf.3
-%{_mandir}/man3/sd_pid_get_owner_uid.3*
-%{_mandir}/man3/sd_pid_get_session.3*
-%{_mandir}/man3/sd_pid_get_unit.3*
-%{_mandir}/man3/sd_readahead.3*
-%{_mandir}/man3/sd_seat_can_multi_session.3*
-%{_mandir}/man3/sd_seat_get_active.3*
-%{_mandir}/man3/sd_seat_get_sessions.3*
-%{_mandir}/man3/sd_session_get_class.3*
-%{_mandir}/man3/sd_session_get_display.3*
-%{_mandir}/man3/sd_session_get_seat.3*
-%{_mandir}/man3/sd_session_get_service.3*
-%{_mandir}/man3/sd_session_get_type.3*
-%{_mandir}/man3/sd_session_get_uid.3*
-%{_mandir}/man3/sd_session_is_active.3*
-%{_mandir}/man3/sd_uid_get_seats.3*
-%{_mandir}/man3/sd_uid_get_sessions.3*
-%{_mandir}/man3/sd_uid_get_state.3*
-%{_mandir}/man3/sd_uid_is_on_seat.3*
+%{_mandir}/man3/SD_*.3*
+%{_mandir}/man3/sd*.3*
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
