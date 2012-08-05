@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	187
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+
 Group:		Base
