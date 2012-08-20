@@ -1,3 +1,3 @@
 # Policy about what services shall be enabled and what services shall not.
 # Default is to enable (via `systemctl preset`) all units that are installed.
-# See systemd.preset for more information
+# See systemd.preset(5) manual page for more information
