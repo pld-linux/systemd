@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	187
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -58,6 +58,7 @@ Source14:	pld-clean-tmp.service
 Source15:	pld-clean-tmp.sh
 Source16:	pld-rc-inetd-generator.sh
 Source17:	rc-inetd.service
+Source18:	default.preset
 # rules
 Source101:	udev-alsa.rules
 Source102:	udev.rules
@@ -655,7 +656,7 @@ patch -p1 -R <%{PATCH100}
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/%{name}/coredump \
-	$RPM_BUILD_ROOT{%{_sysconfdir}/modprobe.d,%{_sbindir}}
+	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_sbindir}}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -755,6 +756,8 @@ ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.
 # Install rc-inetd replacement
 cp -p %{SOURCE16} $RPM_BUILD_ROOT/lib/systemd/system-generators/pld-rc-inetd-generator
 cp -p %{SOURCE17} $RPM_BUILD_ROOT%{systemdunitdir}/rc-inetd.service
+
+cp -p %{SOURCE18} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system-preset/default.preset
 
 # handled by rc-local sysv service, no need for generator
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
@@ -861,6 +864,14 @@ fi
 if [ -f /etc/systemd/systemd-logind.conf.rpmsave ]; then
 	%{__mv} /etc/systemd/logind.conf{,.rpmnew}
 	%{__mv} -f /etc/systemd/systemd-logind.conf.rpmsave /etc/systemd/logind.conf
+fi
+
+%triggerpostun units -- systemd-units < 1:187-3
+if [ -f /etc/sysconfig/rpm ]; then
+	. /etc/sysconfig/rpm
+	if [ ${RPM_ENABLE_SYSTEMD_SERVICE:-yes} = no ]; then
+		echo "disable *" >>%{_sysconfdir}/systemd/system-preset/default.preset
+	fi
 fi
 
 %post inetd
@@ -1107,6 +1118,8 @@ fi
 %dir %{_sysconfdir}/sysctl.d
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
+%dir %{_sysconfdir}/systemd/system-preset
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system-preset/default.preset
 %dir %{_sysconfdir}/tmpfiles.d
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
