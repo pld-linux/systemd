@@ -79,6 +79,7 @@ Patch6:		udev-so.patch
 Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
 Patch9:		udevadm-in-sbin.patch
+Patch10:	net-rename-revert.patch
 # hack set to allow static udev build
 Patch100:	static-udev.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
@@ -564,6 +565,7 @@ initrd.
 %endif
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
