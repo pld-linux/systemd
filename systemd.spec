@@ -972,7 +972,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-binfmt
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
-%attr(755,root,root) /lib/systemd/systemd-cryptsetup
+%{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
 %attr(755,root,root) /lib/systemd/systemd-initctl
@@ -1062,7 +1062,7 @@ fi
 %{_mandir}/man7/systemd.journal-fields.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man8/systemd-binfmt.8*
-%{_mandir}/man8/systemd-cryptsetup-generator.8*
+%{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-fstab-generator.8*
 %{_mandir}/man8/systemd-getty-generator.8*
 %{_mandir}/man8/systemd-hostnamed.8*
@@ -1185,8 +1185,8 @@ fi
 %{_mandir}/man8/systemd-ask-password-wall.path.8*
 %{_mandir}/man8/systemd-ask-password-wall.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
-%{_mandir}/man8/systemd-cryptsetup.8*
-%{_mandir}/man8/systemd-cryptsetup@.service.8*
+%{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}
+%{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup@.service.8*}
 %{_mandir}/man8/systemd-fsck-root.service.8*
 %{_mandir}/man8/systemd-fsck@.service.8*
 %{_mandir}/man8/systemd-halt.service.8*
