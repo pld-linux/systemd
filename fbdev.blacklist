@@ -14,6 +14,7 @@ blacklist intelfb
 blacklist kyrofb
 blacklist lxfb
 blacklist matroxfb_base
+blacklist mgag200
 blacklist mb862xxfb
 blacklist neofb
 blacklist nvidiafb
