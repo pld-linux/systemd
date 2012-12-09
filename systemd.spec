@@ -343,7 +343,7 @@ Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	python-dbus
 Requires:	python-modules
-Requires:	python-pycairo
+Suggests:	python-pycairo
 Conflicts:	systemd < 44-3
 
 %description analyze
