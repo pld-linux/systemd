@@ -1,5 +1,5 @@
 # TODO:
-# - restore sysconfig/clock support in target-pld patch
+# - restore sysconfig/timezone support in target-pld patch
 #   [now systemd expects /etc/localtime to be symlink to /usr/share/zoneinfo/... unconditionally]
 # - pldize vconsole setup:
 # 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
