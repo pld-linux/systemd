@@ -1,4 +1,6 @@
 # TODO:
+# - restore sysconfig/clock support in target-pld patch
+#   [now systemd expects /etc/localtime to be symlink to /usr/share/zoneinfo/... unconditionally]
 # - pldize vconsole setup:
 # 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
 # - initrd needs love (does not build and is probably completly unusable in current form)
@@ -109,7 +111,6 @@ BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
-BuildRequires:	pciutils
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python-devel
 BuildRequires:	python-modules
