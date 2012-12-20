@@ -7,7 +7,9 @@
 # Conditional build:
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
+%bcond_without	microhttpd	# microhttpd support
 %bcond_without	pam		# PAM authentication support
+%bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
@@ -99,7 +101,9 @@ BuildRequires:	intltool >= 0.40.0
 BuildRequires:	kmod-devel >= 5
 BuildRequires:	libblkid-devel >= 2.20
 BuildRequires:	libcap-devel
-%{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.0}
+BuildRequires:	libgcrypt-devel >= 1.4.5
+%{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.5}
+%{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
 BuildRequires:	libtool >= 2:2.2
 %{?with_tcpd:BuildRequires:	libwrap-devel}
 BuildRequires:	libxslt-progs
@@ -109,6 +113,7 @@ BuildRequires:	pciutils
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python-devel
 BuildRequires:	python-modules
+%{?with_qrencode:BuildRequires:	qrencode-devel}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
@@ -124,7 +129,7 @@ BuildRequires:	glib2-static >= 1:2.22.0
 %{?with_klibc:BuildRequires:	klibc-static}
 BuildRequires:	kmod-libs-static >= 5
 BuildRequires:	libblkid-static >= 2.20
-%{?with_glibc:BuildRequires:	libselinux-static}
+%{?with_glibc:BuildRequires:	libselinux-static >= 2.1.9}
 %{?with_glibc:BuildRequires:	libsepol-static}
 %{?with_klibc:BuildRequires:	linux-libc-headers}
 BuildRequires:	pcre-static
@@ -137,6 +142,7 @@ Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
+%{?with_cryptsetup:Requires:	cryptsetup >= 1.4.3}
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-3
 Requires:	libutempter
@@ -362,6 +368,8 @@ start jednostek podczas rozruchu.
 Summary:	Shared systemd libraries
 Summary(pl.UTF-8):	Biblioteki współdzielone systemd
 Group:		Libraries
+Requires:	libgcrypt >= 1.4.5
+%{?with_selinux:Requires:	libselinux >= 2.1.9}
 
 %description libs
 Shared systemd libraries.
@@ -426,6 +434,9 @@ Group:		Base
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	coreutils
 Requires:	filesystem >= 3.0-45
+Requires:	kmod-libs >= 5
+Requires:	libblkid >= 2.20
+%{?with_selinux:Requires:	libselinux >= 2.1.9}
 Requires:	setup >= 2.6.1-1
 Requires:	uname(release) >= 2.6.32
 Conflicts:	rc-scripts < 0.4.5.3-1
@@ -604,12 +615,14 @@ patch -p1 <%{PATCH100}
 	--with-distro=pld \
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib} \
-	--disable-gudev \
-	--disable-keymap \
-	--disable-gtk-doc \
-	--disable-introspection \
 	--disable-audit \
+	--disable-gtk-doc \
+	--disable-gudev \
+	--disable-introspection \
+	--disable-keymap \
+	--disable-microhttpd \
 	--disable-pam \
+	--disable-qrencode \
 	--disable-selinux \
 	--enable-split-usr
 
@@ -644,22 +657,28 @@ patch -p1 -R <%{PATCH100}
 %endif
 
 %configure \
+	QUOTAON=/sbin/quotaon \
+	QUOTACHECK=/sbin/quotacheck \
+	SETCAP=/sbin/setcap \
+	KILL=/bin/kill \
 	%{?debug:--enable-debug} \
 	%{__enable_disable audit} \
 	%{__enable_disable cryptsetup libcryptsetup} \
 	%{__enable_disable pam} \
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
+	%{__enable_disable microhttpd} \
+	%{__enable_disable qrencode} \
 	--disable-silent-rules \
+	--enable-gtk-doc \
+	--enable-introspection \
+	--enable-split-usr \
 	--enable-shared \
 	--enable-static \
 	--with-distro=pld \
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib} \
-	--with-html-dir=%{_gtkdocdir} \
-	--enable-gtk-doc \
-	--enable-introspection \
-	--enable-split-usr
+	--with-html-dir=%{_gtkdocdir}
 
 %{__make}
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
@@ -792,6 +811,8 @@ install -d $RPM_BUILD_ROOT/var/log
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
+%{__rm} $RPM_BUILD_ROOT%{py_sitedir}/systemd/*.la
+%py_postclean
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -969,16 +990,16 @@ fi
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
 %attr(755,root,root) %{_bindir}/hostnamectl
 %attr(755,root,root) %{_bindir}/localectl
-%attr(755,root,root) %{_bindir}/systemd-coredumpctl
-%attr(755,root,root) %{_bindir}/timedatectl
 %attr(755,root,root) %{_bindir}/systemd-cat
-%attr(755,root,root) %{_bindir}/systemd-cgtop
 %attr(755,root,root) %{_bindir}/systemd-cgls
+%attr(755,root,root) %{_bindir}/systemd-cgtop
+%attr(755,root,root) %{_bindir}/systemd-coredumpctl
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
+%attr(755,root,root) %{_bindir}/timedatectl
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-ac-power
@@ -989,6 +1010,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
 %attr(755,root,root) /lib/systemd/systemd-initctl
+%{?with_microhttpd:%attr(755,root,root) /lib/systemd/systemd-journal-gatewayd}
 %attr(755,root,root) /lib/systemd/systemd-journald
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
@@ -1012,18 +1034,19 @@ fi
 %dir /lib/systemd/system-generators
 %attr(755,root,root) /lib/systemd/systemd
 %attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
-/lib/udev/rules.d/99-systemd.rules
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
+/lib/udev/rules.d/99-systemd.rules
 %dir %{_libexecdir}/systemd
+%dir %{_libexecdir}/systemd/catalog
+%{_libexecdir}/systemd/catalog/systemd.catalog
 %{_libexecdir}/systemd/user
 %dir %{_libexecdir}/systemd/user-generators
 %{_libexecdir}/tmpfiles.d/legacy.conf
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/tmp.conf
 %{_libexecdir}/tmpfiles.d/x11.conf
-%{_libexecdir}/systemd/catalog
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -1040,18 +1063,18 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
 %dir %{_datadir}/systemd
+%{?with_microhttpd:%{_datadir}/systemd/gatewayd}
 %{_datadir}/systemd/kbd-model-map
 %{_mandir}/man1/hostnamectl.1*
-%{_mandir}/man1/localectl.1*
-%{_mandir}/man1/systemd-coredumpctl.1*
-%{_mandir}/man1/timedatectl.1*
 %{_mandir}/man1/journalctl.1*
+%{_mandir}/man1/localectl.1*
 %{_mandir}/man1/loginctl.1*
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cat.1*
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-cgtop.1*
+%{_mandir}/man1/systemd-coredumpctl.1*
 %{_mandir}/man1/systemd-delta.1*
 %{_mandir}/man1/systemd-detect-virt.1*
 %{_mandir}/man1/systemd-inhibit.1*
@@ -1059,6 +1082,7 @@ fi
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
+%{_mandir}/man1/timedatectl.1*
 %{_mandir}/man5/binfmt.d.5*
 # cfl with rc-scripts
 #%{_mandir}/man5/crypttab.5*
@@ -1081,6 +1105,7 @@ fi
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man8/systemd-binfmt.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
+%{_mandir}/man8/systemd-fsck.8*
 %{_mandir}/man8/systemd-fstab-generator.8*
 %{_mandir}/man8/systemd-getty-generator.8*
 %{_mandir}/man8/systemd-hostnamed.8*
@@ -1092,10 +1117,6 @@ fi
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
 %{_mandir}/man8/systemd-readahead.8*
-%{_mandir}/man8/systemd-fsck.8*
-%{_mandir}/man8/systemd-hybrid-sleep.service.8*
-%{_mandir}/man8/systemd-udevd-control.socket.8*
-%{_mandir}/man8/systemd-udevd-kernel.socket.8*
 %{_mandir}/man8/systemd-remount-fs.8*
 %{_mandir}/man8/systemd-shutdown.8*
 %{_mandir}/man8/systemd-shutdownd.8*
@@ -1212,6 +1233,7 @@ fi
 %{_mandir}/man8/systemd-halt.service.8*
 %{_mandir}/man8/systemd-hibernate.service.8*
 %{_mandir}/man8/systemd-hostnamed.service.8*
+%{_mandir}/man8/systemd-hybrid-sleep.service.8*
 %{_mandir}/man8/systemd-initctl.service.8*
 %{_mandir}/man8/systemd-initctl.socket.8*
 %{_mandir}/man8/systemd-journald.service.8*
@@ -1239,6 +1261,8 @@ fi
 %{_mandir}/man8/systemd-tmpfiles-clean.timer.8*
 %{_mandir}/man8/systemd-tmpfiles-setup.service.8*
 %{_mandir}/man8/systemd-udevd.service.8*
+%{_mandir}/man8/systemd-udevd-control.socket.8*
+%{_mandir}/man8/systemd-udevd-kernel.socket.8*
 %{_mandir}/man8/systemd-update-utmp-runlevel.service.8*
 %{_mandir}/man8/systemd-update-utmp-shutdown.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
@@ -1315,6 +1339,14 @@ fi
 %attr(755,root,root) /lib/udev/accelerometer
 %attr(755,root,root) /lib/udev/findkeyboards
 
+%dir /lib/udev/hwdb.d
+/lib/udev/hwdb.d/20-OUI.hwdb
+/lib/udev/hwdb.d/20-acpi-vendor.hwdb
+/lib/udev/hwdb.d/20-pci-classes.hwdb
+/lib/udev/hwdb.d/20-pci-vendor-product.hwdb
+/lib/udev/hwdb.d/20-usb-classes.hwdb
+/lib/udev/hwdb.d/20-usb-vendor-product.hwdb
+
 %attr(755,root,root) %{_sbindir}/start_udev
 %attr(755,root,root) %{_sbindir}/udevd
 %attr(755,root,root) %{_sbindir}/udevadm
@@ -1353,14 +1385,6 @@ fi
 /lib/udev/rules.d/95-keyboard-force-release.rules
 /lib/udev/rules.d/95-keymap.rules
 /lib/udev/rules.d/95-udev-late.rules
-
-%dir /lib/udev/hwdb.d
-/lib/udev/hwdb.d/20-OUI.hwdb
-/lib/udev/hwdb.d/20-acpi-vendor.hwdb
-/lib/udev/hwdb.d/20-pci-classes.hwdb
-/lib/udev/hwdb.d/20-pci-vendor-product.hwdb
-/lib/udev/hwdb.d/20-usb-classes.hwdb
-/lib/udev/hwdb.d/20-usb-vendor-product.hwdb
 
 %{_mandir}/man7/udev.7*
 %{_mandir}/man8/udevadm.8*
