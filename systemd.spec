@@ -1,8 +1,8 @@
 # TODO:
 # - pldize vconsole setup:
 # 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
-# - udev initrd needs love (is probably completly unusable in current form)
-# - replace our rpm macros with systemd provided?
+# - initrd needs love (does not build and is probably completly unusable in current form)
+# - merge rpm macros provided by systemd with ours
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
@@ -39,7 +39,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	196
-Release:	0.1
+Release:	1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
