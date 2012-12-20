@@ -18,12 +18,9 @@
 +ExecStart=@sbindir@/udevadm trigger --type=subsystems --action=add ; @sbindir@/udevadm trigger --type=devices --action=add
 --- systemd-183/units/systemd-udev-settle.service.in~	2012-05-30 13:43:34.886201138 +0200
 +++ systemd-183/units/systemd-udev-settle.service.in	2012-05-30 13:55:44.546175399 +0200
-@@ -29,7 +29,7 @@
+@@ -29,4 +29,4 @@
  Type=oneshot
  TimeoutSec=180
  RemainAfterExit=yes
 -ExecStart=@bindir@/udevadm settle
 +ExecStart=@sbindir@/udevadm settle
- 
- [Install]
- WantedBy=basic.target

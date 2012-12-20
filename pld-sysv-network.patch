@@ -11,9 +11,9 @@
 +                        if (r < 0)
 +                                 log_error("[%s:%u] Failed to add dependency on network.target, ignoring: %s", path, line, strerror(-r));
 +                }
-                 if (*t != '#')
-                         continue;
- 
+                 if (*t != '#') {
+                         /* Try to figure out whether this init script supports
+                          * the reload operation. This heuristic looks for
 --- systemd-44/man/systemd.special.xml~	2012-02-20 16:33:32.000000000 +0200
 +++ systemd-44/man/systemd.special.xml	2012-03-18 10:44:01.469494195 +0200
 @@ -324,6 +324,10 @@

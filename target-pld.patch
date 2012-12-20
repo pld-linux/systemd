@@ -108,8 +108,8 @@ index 2c2f10c..754f0c7 100644
  #include "util.h"
  #include "log.h"
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
+-#if defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
++#if defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
  #define FILENAME "/etc/sysconfig/network"
  #elif defined(TARGET_SUSE) || defined(TARGET_SLACKWARE)
  #define FILENAME "/etc/HOSTNAME"
@@ -117,8 +117,8 @@ index 2c2f10c..754f0c7 100644
  
  static int read_distro_hostname(char **hn) {
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ARCH) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
+-#if defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
++#if defined(TARGET_PLD) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
          int r;
          FILE *f;
  
@@ -139,8 +139,8 @@ index 7f692e9..0a45854 100644
                          log_warning("Failed to read /etc/locale.conf: %s", strerror(-r));
          }
  
--#if defined(TARGET_FEDORA) || defined(TARGET_ALTLINUX)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_ALTLINUX)
+-#if defined(TARGET_ALTLINUX)
++#if defined(TARGET_PLD) || defined(TARGET_ALTLINUX)
          if (r <= 0 &&
              (r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
                                  "LANG", &variables[VARIABLE_LANG],
@@ -157,32 +157,27 @@ index 298cb4e..cec3974 100644
          const char *verb = args[0];
          unsigned f = 1, t = 1;
          LookupPaths paths;
-diff --git a/src/timedate/timedated.c b/src/timedate/timedated.c
-index 16f54b5..758b9df 100644
---- a/src/timedate/timedated.c
-+++ b/src/timedate/timedated.c
-@@ -174,7 +174,7 @@ static int read_data(void) {
-                 if (r != -ENOENT)
-                         log_warning("Failed to read /etc/timezone: %s", strerror(-r));
- 
--#ifdef TARGET_FEDORA
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD)
-                 r = parse_env_file("/etc/sysconfig/clock", NEWLINE,
-                                    "ZONE", &zone,
-                                    NULL);
 diff --git a/src/vconsole/vconsole-setup.c b/src/vconsole/vconsole-setup.c
 index 9196789..1d1a916 100644
 --- a/src/vconsole/vconsole-setup.c
 +++ b/src/vconsole/vconsole-setup.c
-@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
+@@ -358,6 +358,16 @@
+                         free(vc_keymap);
+                         vc_keymap = t;
+                 }
++
++#elif defined(TARGET_PLD)
++                r = parse_env_file("/etc/sysconfig/console", NEWLINE,
++                                   "CONSOLEFONT", &vc_font,
++                                   "CONSOLEMAP", &vc_font_map,
++                                   "CONSOLESCREENFONTMAP", &vc_font_unimap,
++                                   "KEYTABLE", &vc_keymap,
++                                   NULL);
++                if (r < 0 && r != -ENOENT)
++                        log_warning("Failed to read /etc/sysconfig/console: %s", strerror(-r));
+ #endif
          }
  
-         if (r <= 0) {
--#if defined(TARGET_FEDORA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD)
-                 r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
-                                         "SYSFONT", &vc_font,
-                                         "SYSFONTACM", &vc_font_map,
 diff --git a/units/console-shell.service.m4.in b/units/console-shell.service.m4.in
 index 02adc84..a9f31fd 100644
 --- a/units/console-shell.service.m4.in

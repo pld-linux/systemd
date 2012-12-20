@@ -11,7 +11,7 @@
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
 
-%bcond_without	initrd		# build without udev-initrd
+%bcond_with	initrd		# build without udev-initrd
 %bcond_with	uClibc		# link initrd version with static uClibc
 %bcond_with	klibc		# link initrd version with static klibc
 %bcond_with	dietlibc	# link initrd version with static dietlibc (currently broken and unsupported)
@@ -38,13 +38,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	187
-Release:	4
+Version:	196
+Release:	0.1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	26606e3c84448800ef0b3ffd57e6e8b6
+# Source0-md5:	05ebd7f108e420e2b4e4810ea4b3c810
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -74,7 +74,6 @@ Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
-Patch5:		kmsg-to-syslog.patch
 Patch6:		udev-so.patch
 Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
@@ -108,7 +107,9 @@ BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
 BuildRequires:	pciutils
 BuildRequires:	pkgconfig >= 0.9.0
+BuildRequires:	python-devel
 BuildRequires:	python-modules
+BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
 BuildRequires:	usbutils >= 0.82
@@ -551,6 +552,19 @@ A userspace implementation of devfs - static binary for initrd.
 Implementacja devfs w przestrzeni użytkownika - statyczna binarka dla
 initrd.
 
+%package -n python-systemd
+Summary:	Systemd Python bindings
+Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona
+Group:		Development/Languages/Python
+%pyrequires_eq	python
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+
+%description -n python-systemd
+Systemd Python bindings.
+
+%description -n python-systemd -l pl.UTF-8
+Wiązania do Systemd dla Pythona.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -558,7 +572,6 @@ initrd.
 #patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
 %patch6 -p1
 %if %{with uClibc}
 %patch7 -p1
@@ -595,10 +608,8 @@ patch -p1 <%{PATCH100}
 	--disable-keymap \
 	--disable-gtk-doc \
 	--disable-introspection \
-	--with-pci-ids-path=%{_sysconfdir}/pci.ids \
 	--disable-audit \
 	--disable-pam \
-	--disable-plymouth \
 	--disable-selinux \
 	--enable-split-usr
 
@@ -639,7 +650,6 @@ patch -p1 -R <%{PATCH100}
 	%{__enable_disable pam} \
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
-	--disable-plymouth \
 	--disable-silent-rules \
 	--enable-shared \
 	--enable-static \
@@ -647,7 +657,6 @@ patch -p1 -R <%{PATCH100}
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib} \
 	--with-html-dir=%{_gtkdocdir} \
-	--with-pci-ids-path=%{_sysconfdir}/pci.ids \
 	--enable-gtk-doc \
 	--enable-introspection \
 	--enable-split-usr
@@ -958,6 +967,10 @@ fi
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
+%attr(755,root,root) %{_bindir}/hostnamectl
+%attr(755,root,root) %{_bindir}/localectl
+%attr(755,root,root) %{_bindir}/systemd-coredumpctl
+%attr(755,root,root) %{_bindir}/timedatectl
 %attr(755,root,root) %{_bindir}/systemd-cat
 %attr(755,root,root) %{_bindir}/systemd-cgtop
 %attr(755,root,root) %{_bindir}/systemd-cgls
@@ -1010,6 +1023,7 @@ fi
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/tmp.conf
 %{_libexecdir}/tmpfiles.d/x11.conf
+%{_libexecdir}/systemd/catalog
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -1027,6 +1041,10 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
 %dir %{_datadir}/systemd
 %{_datadir}/systemd/kbd-model-map
+%{_mandir}/man1/hostnamectl.1*
+%{_mandir}/man1/localectl.1*
+%{_mandir}/man1/systemd-coredumpctl.1*
+%{_mandir}/man1/timedatectl.1*
 %{_mandir}/man1/journalctl.1*
 %{_mandir}/man1/loginctl.1*
 %{_mandir}/man1/systemd.1*
@@ -1047,6 +1065,7 @@ fi
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/locale.conf.5*
+%{_mandir}/man5/localtime.5*
 %{_mandir}/man5/logind.conf.5*
 %{_mandir}/man5/machine-id.5*
 %{_mandir}/man5/machine-info.5*
@@ -1054,7 +1073,6 @@ fi
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/systemd.*.5*
-%{_mandir}/man5/timezone.5*
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/bootup.7*
 %{_mandir}/man7/daemon.7*
@@ -1074,6 +1092,10 @@ fi
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
 %{_mandir}/man8/systemd-readahead.8*
+%{_mandir}/man8/systemd-fsck.8*
+%{_mandir}/man8/systemd-hybrid-sleep.service.8*
+%{_mandir}/man8/systemd-udevd-control.socket.8*
+%{_mandir}/man8/systemd-udevd-kernel.socket.8*
 %{_mandir}/man8/systemd-remount-fs.8*
 %{_mandir}/man8/systemd-shutdown.8*
 %{_mandir}/man8/systemd-shutdownd.8*
@@ -1128,10 +1150,7 @@ fi
 %dir %{_libexecdir}/sysctl.d
 %dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
-# Don't package the kernel.core_pattern setting until systemd-coredump
-# is a part of an actual systemd release and it's made clear how to
-# get the core dumps out of the journal.
-#%{_libexecdir}/sysctl.d/coredump.conf
+%{_libexecdir}/sysctl.d/coredump.conf
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %attr(755,root,root) /bin/systemd_booted
@@ -1144,6 +1163,7 @@ fi
 %{systemdunitdir}/*.mount
 %{systemdunitdir}/*.path
 %{systemdunitdir}/*.service
+%exclude %{systemdunitdir}/rc-inetd.service
 %{systemdunitdir}/*.socket
 %{systemdunitdir}/*.target
 %{systemdunitdir}/*.timer
@@ -1302,6 +1322,7 @@ fi
 
 %dir %{_sysconfdir}/udev
 %dir %{_sysconfdir}/udev/rules.d
+%dir %{_sysconfdir}/udev/hwdb.d
 
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/udev_blacklist.conf
@@ -1322,6 +1343,7 @@ fi
 /lib/udev/rules.d/60-persistent-storage.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/61-accelerometer.rules
+/lib/udev/rules.d/64-btrfs.rules
 /lib/udev/rules.d/70-power-switch.rules
 /lib/udev/rules.d/75-net-description.rules
 /lib/udev/rules.d/75-probe_mtd.rules
@@ -1331,6 +1353,14 @@ fi
 /lib/udev/rules.d/95-keyboard-force-release.rules
 /lib/udev/rules.d/95-keymap.rules
 /lib/udev/rules.d/95-udev-late.rules
+
+%dir /lib/udev/hwdb.d
+/lib/udev/hwdb.d/20-OUI.hwdb
+/lib/udev/hwdb.d/20-acpi-vendor.hwdb
+/lib/udev/hwdb.d/20-pci-classes.hwdb
+/lib/udev/hwdb.d/20-pci-vendor-product.hwdb
+/lib/udev/hwdb.d/20-usb-classes.hwdb
+/lib/udev/hwdb.d/20-usb-vendor-product.hwdb
 
 %{_mandir}/man7/udev.7*
 %{_mandir}/man8/udevadm.8*
@@ -1389,3 +1419,9 @@ fi
 %attr(755,root,root) %{_libdir}/initrd/udev/collect
 %attr(755,root,root) %{_libdir}/initrd/udev/mtd_probe
 %endif
+
+%files -n python-systemd
+%defattr(644,root,root,755)
+%dir %{py_sitedir}/systemd
+%{py_sitedir}/systemd/*.py*
+%attr(755,root,root) %{py_sitedir}/systemd/*.so

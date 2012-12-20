@@ -65,7 +65,7 @@ index 2ade0ab..aff1487 100644
          util_strscpy(ifr.ifr_newname, IFNAMSIZ, event->name);
          err = ioctl(sk, SIOCSIFNAME, &ifr);
 -        if (err >= 0) {
--                print_kmsg("renamed network interface %s to %s", ifr.ifr_name, ifr.ifr_newname);
+-                print_kmsg("renamed network interface %s to %s\n", ifr.ifr_name, ifr.ifr_newname);
 -        } else {
 +        if (err == 0) {
 +                rename_netif_kernel_log(ifr);
