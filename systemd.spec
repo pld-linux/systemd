@@ -1,6 +1,4 @@
 # TODO:
-# - restore sysconfig/timezone support in target-pld patch
-#   [now systemd expects /etc/localtime to be symlink to /usr/share/zoneinfo/... unconditionally]
 # - pldize vconsole setup:
 # 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
 # - initrd needs love (does not build and is probably completly unusable in current form)
@@ -43,7 +41,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	196
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+
 Group:		Base

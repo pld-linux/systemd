@@ -157,6 +157,24 @@ index 298cb4e..cec3974 100644
          const char *verb = args[0];
          unsigned f = 1, t = 1;
          LookupPaths paths;
+--- systemd-196/src/timedate/timedated.c~	2012-10-16 23:35:40.589269718 +0200
++++ systemd-196/src/timedate/timedated.c	2012-12-21 11:46:13.545086335 +0100
+@@ -175,6 +175,15 @@
+                 }
+         }
+ 
++#ifdef TARGET_PLD
++	r = parse_env_file("/etc/sysconfig/timezone", NEWLINE,
++			   "TIMEZONE", &tz.zone,
++			   NULL);
++	if (r < 0) {
++		if (r != -ENOENT)
++			log_warning("Failed to read /etc/sysconfig/timezone: %s", strerror(-r));
++	}
++#endif
+ #ifdef HAVE_DEBIAN
+         r = read_one_line_file("/etc/timezone", &tz.zone);
+         if (r < 0) {
 diff --git a/src/vconsole/vconsole-setup.c b/src/vconsole/vconsole-setup.c
 index 9196789..1d1a916 100644
 --- a/src/vconsole/vconsole-setup.c
