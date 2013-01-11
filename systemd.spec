@@ -41,7 +41,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	197
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -814,7 +814,7 @@ cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
 
 # provided by rc-scripts
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/rc-local.service
+%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/rc-local.service
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
