@@ -1,0 +1,13 @@
+[Unit]
+Description=Display Manager
+After=livesys-late.service rc-local.service systemd-user-sessions.service acpid.service
+
+# Do not stop plymouth, it is done in prefdm if required
+Conflicts=plymouth-quit.service
+After=plymouth-quit.service
+
+[Service]
+ExecStart=/etc/X11/xinit/prefdm -nodaemon
+Restart=always
+RestartSec=0
+IgnoreSIGPIPE=no
