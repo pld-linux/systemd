@@ -40,13 +40,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	196
-Release:	3
+Version:	197
+Release:	1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	05ebd7f108e420e2b4e4810ea4b3c810
+# Source0-md5:	56a860dceadfafe59f40141eb5223743
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -61,6 +61,7 @@ Source15:	pld-clean-tmp.sh
 Source16:	pld-rc-inetd-generator.sh
 Source17:	rc-inetd.service
 Source18:	default.preset
+Source19:	prefdm.service
 # rules
 Source101:	udev-alsa.rules
 Source102:	udev.rules
@@ -81,6 +82,7 @@ Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
 Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
+Patch11:	nss-in-rootlib.patch
 # hack set to allow static udev build
 Patch100:	static-udev.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
@@ -442,6 +444,7 @@ Conflicts:	rc-scripts < 0.4.5.3-1
 Conflicts:	systemd-units < 1:183
 Conflicts:	udev < 1:118-1
 Obsoletes:	udev-compat
+%{!?with_initrd:Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 
 %description -n udev-core
 A userspace implementation of devfs - core part of udev.
@@ -589,6 +592,7 @@ Wiązania do Systemd dla Pythona.
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -608,6 +612,12 @@ patch -p1 <%{PATCH100}
 	%{?with_dietlibc:CC="diet %{__cc} %{rpmcflags} %{rpmldflags} -Os -D_BSD_SOURCE"} \
 	%{?with_klibc:CC="%{_bindir}/klcc"} \
 	%{?debug:--enable-debug} \
+	--with-kbd-loadkeys=/usr/bin/loadkeys \
+	--with-kbd-setfont=/bin/setfont \
+	--with-sysvinit-path=/etc/rc.d/init.d \
+	--with-sysvrcnd-path=/etc/rc.d \
+	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
+	--enable-chkconfig \
 	--disable-silent-rules \
 	--disable-shared \
 	--enable-static \
@@ -668,6 +678,12 @@ patch -p1 -R <%{PATCH100}
 	%{__enable_disable tcpd tcpwrap} \
 	%{__enable_disable microhttpd} \
 	%{__enable_disable qrencode} \
+	--with-kbd-loadkeys=/usr/bin/loadkeys \
+	--with-kbd-setfont=/bin/setfont \
+	--with-sysvinit-path=/etc/rc.d/init.d \
+	--with-sysvrcnd-path=/etc/rc.d \
+	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
+	--enable-chkconfig \
 	--disable-silent-rules \
 	--enable-gtk-doc \
 	--enable-introspection \
@@ -705,6 +721,10 @@ ln -s /lib/udev $RPM_BUILD_ROOT/usr/lib/
 # install custom udev rules from pld package
 cp -a %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
 cp -a %{SOURCE102} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-udev-pld.rules
+
+# disable this abomination
+# http://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
+ln -s /dev/null $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/80-net-name-slot.rules
 
 # install udev configs
 cp -a %{SOURCE103} $RPM_BUILD_ROOT%{_sysconfdir}/udev/links.conf
@@ -787,6 +807,8 @@ cp -p %{SOURCE16} $RPM_BUILD_ROOT/lib/systemd/system-generators/pld-rc-inetd-gen
 cp -p %{SOURCE17} $RPM_BUILD_ROOT%{systemdunitdir}/rc-inetd.service
 
 cp -p %{SOURCE18} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system-preset/default.preset
+
+cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 
 # handled by rc-local sysv service, no need for generator
 %{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
@@ -1003,6 +1025,7 @@ fi
 %attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-ac-power
 %attr(755,root,root) /lib/systemd/systemd-binfmt
+%attr(755,root,root) /lib/systemd/systemd-bootchart
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
@@ -1070,6 +1093,7 @@ fi
 %{_mandir}/man1/loginctl.1*
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
+%{_mandir}/man1/systemd-bootchart.1*
 %{_mandir}/man1/systemd-cat.1*
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-cgtop.1*
@@ -1102,6 +1126,8 @@ fi
 %{_mandir}/man7/kernel-command-line.7*
 %{_mandir}/man7/systemd.journal-fields.7*
 %{_mandir}/man7/systemd.special.7*
+%{_mandir}/man7/systemd.time.7*
+%{_mandir}/man8/nss-myhostname.8*
 %{_mandir}/man8/systemd-binfmt.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-fsck.8*
@@ -1109,6 +1135,7 @@ fi
 %{_mandir}/man8/systemd-getty-generator.8*
 %{_mandir}/man8/systemd-hostnamed.8*
 %{_mandir}/man8/systemd-initctl.8*
+%{_mandir}/man8/systemd-journal-gatewayd.8*
 %{_mandir}/man8/systemd-journald.8*
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
@@ -1235,6 +1262,8 @@ fi
 %{_mandir}/man8/systemd-hybrid-sleep.service.8*
 %{_mandir}/man8/systemd-initctl.service.8*
 %{_mandir}/man8/systemd-initctl.socket.8*
+%{_mandir}/man8/systemd-journal-gatewayd.service.8*
+%{_mandir}/man8/systemd-journal-gatewayd.socket.8*
 %{_mandir}/man8/systemd-journald.service.8*
 %{_mandir}/man8/systemd-journald.socket.8*
 %{_mandir}/man8/systemd-kexec.service.8*
@@ -1279,6 +1308,7 @@ fi
 
 %files libs
 %defattr(644,root,root,755)
+%attr(755,root,root) /%{_lib}/libnss_myhostname.so.2
 %attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
 %attr(755,root,root) /%{_lib}/libsystemd-id128.so.*.*.*
@@ -1341,6 +1371,7 @@ fi
 %dir /lib/udev/hwdb.d
 /lib/udev/hwdb.d/20-OUI.hwdb
 /lib/udev/hwdb.d/20-acpi-vendor.hwdb
+/lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb
 /lib/udev/hwdb.d/20-pci-classes.hwdb
 /lib/udev/hwdb.d/20-pci-vendor-product.hwdb
 /lib/udev/hwdb.d/20-usb-classes.hwdb
@@ -1360,6 +1391,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/links.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-udev-pld.rules
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/80-net-name-slot.rules
 
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/udev.conf
 
@@ -1381,6 +1413,7 @@ fi
 /lib/udev/rules.d/75-tty-description.rules
 /lib/udev/rules.d/78-sound-card.rules
 /lib/udev/rules.d/80-drivers.rules
+/lib/udev/rules.d/80-net-name-slot.rules
 /lib/udev/rules.d/95-keyboard-force-release.rules
 /lib/udev/rules.d/95-keymap.rules
 /lib/udev/rules.d/95-udev-late.rules
