@@ -41,7 +41,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	197
-Release:	3
+Release:	4
 Epoch:		1
 License:	GPL v2+
 Group:		Base
@@ -155,7 +155,6 @@ Requires:	virtual(module-tools)
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
 Suggests:	kmod >= 5
-Suggests:	nss_myhostname
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
@@ -371,6 +370,7 @@ Summary(pl.UTF-8):	Biblioteki współdzielone systemd
 Group:		Libraries
 Requires:	libgcrypt >= 1.4.5
 %{?with_selinux:Requires:	libselinux >= 2.1.9}
+Obsoletes:	nss_myhostname
 
 %description libs
 Shared systemd libraries.
