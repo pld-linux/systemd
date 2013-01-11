@@ -1,18 +1,11 @@
---- systemd-197/Makefile.am~	2013-01-10 13:47:07.559176765 +0100
-+++ systemd-197/Makefile.am	2013-01-11 11:37:03.702831120 +0100
-@@ -3591,6 +3591,15 @@
+--- systemd-197/Makefile.am.orig	2013-01-11 17:08:54.878788792 +0100
++++ systemd-197/Makefile.am	2013-01-11 17:10:25.442120239 +0100
+@@ -3589,7 +3589,7 @@
+ 	-shared \
+ 	-shrext .so.2
  
- lib_LTLIBRARIES += \
+-lib_LTLIBRARIES += \
++rootlib_LTLIBRARIES = \
  	libnss_myhostname.la
-+
-+libnss_myhostname-install-hook:
-+	mv $(DESTDIR)$(libdir)/libnss_myhostname.so.2 $(DESTDIR)$(rootlibdir)
-+
-+libnss_myhostname-uninstall-hook:
-+	rm -f $(DESTDIR)$(rootlibdir)/libnss_myhostname.so.2
-+
-+INSTALL_EXEC_HOOKS += libnss_myhostname-install-hook
-+UNINSTALL_EXEC_HOOKS += libnss_myhostname-uninstall-hook
  endif
  
- # move lib from $(libdir) to $(rootlibdir) and update devel link, if needed

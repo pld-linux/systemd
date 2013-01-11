@@ -612,18 +612,9 @@ patch -p1 <%{PATCH100}
 	%{?with_dietlibc:CC="diet %{__cc} %{rpmcflags} %{rpmldflags} -Os -D_BSD_SOURCE"} \
 	%{?with_klibc:CC="%{_bindir}/klcc"} \
 	%{?debug:--enable-debug} \
-	--with-kbd-loadkeys=/usr/bin/loadkeys \
-	--with-kbd-setfont=/bin/setfont \
-	--with-sysvinit-path=/etc/rc.d/init.d \
-	--with-sysvrcnd-path=/etc/rc.d \
-	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
-	--enable-chkconfig \
 	--disable-silent-rules \
 	--disable-shared \
 	--enable-static \
-	--with-distro=pld \
-	--with-rootprefix="" \
-	--with-rootlibdir=/%{_lib} \
 	--disable-audit \
 	--disable-gtk-doc \
 	--disable-gudev \
@@ -633,7 +624,16 @@ patch -p1 <%{PATCH100}
 	--disable-pam \
 	--disable-qrencode \
 	--disable-selinux \
-	--enable-split-usr
+	--enable-chkconfig \
+	--enable-split-usr \
+	--with-kbd-loadkeys=/usr/bin/loadkeys \
+	--with-kbd-setfont=/bin/setfont \
+	--with-sysvinit-path=/etc/rc.d/init.d \
+	--with-sysvrcnd-path=/etc/rc.d \
+	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
+	--with-rc-local-script-path-stop=/sbin/halt.local \
+	--with-rootprefix="" \
+	--with-rootlibdir=/%{_lib}
 
 %{__make} \
 	libudev-core.la \
@@ -678,22 +678,21 @@ patch -p1 -R <%{PATCH100}
 	%{__enable_disable tcpd tcpwrap} \
 	%{__enable_disable microhttpd} \
 	%{__enable_disable qrencode} \
+	--disable-silent-rules \
+	--enable-chkconfig \
+	--enable-gtk-doc \
+	--enable-introspection \
+	--enable-split-usr \
+	--enable-static \
+	--with-html-dir=%{_gtkdocdir} \
 	--with-kbd-loadkeys=/usr/bin/loadkeys \
 	--with-kbd-setfont=/bin/setfont \
 	--with-sysvinit-path=/etc/rc.d/init.d \
 	--with-sysvrcnd-path=/etc/rc.d \
 	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
-	--enable-chkconfig \
-	--disable-silent-rules \
-	--enable-gtk-doc \
-	--enable-introspection \
-	--enable-split-usr \
-	--enable-shared \
-	--enable-static \
-	--with-distro=pld \
+	--with-rc-local-script-path-stop=/sbin/halt.local \
 	--with-rootprefix="" \
-	--with-rootlibdir=/%{_lib} \
-	--with-html-dir=%{_gtkdocdir}
+	--with-rootlibdir=/%{_lib}
 
 %{__make}
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
@@ -834,6 +833,7 @@ install -d $RPM_BUILD_ROOT/var/log
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
+%{__rm} $RPM_BUILD_ROOT/%{_lib}/libnss_myhostname.la
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
 %{__rm} $RPM_BUILD_ROOT%{py_sitedir}/systemd/*.la
 %py_postclean
