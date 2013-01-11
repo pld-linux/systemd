@@ -2,47 +2,10 @@ diff --git a/Makefile.am b/Makefile.am
 index 170465a..bce467d 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -115,6 +115,12 @@ AM_CPPFLAGS += \
- 	-DKBD_SETFONT=\"/usr/bin/setfont\" \
- 	-DDEFAULT_FONT=\"LatArCyrHeb-16\"
- else
-+if TARGET_PLD
-+AM_CPPFLAGS += \
-+	-DKBD_LOADKEYS=\"/usr/bin/loadkeys\" \
-+	-DKBD_SETFONT=\"/bin/setfont\" \
-+	-DDEFAULT_FONT=\"LatArCyrHeb-16\"
-+else
- AM_CPPFLAGS += \
- 	-DKBD_LOADKEYS=\"/bin/loadkeys\" \
- 	-DKBD_SETFONT=\"/bin/setfont\" \
-@@ -132,6 +138,7 @@ endif
- endif
- endif
- endif
-+endif
- 
- rootbin_PROGRAMS = \
- 	systemd \
-@@ -381,6 +388,14 @@
- 	systemd-rc-local-generator
+@@ -4083,6 +4083,21 @@ if TARGET_FEDORA
+ 		$(LN_S) ../systemd-modules-load.service systemd-modules-load.service )
  endif
  
-+if TARGET_PLD
-+dist_systemunit_DATA += \
-+	units/pld/prefdm.service \
-+	units/pld/halt-local.service
-+systemgenerator_PROGRAMS += \
-+	systemd-rc-local-generator
-+endif
-+
- if TARGET_MANDRIVA
- dist_systemunit_DATA += \
- 	units/mandriva/prefdm.service \
-@@ -1992,6 +1999,23 @@ if TARGET_FEDORA
- 		$(LN_S) $(systemunitdir)/display-manager.service display-manager.service )
- endif
- 
-+if TARGET_PLD
 +	$(MKDIR_P) -m 0755 $(DESTDIR)$(systemunitdir)/final.target.wants
 +	( cd $(DESTDIR)$(systemunitdir)/multi-user.target.wants && \
 +		rm -f rc-local.service && \
@@ -57,113 +20,134 @@ index 170465a..bce467d 100644
 +	( cd $(DESTDIR)$(systemunitdir)/graphical.target.wants && \
 +		rm -f display-manager.service && \
 +		$(LN_S) $(systemunitdir)/display-manager.service display-manager.service )
-+endif
 +
- if TARGET_MANDRIVA
- 	$(MKDIR_P) -m 0755 $(DESTDIR)$(systemunitdir)/final.target.wants
- 	( cd $(DESTDIR)$(systemunitdir)/final.target.wants && \
-diff --git a/configure.ac b/configure.ac
-index 596a32a..f701bfd 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -448,6 +449,12 @@ case $with_distro in
-                 M4_DEFINES=-DTARGET_MANDRIVA=1
-                 have_plymouth=yes
-                 ;;
-+        pld)
-+    		SYSTEM_SYSVINIT_PATH=/etc/rc.d/init.d
-+    		SYSTEM_SYSVRCND_PATH=/etc/rc.d
-+    		AC_DEFINE(TARGET_PLD, [], [Target is PLD Linux])
-+    		M4_DISTRO_FLAG=-DTARGET_PLD=1
-+    		;;
-         angstrom)
-                 SYSTEM_SYSVRCND_PATH=/etc
-                 AC_DEFINE(TARGET_ANGSTROM, [], [Target is Ångström])
-@@ -510,6 +517,7 @@ if test -n "$enable_plymouth"; then
- fi
+ install-exec-hook: $(INSTALL_EXEC_HOOKS)
  
- AM_CONDITIONAL(TARGET_FEDORA, test x"$with_distro" = xfedora)
-+AM_CONDITIONAL(TARGET_PLD, test x"$with_distro" = xpld)
- AM_CONDITIONAL(TARGET_SUSE, test x"$with_distro" = xsuse)
- AM_CONDITIONAL(TARGET_DEBIAN, test x"$with_distro" = xdebian)
- AM_CONDITIONAL(TARGET_UBUNTU, test x"$with_distro" = xubuntu)
-diff --git a/src/fsck/fsck.c b/src/fsck/fsck.c
-index 3477ba1..d32718d 100644
---- a/src/fsck/fsck.c
-+++ b/src/fsck/fsck.c
-@@ -127,7 +127,7 @@ static int parse_proc_cmdline(void) {
-                         arg_skip = true;
-                 else if (startswith(w, "fsck"))
-                         log_warning("Invalid fsck parameter. Ignoring.");
--#if defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
-                 else if (strneq(w, "fastboot", l))
-                         arg_skip = true;
-                 else if (strneq(w, "forcefsck", l))
+ uninstall-hook: $(UNINSTALL_DATA_HOOKS) $(UNINSTALL_EXEC_HOOKS)
 diff --git a/src/core/hostname-setup.c b/src/core/hostname-setup.c
 index 2c2f10c..754f0c7 100644
 --- a/src/core/hostname-setup.c
 +++ b/src/core/hostname-setup.c
-@@ -30,7 +30,7 @@
- #include "util.h"
- #include "log.h"
+@@ -64,13 +64,84 @@ static int read_and_strip_hostname(const char *path, char **hn) {
+         return 0;
+ }
  
--#if defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_PLD) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
- #define FILENAME "/etc/sysconfig/network"
- #elif defined(TARGET_SUSE) || defined(TARGET_SLACKWARE)
- #define FILENAME "/etc/HOSTNAME"
-@@ -64,7 +64,7 @@ static int read_and_strip_hostname(const char *path, char **hn) {
- 
- static int read_distro_hostname(char **hn) {
- 
--#if defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_PLD) || defined(TARGET_GENTOO) || defined(TARGET_ALTLINUX) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
++static int read_distro_hostname(char **hn) {
++        int r;
++        _cleanup_fclose_ FILE *f = NULL;
++
++        assert(hn);
++
++        f = fopen("/etc/sysconfig/network", "re");
++        if (!f)
++                return -errno;
++
++        for (;;) {
++                char line[LINE_MAX];
++                char *s, *k;
++
++                if (!fgets(line, sizeof(line), f)) {
++                        if (feof(f))
++                                break;
++
++                        r = -errno;
++                        goto finish;
++                }
++
++                s = strstrip(line);
++
++                if (!startswith_no_case(s, "HOSTNAME="))
++                        continue;
++
++                k = strdup(s+9);
++                if (!k) {
++                        r = -ENOMEM;
++                        goto finish;
++                }
++
++                hostname_cleanup(k);
++
++                if (isempty(k)) {
++                        free(k);
++                        r = -ENOENT;
++                        goto finish;
++                }
++
++                *hn = k;
++                r = 0;
++                goto finish;
++        }
++
++        r = -ENOENT;
++
++finish:
++        return r;
++}
++
++static int read_hostname(char **hn) {
++        int r;
++
++        assert(hn);
++
++        /* First, try to load the generic hostname configuration file,
++         * that we support on all distributions */
++
++        r = read_and_strip_hostname("/etc/hostname", hn);
++        if (r < 0) {
++                if (r == -ENOENT)
++                        return read_distro_hostname(hn);
++
++                return r;
++        }
++
++        return 0;
++}
++
+ int hostname_setup(void) {
          int r;
-         FILE *f;
+         _cleanup_free_ char *b = NULL;
+         const char *hn;
+         bool enoent = false;
  
+-        r = read_and_strip_hostname("/etc/hostname", &b);
++        r = read_hostname(&b);
+         if (r < 0) {
+                 if (r == -ENOENT)
+                         enoent = true;
 diff --git a/src/core/locale-setup.c b/src/core/locale-setup.c
 index 7f692e9..0a45854 100644
 --- a/src/core/locale-setup.c
 +++ b/src/core/locale-setup.c
-@@ -74,7 +74,7 @@ int locale_setup(void) {
+@@ -74,6 +74,7 @@ int locale_setup(void) {
  
-         if (detect_container(NULL) <= 0)
-                 if ((r = parse_env_file("/proc/cmdline", WHITESPACE,
--#if defined(TARGET_FEDORA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD)
-                                         "LANG",                     &variables[VARIABLE_LANG],
- #endif
-                                         "locale.LANG",              &variables[VARIABLE_LANG],
-@@ -121,7 +121,7 @@ int locale_setup(void) {
+         if (detect_container(NULL) <= 0) {
+                 r = parse_env_file("/proc/cmdline", WHITESPACE,
++                                   "LANG",                     &variables[VARIABLE_LANG],
+                                    "locale.LANG",              &variables[VARIABLE_LANG],
+                                    "locale.LANGUAGE",          &variables[VARIABLE_LANGUAGE],
+                                    "locale.LC_CTYPE",          &variables[VARIABLE_LC_CTYPE],
+@@ -121,6 +121,15 @@ int locale_setup(void) {
                          log_warning("Failed to read /etc/locale.conf: %s", strerror(-r));
          }
  
--#if defined(TARGET_ALTLINUX)
-+#if defined(TARGET_PLD) || defined(TARGET_ALTLINUX)
-         if (r <= 0 &&
-             (r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
-                                 "LANG", &variables[VARIABLE_LANG],
-diff --git a/src/systemctl/systemctl.c b/src/systemctl/systemctl.c
-index 298cb4e..cec3974 100644
---- a/src/systemctl/systemctl.c
-+++ b/src/systemctl/systemctl.c
-@@ -3460,7 +3460,7 @@ finish:
- static int enable_sysv_units(char **args) {
-         int r = 0;
- 
--#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_ALTLINUX) || defined(TARGET_MAGEIA))
-+#if defined (HAVE_SYSV_COMPAT) && (defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_SUSE) || defined(TARGET_ALTLINUX) || defined(TARGET_MAGEIA))
-         const char *verb = args[0];
-         unsigned f = 1, t = 1;
-         LookupPaths paths;
++        if (r <= 0 &&
++            (r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
++                                "LANG", &variables[VARIABLE_LANG],
++                                NULL)) < 0) {
++
++                if (r != -ENOENT)
++                        log_warning("Failed to read /etc/sysconfig/i18n: %s", strerror(-r));
++        }
++
+         if (!variables[VARIABLE_LANG]) {
+                 variables[VARIABLE_LANG] = strdup("C");
+                 if (!variables[VARIABLE_LANG]) {
 --- systemd-196/src/timedate/timedated.c~	2012-10-16 23:35:40.589269718 +0200
 +++ systemd-196/src/timedate/timedated.c	2012-12-21 11:46:13.545086335 +0100
-@@ -175,6 +175,15 @@
+@@ -175,6 +175,13 @@
                  }
          }
  
-+#ifdef TARGET_PLD
 +	r = parse_env_file("/etc/sysconfig/timezone", NEWLINE,
 +			   "TIMEZONE", &tz.zone,
 +			   NULL);
@@ -171,7 +155,6 @@ index 298cb4e..cec3974 100644
 +		if (r != -ENOENT)
 +			log_warning("Failed to read /etc/sysconfig/timezone: %s", strerror(-r));
 +	}
-+#endif
  #ifdef HAVE_DEBIAN
          r = read_one_line_file("/etc/timezone", &tz.zone);
          if (r < 0) {
@@ -179,12 +162,10 @@ diff --git a/src/vconsole/vconsole-setup.c b/src/vconsole/vconsole-setup.c
 index 9196789..1d1a916 100644
 --- a/src/vconsole/vconsole-setup.c
 +++ b/src/vconsole/vconsole-setup.c
-@@ -358,6 +358,16 @@
-                         free(vc_keymap);
-                         vc_keymap = t;
-                 }
-+
-+#elif defined(TARGET_PLD)
+@@ -358,6 +358,14 @@
+         }
+ 
+         if (r <= 0) {
 +                r = parse_env_file("/etc/sysconfig/console", NEWLINE,
 +                                   "CONSOLEFONT", &vc_font,
 +                                   "CONSOLEMAP", &vc_font_map,
@@ -193,130 +174,6 @@ index 9196789..1d1a916 100644
 +                                   NULL);
 +                if (r < 0 && r != -ENOENT)
 +                        log_warning("Failed to read /etc/sysconfig/console: %s", strerror(-r));
- #endif
          }
  
-diff --git a/units/console-shell.service.m4.in b/units/console-shell.service.m4.in
-index 02adc84..a9f31fd 100644
---- a/units/console-shell.service.m4.in
-+++ b/units/console-shell.service.m4.in
-@@ -11,6 +11,9 @@ After=systemd-user-sessions.service plymouth-quit-wait.service
- m4_ifdef(`TARGET_FEDORA',
- After=rc-local.service
- )m4_dnl
-+m4_ifdef(`TARGET_PLD',
-+After=rc-local.service
-+)m4_dnl
- m4_ifdef(`TARGET_ARCH',
- After=rc-local.service
- )m4_dnl
-diff --git a/units/getty@.service.m4 b/units/getty@.service.m4
-index d2a145d..cae4ae5 100644
---- a/units/getty@.service.m4
-+++ b/units/getty@.service.m4
-@@ -12,6 +12,9 @@ After=dev-%i.device systemd-user-sessions.service plymouth-quit-wait.service
- m4_ifdef(`TARGET_FEDORA',
- After=rc-local.service
- )m4_dnl
-+m4_ifdef(`TARGET_PLD',
-+After=rc-local.service
-+)m4_dnl
- m4_ifdef(`TARGET_ARCH',
- After=rc-local.service
- )m4_dnl
-diff --git a/units/rescue.service.m4.in b/units/rescue.service.m4.in
-index 7dd8a22..5a9c363 100644
---- a/units/rescue.service.m4.in
-+++ b/units/rescue.service.m4.in
-@@ -22,6 +22,9 @@ ExecStartPre=-/bin/echo 'Welcome to rescue mode. Use "systemctl default" or ^D t
- m4_ifdef(`TARGET_FEDORA',
- `EnvironmentFile=/etc/sysconfig/init
- ExecStart=-/bin/bash -c "exec ${SINGLE}"',
-+m4_ifdef(`TARGET_PLD',
-+`EnvironmentFile=/etc/sysconfig/init
-+ExecStart=-/bin/bash -c "exec ${SINGLE}"',
- m4_ifdef(`TARGET_MANDRIVA',
- `EnvironmentFile=/etc/sysconfig/init
- ExecStart=-/bin/bash -c "exec ${SINGLE}"',
-@@ -31,7 +34,7 @@ ExecStart=-/bin/bash -c "exec ${SINGLE}"',
- m4_ifdef(`TARGET_MAGEIA',
- `EnvironmentFile=/etc/sysconfig/init
- ExecStart=-/bin/bash -c "exec ${SINGLE}"',
--`ExecStart=-/sbin/sulogin')))
-+`ExecStart=-/sbin/sulogin'))))
- ExecStopPost=-@SYSTEMCTL@ --fail --no-block default
- StandardInput=tty-force
- StandardOutput=inherit
-diff --git a/units/serial-getty@.service.m4 b/units/serial-getty@.service.m4
-index e5f0ca6..69b7fc2 100644
---- a/units/serial-getty@.service.m4
-+++ b/units/serial-getty@.service.m4
-@@ -12,6 +12,9 @@ After=dev-%i.device systemd-user-sessions.service plymouth-quit-wait.service
- m4_ifdef(`TARGET_FEDORA',
- After=rc-local.service
- )m4_dnl
-+m4_ifdef(`TARGET_PLD',
-+After=rc-local.service
-+)m4_dnl
- m4_ifdef(`TARGET_ARCH',
- After=rc-local.service
- )m4_dnl
-diff --git a/src/rc-local-generator/rc-local-generator.c b/src/rc-local-generator/rc-local-generator.c
-index ac6424a..a247c25 100644
---- a/src/rc-local-generator/rc-local-generator.c
-+++ b/src/rc-local-generator/rc-local-generator.c
-@@ -27,7 +27,7 @@
- #include "util.h"
- #include "mkdir.h"
- 
--#if defined(TARGET_FEDORA) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
-+#if defined(TARGET_FEDORA) || defined(TARGET_PLD) || defined(TARGET_MANDRIVA) || defined(TARGET_MAGEIA)
- #define SCRIPT_PATH_START "/etc/rc.d/rc.local"
- #elif defined(TARGET_SUSE)
- #define SCRIPT_PATH_START "/etc/init.d/boot.local"
---- /dev/null
-+++ b/units/pld/halt-local.service
-@@ -0,0 +1,20 @@
-+#  This file is part of systemd.
-+#
-+#  systemd is free software; you can redistribute it and/or modify it
-+#  under the terms of the GNU General Public License as published by
-+#  the Free Software Foundation; either version 2 of the License, or
-+#  (at your option) any later version.
-+
-+[Unit]
-+Description=/sbin/halt.local Compatibility
-+ConditionFileIsExecutable=/sbin/halt.local
-+DefaultDependencies=no
-+After=shutdown.target
-+Before=final.target
-+
-+[Service]
-+Type=oneshot
-+ExecStart=/sbin/halt.local
-+TimeoutSec=0
-+StandardOutput=tty
-+RemainAfterExit=yes
---- /dev/null
-+++ b/units/pld/prefdm.service
-@@ -0,0 +1,20 @@
-+#  This file is part of systemd.
-+#
-+#  systemd is free software; you can redistribute it and/or modify it
-+#  under the terms of the GNU General Public License as published by
-+#  the Free Software Foundation; either version 2 of the License, or
-+#  (at your option) any later version.
-+
-+[Unit]
-+Description=Display Manager
-+After=livesys-late.service rc-local.service systemd-user-sessions.service acpid.service
-+
-+# Do not stop plymouth, it is done in prefdm if required
-+Conflicts=plymouth-quit.service
-+After=plymouth-quit.service
-+
-+[Service]
-+ExecStart=/etc/X11/xinit/prefdm -nodaemon
-+Restart=always
-+RestartSec=0
-+IgnoreSIGPIPE=no
+         r = EXIT_FAILURE;
