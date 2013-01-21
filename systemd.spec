@@ -1138,7 +1138,7 @@ fi
 %{_mandir}/man8/systemd-getty-generator.8*
 %{_mandir}/man8/systemd-hostnamed.8*
 %{_mandir}/man8/systemd-initctl.8*
-%{_mandir}/man8/systemd-journal-gatewayd.8*
+%{?with_microhttpd:%{_mandir}/man8/systemd-journal-gatewayd.8*}
 %{_mandir}/man8/systemd-journald.8*
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
@@ -1265,8 +1265,8 @@ fi
 %{_mandir}/man8/systemd-hybrid-sleep.service.8*
 %{_mandir}/man8/systemd-initctl.service.8*
 %{_mandir}/man8/systemd-initctl.socket.8*
-%{_mandir}/man8/systemd-journal-gatewayd.service.8*
-%{_mandir}/man8/systemd-journal-gatewayd.socket.8*
+%{?with_microhttpd:%{_mandir}/man8/systemd-journal-gatewayd.service.8*}
+%{?with_microhttpd:%{_mandir}/man8/systemd-journal-gatewayd.socket.8*}
 %{_mandir}/man8/systemd-journald.service.8*
 %{_mandir}/man8/systemd-journald.socket.8*
 %{_mandir}/man8/systemd-kexec.service.8*
