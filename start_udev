@@ -125,15 +125,13 @@ if [ -f "/sys/class/tty/console/uevent" ]; then
 	ret=$(( $ret + $? ))
 
 	# retrigger all events
-	# Udev finds it's own way of making this dir
-	# and making it by hand makes udevsettle
-	# work forever
-	#mkdir -p /dev/.udev/queue
-	udevadm trigger
+	/sbin/udevadm trigger --type=subsystems --action=add
+	ret=$(( $ret + $? ))
+	/sbin/udevadm trigger --type=devices --action=add
 	ret=$(( $ret + $? ))
 
 	# wait for the events to finish
-	udevadm settle
+	/sbin/udevadm settle
 	ret=$(( $ret + $? ))
 else
 	echo "Kernel too old for this udev version"
