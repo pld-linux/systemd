@@ -4,6 +4,10 @@
 # - initrd needs love (does not build and is probably completly unusable in current form)
 # - merge rpm macros provided by systemd with ours
 #
+# - check removed syslog.target
+# - add systemd-journal, systemd-journal-gateway groups and systemd-journal-gateway user
+# - package new files
+#
 # Conditional build:
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
@@ -40,13 +44,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	197
-Release:	5
+Version:	198
+Release:	0.1
 Epoch:		1
 License:	GPL v2+
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	56a860dceadfafe59f40141eb5223743
+# Source0-md5:	26a75e2a310f8c1c1ea9ec26ddb171c5
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -564,6 +568,20 @@ A userspace implementation of devfs - static binary for initrd.
 %description -n udev-initrd -l pl.UTF-8
 Implementacja devfs w przestrzeni użytkownika - statyczna binarka dla
 initrd.
+
+%package -n bash-completion-udev
+Summary:	bash-completion for udev
+Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
+Group:		Applications/Shells
+Requires:	udev = %{epoch}:%{version}
+Requires:	bash-completion
+
+%description -n bash-completion-udev
+bash-completion for udev.
+
+%description -n bash-completion-udev -l pl.UTF-8
+Bashowe dopełnianie składni dla udev.
+
 
 %package -n python-systemd
 Summary:	Systemd Python bindings
@@ -1337,7 +1355,13 @@ fi
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
-/etc/bash_completion.d/systemd-bash-completion.sh
+%{_datadir}/bash-completion/completions/hostnamectl
+%{_datadir}/bash-completion/completions/journalctl
+%{_datadir}/bash-completion/completions/localectl
+%{_datadir}/bash-completion/completions/loginctl
+%{_datadir}/bash-completion/completions/systemctl
+%{_datadir}/bash-completion/completions/systemd-coredumpctl
+%{_datadir}/bash-completion/completions/timedatectl
 
 %files -n udev
 %defattr(644,root,root,755)
@@ -1478,6 +1502,10 @@ fi
 %attr(755,root,root) %{_libdir}/initrd/udev/collect
 %attr(755,root,root) %{_libdir}/initrd/udev/mtd_probe
 %endif
+
+%files -n bash-completion-udev
+%defattr(644,root,root,755)
+%{_datadir}/bash-completion/completions/udevadm
 
 %files -n python-systemd
 %defattr(644,root,root,755)
