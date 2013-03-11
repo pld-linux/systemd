@@ -61,8 +61,8 @@ index 2ade0ab..aff1487 100644
  
          log_debug("changing net interface name from '%s' to '%s'\n",
 @@ -766,12 +787,49 @@ static int rename_netif(struct udev_event *event)
-         util_strscpy(ifr.ifr_name, IFNAMSIZ, udev_device_get_sysname(dev));
-         util_strscpy(ifr.ifr_newname, IFNAMSIZ, event->name);
+         strscpy(ifr.ifr_name, IFNAMSIZ, udev_device_get_sysname(dev));
+         strscpy(ifr.ifr_newname, IFNAMSIZ, event->name);
          err = ioctl(sk, SIOCSIFNAME, &ifr);
 -        if (err >= 0) {
 -                print_kmsg("renamed network interface %s to %s\n", ifr.ifr_name, ifr.ifr_newname);
@@ -90,8 +90,8 @@ index 2ade0ab..aff1487 100644
 +        rename_netif_kernel_log(ifr);
 +
 +        /* wait a maximum of 90 seconds for our target to become available */
-+        util_strscpy(ifr.ifr_name, IFNAMSIZ, ifr.ifr_newname);
-+        util_strscpy(ifr.ifr_newname, IFNAMSIZ, event->name);
++        strscpy(ifr.ifr_name, IFNAMSIZ, ifr.ifr_newname);
++        strscpy(ifr.ifr_newname, IFNAMSIZ, event->name);
 +        loop = 90 * 20;
 +        while (loop--) {
 +                const struct timespec duration = { 0, 1000 * 1000 * 1000 / 20 };

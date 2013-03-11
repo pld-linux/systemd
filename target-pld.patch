@@ -2,28 +2,52 @@ diff --git a/Makefile.am b/Makefile.am
 index 170465a..bce467d 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -4083,6 +4083,21 @@ if TARGET_FEDORA
- 		$(LN_S) ../systemd-modules-load.service systemd-modules-load.service )
- endif
+@@ -196,6 +196,8 @@
+ SYSINIT_TARGET_WANTS =
+ BASIC_TARGET_WANTS =
+ SOCKETS_TARGET_WANTS =
++FINAL_TARGET_WANTS =
++GRAPHICAL_TARGET_WANTS =
  
-+	$(MKDIR_P) -m 0755 $(DESTDIR)$(systemunitdir)/final.target.wants
-+	( cd $(DESTDIR)$(systemunitdir)/multi-user.target.wants && \
-+		rm -f rc-local.service && \
-+		$(LN_S) $(systemunitdir)/rc-local.service rc-local.service )
-+	( cd $(DESTDIR)$(systemunitdir)/final.target.wants && \
-+		rm -f halt-local.service && \
-+		$(LN_S) $(systemunitdir)/halt-local.service halt-local.service )
+ SYSTEM_UNIT_ALIASES =
+ USER_UNIT_ALIASES =
+@@ -214,6 +216,8 @@
+ 	what="$(SYSINIT_TARGET_WANTS)" && wants=sysinit.target && $(add-wants)
+ 	what="$(BASIC_TARGET_WANTS)" && wants=basic.target && $(add-wants)
+ 	what="$(SOCKETS_TARGET_WANTS)" && wants=sockets.target && $(add-wants)
++	what="$(FINAL_TARGET_WANTS)" && wants=final.target && $(add-wants)
++	what="$(GRAPHICAL_TARGET_WANTS)" && wants=graphical.target && $(add-wants)
+ 
+ define add-wants
+ 	[ -z "$$what" ] || ( \
+@@ -3388,9 +3392,16 @@
+ 	$(systemdstatedir)
+ 
+ MULTI_USER_TARGET_WANTS += \
++	rc-local.service \
+ 	systemd-logind.service \
+ 	systemd-user-sessions.service
+ 
++FINAL_TARGET_WANTS += \
++	halt-local.service
++
++GRAPHICAL_TARGET_WANTS += \
++	display-manager.service
++
+ SYSTEM_UNIT_ALIASES += \
+ 	systemd-logind.service dbus-org.freedesktop.login1.service
+ 
+@@ -3790,6 +3801,10 @@
+ uninstall-hook: $(UNINSTALL_DATA_HOOKS) $(UNINSTALL_EXEC_HOOKS)
+ 
+ install-data-hook: $(INSTALL_DATA_HOOKS)
 +	( cd $(DESTDIR)$(systemunitdir) && \
 +		rm -f display-manager.service single.service && \
 +		$(LN_S) prefdm.service display-manager.service && \
 +		$(LN_S) rescue.service single.service )
-+	( cd $(DESTDIR)$(systemunitdir)/graphical.target.wants && \
-+		rm -f display-manager.service && \
-+		$(LN_S) $(systemunitdir)/display-manager.service display-manager.service )
-+
- install-exec-hook: $(INSTALL_EXEC_HOOKS)
  
- uninstall-hook: $(UNINSTALL_DATA_HOOKS) $(UNINSTALL_EXEC_HOOKS)
+ distclean-local: $(DISTCLEAN_LOCAL_HOOKS)
+ 
 diff --git a/src/core/hostname-setup.c b/src/core/hostname-setup.c
 index 2c2f10c..754f0c7 100644
 --- a/src/core/hostname-setup.c
@@ -155,17 +179,19 @@ index 7f692e9..0a45854 100644
 +		if (r != -ENOENT)
 +			log_warning("Failed to read /etc/sysconfig/timezone: %s", strerror(-r));
 +	}
- #ifdef HAVE_DEBIAN
-         r = read_one_line_file("/etc/timezone", &tz.zone);
-         if (r < 0) {
+ have_timezone:
+         if (isempty(tz.zone)) {
+                 free(tz.zone);
 diff --git a/src/vconsole/vconsole-setup.c b/src/vconsole/vconsole-setup.c
 index 9196789..1d1a916 100644
 --- a/src/vconsole/vconsole-setup.c
 +++ b/src/vconsole/vconsole-setup.c
-@@ -358,6 +358,14 @@
+@@ -358,6 +358,17 @@
+                 if (r < 0 && r != -ENOENT)
+                         log_warning("Failed to read /etc/vconsole.conf: %s", strerror(-r));
          }
- 
-         if (r <= 0) {
++
++        if (r <= 0) {
 +                r = parse_env_file("/etc/sysconfig/console", NEWLINE,
 +                                   "CONSOLEFONT", &vc_font,
 +                                   "CONSOLEMAP", &vc_font_map,
@@ -174,6 +200,7 @@ index 9196789..1d1a916 100644
 +                                   NULL);
 +                if (r < 0 && r != -ENOENT)
 +                        log_warning("Failed to read /etc/sysconfig/console: %s", strerror(-r));
-         }
++        }
  
-         r = EXIT_FAILURE;
+         if (utf8)
+                 enable_utf8(fd);
