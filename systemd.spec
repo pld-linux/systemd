@@ -1,5 +1,4 @@
 # TODO:
-# - initrd needs love (does not build and is probably completly unusable in current form)
 # - merge rpm macros provided by systemd with ours
 #
 # Conditional build:
@@ -10,29 +9,6 @@
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
-
-%bcond_with	initrd		# build without udev-initrd
-%bcond_with	uClibc		# link initrd version with static uClibc
-%bcond_with	klibc		# link initrd version with static klibc
-%bcond_with	dietlibc	# link initrd version with static dietlibc (currently broken and unsupported)
-%bcond_without	glibc		# link initrd version with static glibc
-
-%ifarch sparc sparc64
-%define		with_glibc 1
-%endif
-
-# if one of the *libc is enabled disable default uClibc
-%if %{with dietlibc} && %{with uClibc}
-%undefine	with_uClibc
-%endif
-
-%if %{with glibc} && %{with uClibc}
-%undefine	with_uClibc
-%endif
-
-%if %{with klibc} && %{with uClibc}
-%undefine	with_uClibc
-%endif
 
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
@@ -76,13 +52,10 @@ Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
 Patch6:		udev-so.patch
-Patch7:		udev-uClibc.patch
 Patch8:		udev-ploop-rules.patch
 Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
-# hack set to allow static udev build
-Patch100:	static-udev.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -119,23 +92,6 @@ BuildRequires:	sed >= 4.0
 BuildRequires:	usbutils >= 0.82
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
-%if %{with initrd}
-BuildRequires:	acl-static
-BuildRequires:	attr-static
-%{?with_dietlibc:BuildRequires:	dietlibc-static}
-BuildRequires:	glib2-static >= 1:2.22.0
-%{?with_glibc:BuildRequires:	glibc-static}
-%{?with_klibc:BuildRequires:	klibc-static}
-BuildRequires:	kmod-libs-static >= 5
-BuildRequires:	libblkid-static >= 2.20
-%{?with_glibc:BuildRequires:	libselinux-static >= 2.1.9}
-%{?with_glibc:BuildRequires:	libsepol-static}
-%{?with_klibc:BuildRequires:	linux-libc-headers}
-BuildRequires:	pcre-static
-%{?with_uClibc:BuildRequires:	uClibc-static >= 4:0.9.30.3}
-BuildRequires:	xz-static
-BuildRequires:	zlib-static
-%endif
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
@@ -451,7 +407,7 @@ Conflicts:	rc-scripts < 0.4.5.3-1
 Conflicts:	systemd-units < 1:183
 Conflicts:	udev < 1:118-1
 Obsoletes:	udev-compat
-%{!?with_initrd:Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
+Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 
 %description -n udev-core
 A userspace implementation of devfs - core part of udev.
@@ -558,20 +514,6 @@ libgudev API documentation.
 %description -n udev-glib-apidocs -l pl.UTF-8
 Dokumentacja API libgudev.
 
-%package -n udev-initrd
-Summary:	A userspace implementation of devfs - static binary for initrd
-Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - statyczna binarka dla initrd
-Group:		Base
-Requires:	udev-core = %{epoch}:%{version}-%{release}
-Conflicts:	geninitrd < 10000.10
-
-%description -n udev-initrd
-A userspace implementation of devfs - static binary for initrd.
-
-%description -n udev-initrd -l pl.UTF-8
-Implementacja devfs w przestrzeni użytkownika - statyczna binarka dla
-initrd.
-
 %package -n bash-completion-udev
 Summary:	bash-completion for udev
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
@@ -607,9 +549,6 @@ Wiązania do Systemd dla Pythona.
 %patch3 -p1
 %patch4 -p1
 %patch6 -p1
-%if %{with uClibc}
-%patch7 -p1
-%endif
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
@@ -623,69 +562,6 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__autoconf}
 %{__autoheader}
 %{__automake}
-%if %{with initrd}
-patch -p1 <%{PATCH100}
-%configure \
-%if "%{?configure_cache}" == "1"
-	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}-initrd.cache \
-%endif
-	%{?with_uClibc:CC="%{_target_cpu}-uclibc-gcc"} \
-	%{?with_dietlibc:CC="diet %{__cc} %{rpmcflags} %{rpmldflags} -Os -D_BSD_SOURCE"} \
-	%{?with_klibc:CC="%{_bindir}/klcc"} \
-	%{?debug:--enable-debug} \
-	--disable-silent-rules \
-	--disable-shared \
-	--enable-static \
-	--disable-audit \
-	--disable-gtk-doc \
-	--disable-gudev \
-	--disable-introspection \
-	--disable-keymap \
-	--disable-microhttpd \
-	--disable-pam \
-	--disable-qrencode \
-	--disable-selinux \
-	--enable-chkconfig \
-	--enable-split-usr \
-	--with-kbd-loadkeys=/usr/bin/loadkeys \
-	--with-kbd-setfont=/bin/setfont \
-	--with-sysvinit-path=/etc/rc.d/init.d \
-	--with-sysvrcnd-path=/etc/rc.d \
-	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
-	--with-rc-local-script-path-stop=/sbin/halt.local \
-	--with-rootprefix="" \
-	--with-rootlibdir=/%{_lib}
-
-%{__make} \
-	libudev-core.la \
-	systemd-udevd \
-	udevadm \
-	ata_id \
-	cdrom_id \
-	collect \
-	scsi_id \
-	v4l_id \
-	accelerometer \
-	mtd_probe \
-	LDFLAGS="-all-static" \
-	KMOD_LIBS="-lkmod -lz -llzma"
-
-mkdir udev-initrd
-cp -a systemd-udevd \
-	udevadm \
-	ata_id \
-	cdrom_id \
-	collect \
-	scsi_id \
-	v4l_id \
-	accelerometer \
-	mtd_probe \
-	udev-initrd/
-
-%{__make} clean
-patch -p1 -R <%{PATCH100}
-%endif
-
 %configure \
 	QUOTAON=/sbin/quotaon \
 	QUOTACHECK=/sbin/quotacheck \
@@ -759,18 +635,6 @@ cp -a %{SOURCE121} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 
 mv $RPM_BUILD_ROOT%{_mandir}/man8/{systemd-,}udevd.8
 echo ".so man8/udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/systemd-udevd.8
-
-%if %{with initrd}
-install -d $RPM_BUILD_ROOT%{_libdir}/initrd/udev
-install -p udev-initrd/udevadm $RPM_BUILD_ROOT%{_libdir}/initrd
-install -p udev-initrd/systemd-udevd $RPM_BUILD_ROOT%{_libdir}/initrd
-# hardlink udevd -> systemd-udevd
-ln $RPM_BUILD_ROOT%{_libdir}/initrd/{systemd-,}udevd
-ln -s udevd $RPM_BUILD_ROOT%{_libdir}/initrd/udevstart
-install -p udev-initrd/*_id $RPM_BUILD_ROOT%{_libdir}/initrd/udev
-install -p udev-initrd/collect $RPM_BUILD_ROOT%{_libdir}/initrd/udev
-install -p udev-initrd/mtd_probe $RPM_BUILD_ROOT%{_libdir}/initrd/udev
-%endif
 
 # Main binary has been moved, but we don't want to break existing installs
 ln -s ../lib/systemd/systemd $RPM_BUILD_ROOT/bin/systemd
@@ -1516,19 +1380,6 @@ fi
 %files -n udev-glib-apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/gudev
-
-%if %{with initrd}
-%files -n udev-initrd
-%defattr(644,root,root,755)
-%dir %{_libdir}/initrd/udev
-%attr(755,root,root) %{_libdir}/initrd/systemd-udevd
-%attr(755,root,root) %{_libdir}/initrd/udevd
-%attr(755,root,root) %{_libdir}/initrd/udevadm
-%attr(755,root,root) %{_libdir}/initrd/udevstart
-%attr(755,root,root) %{_libdir}/initrd/udev/*_id
-%attr(755,root,root) %{_libdir}/initrd/udev/collect
-%attr(755,root,root) %{_libdir}/initrd/udev/mtd_probe
-%endif
 
 %files -n bash-completion-udev
 %defattr(644,root,root,755)
