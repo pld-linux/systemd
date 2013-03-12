@@ -399,7 +399,7 @@ Summary:	bash-completion for systemd
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}
-Requires:	bash-completion
+Requires:	bash-completion >= 2.0
 
 %description -n bash-completion-systemd
 bash-completion for systemd.
@@ -574,7 +574,7 @@ Summary:	bash-completion for udev
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
 Group:		Applications/Shells
 Requires:	udev = %{epoch}:%{version}
-Requires:	bash-completion
+Requires:	bash-completion >= 2.0
 
 %description -n bash-completion-udev
 bash-completion for udev.
