@@ -4,8 +4,6 @@
 # - initrd needs love (does not build and is probably completly unusable in current form)
 # - merge rpm macros provided by systemd with ours
 #
-# - check removed syslog.target
-# - add systemd-journal, systemd-journal-gateway groups and systemd-journal-gateway user
 # - package new files
 #
 # Conditional build:
@@ -144,6 +142,12 @@ BuildRequires:	zlib-static
 %endif
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	%{name}-units = %{epoch}:%{version}-%{release}
+Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
@@ -161,6 +165,9 @@ Suggests:	fsck >= 2.20
 Suggests:	kmod >= 5
 Suggests:	service(klogd)
 Suggests:	service(syslog)
+Provides:	user(systemd-journal-gateway)
+Provides:	group(systemd-journal-gateway)
+Provides:	group(systemd-journal)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
@@ -859,13 +866,25 @@ install -d $RPM_BUILD_ROOT/var/log
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%pre
+%groupadd -g 288 systemd-journal
+%groupadd -g 287 systemd-journal-gateway
+%useradd -u 287 -g 287 -d /var/log/journal -s /bin/false -c "Systemd Journal Gateway" systemd-journal-gateway
+
 %post
+# should we?
+#setfacl -nm g:logs:rx,d:g:logs:rx /var/log/journal
 /bin/systemd-machine-id-setup > /dev/null 2>&1 || :
 /bin/systemctl daemon-reexec > /dev/null 2>&1 || :
 
 %postun
 if [ $1 -ge 1 ]; then
 	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
+fi
+if [ "$1" = "0" ]; then
+	%userremove systemd-journal-gateway
+	%groupremove systemd-journal-gateway
+	%groupremove systemd-journal
 fi
 
 %post   libs -p /sbin/ldconfig
@@ -1179,6 +1198,7 @@ fi
 %dir /var/lib/%{name}/coredump
 %attr(640,root,root) %ghost /var/log/btmp
 %attr(664,root,utmp) %ghost /var/log/wtmp
+%dir /var/log/journal
 
 %if %{with pam}
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
