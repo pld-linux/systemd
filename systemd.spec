@@ -4,8 +4,6 @@
 # - initrd needs love (does not build and is probably completly unusable in current form)
 # - merge rpm macros provided by systemd with ours
 #
-# - package new files
-#
 # Conditional build:
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
@@ -1032,6 +1030,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/machine-info
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/timezone
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/bootchart.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
@@ -1049,7 +1048,9 @@ fi
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
+%attr(755,root,root) %{_bindir}/bootctl
 %attr(755,root,root) %{_bindir}/hostnamectl
+%attr(755,root,root) %{_bindir}/kernel-install
 %attr(755,root,root) %{_bindir}/localectl
 %attr(755,root,root) %{_bindir}/systemd-cat
 %attr(755,root,root) %{_bindir}/systemd-cgls
@@ -1064,6 +1065,7 @@ fi
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-ac-power
+%attr(755,root,root) /lib/systemd/systemd-activate
 %attr(755,root,root) /lib/systemd/systemd-binfmt
 %attr(755,root,root) /lib/systemd/systemd-bootchart
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
@@ -1147,6 +1149,7 @@ fi
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man1/timedatectl.1*
 %{_mandir}/man5/binfmt.d.5*
+%{_mandir}/man5/bootchart.conf.5*
 # cfl with rc-scripts
 #%{_mandir}/man5/crypttab.5*
 %{_mandir}/man5/hostname.5*
@@ -1160,14 +1163,20 @@ fi
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/systemd.*.5*
+%{_mandir}/man5/systemd-system.conf.5*
+%{_mandir}/man5/systemd-user.conf.5*
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/bootup.7*
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/kernel-command-line.7*
+%{_mandir}/man7/systemd.directives.7*
+%{_mandir}/man7/systemd.index.7*
 %{_mandir}/man7/systemd.journal-fields.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man7/systemd.time.7*
+%{_mandir}/man8/kernel-install.8*
 %{_mandir}/man8/nss-myhostname.8*
+%{_mandir}/man8/systemd-activate.8*
 %{_mandir}/man8/systemd-binfmt.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-fsck.8*
