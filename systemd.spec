@@ -1,6 +1,4 @@
 # TODO:
-# - pldize vconsole setup:
-# 	http://cgit.freedesktop.org/systemd/systemd/tree/src/vconsole/vconsole-setup.c
 # - initrd needs love (does not build and is probably completly unusable in current form)
 # - merge rpm macros provided by systemd with ours
 #
