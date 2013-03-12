@@ -719,7 +719,7 @@ patch -p1 -R <%{PATCH100}
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib}
 
-%{__make}
+%{__make} -j1
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
 
 %install
