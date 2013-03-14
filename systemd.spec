@@ -353,6 +353,18 @@ Header files for systemd libraries.
 %description devel -l pl.UTF-8
 Pliki nagłówkowe bibliotek systemd.
 
+%package static
+Summary:	Static systemd libraries
+Summary(pl.UTF-8):	Statyczne biblioteki systemd
+Group:		Development/Libraries
+Requires:	%{name}-devel = %{epoch}:%{version}-%{release}
+
+%description static
+Static systemd libraries.
+
+%description static -l pl.UTF-8
+Statyczne biblioteki systemd.
+
 %package -n bash-completion-systemd
 Summary:	bash-completion for systemd
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
@@ -1243,6 +1255,13 @@ fi
 %{_pkgconfigdir}/libsystemd-login.pc
 %{_mandir}/man3/SD_*.3*
 %{_mandir}/man3/sd*.3*
+
+%files static
+%defattr(644,root,root,755)
+%{_libdir}/libsystemd-daemon.a
+%{_libdir}/libsystemd-id128.a
+%{_libdir}/libsystemd-journal.a
+%{_libdir}/libsystemd-login.a
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
