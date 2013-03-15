@@ -17,7 +17,7 @@ Name:		systemd
 Version:	198
 Release:	1
 Epoch:		1
-License:	GPL v2+
+License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
 # Source0-md5:	26a75e2a310f8c1c1ea9ec26ddb171c5
@@ -58,6 +58,7 @@ Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
+BuildRequires:	attr-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
