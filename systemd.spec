@@ -15,7 +15,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	198
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -118,10 +118,10 @@ Suggests:	fsck >= 2.20
 Suggests:	kmod >= 5
 Suggests:	service(klogd)
 Suggests:	service(syslog)
-Provides:	user(systemd-journal-gateway)
-Provides:	group(systemd-journal-gateway)
 Provides:	group(systemd-journal)
+Provides:	group(systemd-journal-gateway)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
+Provides:	user(systemd-journal-gateway)
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
 # systemd takes care of that and causes problems
@@ -296,9 +296,9 @@ Obsoletes:	xinetd
 %description inetd
 Native inet service support for systemd via socket activation.
 
-This package contains inet service generator that provides
-the functionality of rc-inetd service and replaces a separate
-inet daemon with systemd socket activation feature.
+This package contains inet service generator that provides the
+functionality of rc-inetd service and replaces a separate inet daemon
+with systemd socket activation feature.
 
 %description inetd -l pl.UTF-8
 Natywna obsługa usług inet dla systemd.
@@ -393,6 +393,7 @@ Obsoletes:	hotplug-pci
 Obsoletes:	udev-dev
 Obsoletes:	udev-extras < 20090628
 Obsoletes:	udev-tools
+Conflicts:	geninitrd < 12635
 
 %description -n udev
 udev is the device manager for the Linux 2.6 kernel series. Its
@@ -408,19 +409,19 @@ hotpluga.
 Summary:	A userspace implementation of devfs - core part of udev
 Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - główna część udev
 Group:		Base
-Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	coreutils
 Requires:	filesystem >= 3.0-45
 Requires:	kmod-libs >= 5
 Requires:	libblkid >= 2.20
 %{?with_selinux:Requires:	libselinux >= 2.1.9}
 Requires:	setup >= 2.6.1-1
+Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 2.6.32
+Obsoletes:	udev-compat
+Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 Conflicts:	rc-scripts < 0.4.5.3-1
 Conflicts:	systemd-units < 1:183
 Conflicts:	udev < 1:118-1
-Obsoletes:	udev-compat
-Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 
 %description -n udev-core
 A userspace implementation of devfs - core part of udev.
@@ -480,8 +481,8 @@ Dokumentacja API libudev.
 Summary:	Shared libgudev library - GObject bindings for libudev
 Summary(pl.UTF-8):	Biblioteka współdzielona libgudev - wiązania GObject do libudev
 Group:		Libraries
-Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	glib2 >= 1:2.22.0
+Requires:	udev-libs = %{epoch}:%{version}-%{release}
 
 %description -n udev-glib
 Shared libgudev library - GObject bindings for libudev.
@@ -493,9 +494,9 @@ Biblioteka współdzielona libgudev - wiązania GObject do libudev.
 Summary:	Header file for libgudev library
 Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libgudev
 Group:		Development/Libraries
+Requires:	glib2-devel >= 1:2.22.0
 Requires:	udev-devel = %{epoch}:%{version}-%{release}
 Requires:	udev-glib = %{epoch}:%{version}-%{release}
-Requires:	glib2-devel >= 1:2.22.0
 
 %description -n udev-glib-devel
 Header file for libgudev library.
@@ -531,8 +532,8 @@ Dokumentacja API libgudev.
 Summary:	bash-completion for udev
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
 Group:		Applications/Shells
-Requires:	udev = %{epoch}:%{version}
 Requires:	bash-completion >= 2.0
+Requires:	udev = %{epoch}:%{version}
 
 %description -n bash-completion-udev
 bash-completion for udev.
@@ -545,8 +546,8 @@ Bashowe dopełnianie składni dla udev.
 Summary:	Systemd Python bindings
 Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona
 Group:		Development/Languages/Python
-%pyrequires_eq	python
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	python
 
 %description -n python-systemd
 Systemd Python bindings.
