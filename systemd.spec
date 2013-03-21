@@ -15,7 +15,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	198
-Release:	3
+Release:	3.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -567,7 +567,12 @@ Wiązania do Systemd dla Pythona.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
+
+%{__mv} units/initrd-cleanup.service{,.in}
+%{__mv} units/initrd-parse-etc.service{,.in}
+%{__mv} units/initrd-switch-root.service{,.in}
 
 %build
 %{__gtkdocize}
