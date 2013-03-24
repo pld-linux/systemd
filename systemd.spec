@@ -15,7 +15,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	198
-Release:	4
+Release:	5
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -57,6 +57,7 @@ Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 Patch12:	systemctl-path.patch
+Patch13:	proc-hidepid.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -569,6 +570,7 @@ Wiązania do Systemd dla Pythona.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %{__mv} units/initrd-cleanup.service{,.in}
