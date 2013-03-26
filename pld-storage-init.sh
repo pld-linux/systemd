@@ -27,7 +27,7 @@ if [ -x /sbin/dmraid ]; then
 fi
 
 # Start any MD RAID arrays that haven't been started yet
-[ -r /proc/mdstat ] && [ -r /dev/md/md-device-map ] && /sbin/mdadm -IRs
+[ -r /proc/mdstat ] && /sbin/mdadm -As --auto=yes --run 2>&1
 
 if ! is_no "$LVM2" && [ -x /sbin/lvm ]; then
 	modprobe -s dm-mod >/dev/null 2>&1
