@@ -14,13 +14,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	198
-Release:	6
+Version:	199
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	26a75e2a310f8c1c1ea9ec26ddb171c5
+# Source0-md5:	4bb13f84ce211e93f0141774a90a2322
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -56,8 +56,7 @@ Patch8:		udev-ploop-rules.patch
 Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
-Patch12:	systemctl-path.patch
-Patch13:	proc-hidepid.patch
+Patch12:	proc-hidepid.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -570,12 +569,7 @@ Wiązania do Systemd dla Pythona.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
-
-%{__mv} units/initrd-cleanup.service{,.in}
-%{__mv} units/initrd-parse-etc.service{,.in}
-%{__mv} units/initrd-switch-root.service{,.in}
 
 %build
 %{__gtkdocize}
@@ -632,8 +626,8 @@ ln -s /lib/udev/udevd $RPM_BUILD_ROOT/lib/systemd/systemd-udevd
 ln -s /lib/udev/udevd $RPM_BUILD_ROOT%{_sbindir}/udevd
 
 # compat symlinks for "/ merged into /usr" programs
-mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}}/udevadm
-ln -s %{_sbindir}/udevadm $RPM_BUILD_ROOT%{_bindir}
+mv $RPM_BUILD_ROOT/{,s}bin/udevadm
+ln -s %{_sbindir}/udevadm $RPM_BUILD_ROOT/bin
 ln -s /lib/udev $RPM_BUILD_ROOT/usr/lib/
 
 # install custom udev rules from pld package
@@ -726,7 +720,7 @@ cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
 #	- syslog _might_ be used by some syslog implementation (none for now),
 #	- isn't dbus populated by dbus-systemd only (so to be moved there)?
-install -d $RPM_BUILD_ROOT%{systemdunitdir}/{dbus,halt,kexec,poweroff,reboot,syslog}.target.wants
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,kexec,poweroff,reboot,syslog}.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,timezone,vconsole.conf}
@@ -1131,7 +1125,8 @@ fi
 %dir %{_libexecdir}/sysctl.d
 %dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
-%{_libexecdir}/sysctl.d/coredump.conf
+%{_libexecdir}/sysctl.d/50-coredump.conf
+%{_libexecdir}/sysctl.d/50-default.conf
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %attr(755,root,root) /bin/systemd_booted
@@ -1163,7 +1158,7 @@ fi
 %dir %{systemdunitdir}/sockets.target.wants
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
-%{systemdunitdir}/basic.target.wants/*
+%dir %{systemdunitdir}/timers.target.wants
 %{systemdunitdir}/final.target.wants/*
 %{systemdunitdir}/graphical.target.wants/*
 %{systemdunitdir}/local-fs.target.wants/*
@@ -1181,6 +1176,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/sysinit.target.wants/sys-*.mount
 %{systemdunitdir}/sysinit.target.wants/systemd-*
+%{systemdunitdir}/timers.target.wants/*.timer
 %{_mandir}/man8/systemd-ask-password-console.path.8*
 %{_mandir}/man8/systemd-ask-password-console.service.8*
 %{_mandir}/man8/systemd-ask-password-wall.path.8*
@@ -1320,14 +1316,14 @@ fi
 /lib/udev/hwdb.d/20-acpi-vendor.hwdb
 /lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb
 /lib/udev/hwdb.d/20-pci-classes.hwdb
-/lib/udev/hwdb.d/20-pci-vendor-product.hwdb
+/lib/udev/hwdb.d/20-pci-vendor-model.hwdb
 /lib/udev/hwdb.d/20-usb-classes.hwdb
-/lib/udev/hwdb.d/20-usb-vendor-product.hwdb
+/lib/udev/hwdb.d/20-usb-vendor-model.hwdb
 
 %attr(755,root,root) %{_sbindir}/start_udev
 %attr(755,root,root) %{_sbindir}/udevd
 %attr(755,root,root) %{_sbindir}/udevadm
-%attr(755,root,root) %{_bindir}/udevadm
+%attr(755,root,root) /bin/udevadm
 
 %dir %{_sysconfdir}/udev
 %dir %{_sysconfdir}/udev/rules.d
