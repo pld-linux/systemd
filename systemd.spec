@@ -9,7 +9,7 @@
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
-%bcond_without	tests
+%bcond_without	tests		# "make check" (requires systemd already installed)
 
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
@@ -92,6 +92,7 @@ BuildRequires:	python-modules
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
+%{?with_tests:BuildRequires:	systemd}
 BuildRequires:	usbutils >= 0.82
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
