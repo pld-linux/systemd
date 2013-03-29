@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	199
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -723,7 +723,7 @@ cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
 #	- syslog _might_ be used by some syslog implementation (none for now),
 #	- isn't dbus populated by dbus-systemd only (so to be moved there)?
-install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,kexec,poweroff,reboot,syslog}.target.wants
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,initrd,kexec,poweroff,reboot,syslog}.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,timezone,vconsole.conf}
@@ -1151,6 +1151,7 @@ fi
 %dir %{systemdunitdir}/final.target.wants
 %dir %{systemdunitdir}/graphical.target.wants
 %dir %{systemdunitdir}/halt.target.wants
+%dir %{systemdunitdir}/initrd.target.wants
 %dir %{systemdunitdir}/kexec.target.wants
 %dir %{systemdunitdir}/local-fs.target.wants
 %dir %{systemdunitdir}/multi-user.target.wants
