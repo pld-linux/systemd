@@ -9,19 +9,19 @@
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
-%bcond_without	tests		# "make check" (requires systemd already installed)
+%bcond_with	tests		# "make check" (requires systemd already installed)
 
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	199
-Release:	2
+Version:	200
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	4bb13f84ce211e93f0141774a90a2322
+# Source0-md5:	5584b96e55c46217dab4c1768d10a472
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
