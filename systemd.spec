@@ -256,6 +256,7 @@ Provides:	virtual(init-daemon)
 Obsoletes:	SysVinit
 Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
+Conflicts:	rc-scripts < 0.4.5.5-2
 Conflicts:	upstart
 
 %description init
@@ -1107,11 +1108,11 @@ fi
 %attr(755,root,root) /sbin/runlevel
 %attr(755,root,root) /sbin/shutdown
 %attr(755,root,root) /sbin/telinit
-%{_mandir}/man1/init.1
+%{_mandir}/man1/init.1*
 %{_mandir}/man5/crypttab.5*
 %{_mandir}/man8/halt.8*
-%{_mandir}/man8/poweroff.8
-%{_mandir}/man8/reboot.8
+%{_mandir}/man8/poweroff.8*
+%{_mandir}/man8/reboot.8*
 %{_mandir}/man8/runlevel.8*
 %{_mandir}/man8/shutdown.8*
 %{_mandir}/man8/telinit.8*
