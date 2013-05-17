@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	202
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -112,6 +112,7 @@ Requires:	agetty
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-3
 Requires:	libutempter
+Requires:	polkit
 Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
@@ -423,10 +424,10 @@ Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 2.6.32
 Obsoletes:	udev-compat
 Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
+Conflicts:	geninitrd < 12639
 Conflicts:	rc-scripts < 0.4.5.3-1
 Conflicts:	systemd-units < 1:183
 Conflicts:	udev < 1:118-1
-Conflicts:	geninitrd < 12639
 
 %description -n udev-core
 A userspace implementation of devfs - core part of udev.
@@ -1237,7 +1238,7 @@ fi
 
 %files inetd
 %defattr(644,root,root,755)
-%attr(755,root,root) /lib/systemd/system-generators/pld-rc-inetd-generator
+%attr(755,root,root) %{systemdunitdir}-generators/pld-rc-inetd-generator
 %{systemdunitdir}/rc-inetd.service
 
 %files analyze
