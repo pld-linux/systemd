@@ -89,7 +89,7 @@ index 2c2f10c..754f0c7 100644
 +                        goto finish;
 +                }
 +
-+                hostname_cleanup(k);
++                hostname_cleanup(k, false);
 +
 +                if (isempty(k)) {
 +                        free(k);

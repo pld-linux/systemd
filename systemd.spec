@@ -15,13 +15,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	202
-Release:	3
+Version:	204
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	3136c6912d3ee1f6d4deb16234783731
+# Source0-md5:	a07619bb19f48164fbf0761d12fd39a8
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -574,7 +574,7 @@ Wiązania do Systemd dla Pythona.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
+#patch13 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -1049,6 +1049,7 @@ fi
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/systemd.*.5*
+%{_mandir}/man5/systemd-sleep.conf.5*
 %{_mandir}/man5/systemd-system.conf.5*
 %{_mandir}/man5/systemd-user.conf.5*
 %{_mandir}/man5/vconsole.conf.5*
@@ -1228,6 +1229,7 @@ fi
 %{_mandir}/man8/systemd-tmpfiles-clean.service.8*
 %{_mandir}/man8/systemd-tmpfiles-clean.timer.8*
 %{_mandir}/man8/systemd-tmpfiles-setup.service.8*
+%{_mandir}/man8/systemd-tmpfiles-setup-dev.service.8*
 %{_mandir}/man8/systemd-udevd.service.8*
 %{_mandir}/man8/systemd-udevd-control.socket.8*
 %{_mandir}/man8/systemd-udevd-kernel.socket.8*
@@ -1286,6 +1288,7 @@ fi
 %{_datadir}/bash-completion/completions/localectl
 %{_datadir}/bash-completion/completions/loginctl
 %{_datadir}/bash-completion/completions/systemctl
+%{_datadir}/bash-completion/completions/systemd-analyze
 %{_datadir}/bash-completion/completions/systemd-coredumpctl
 %{_datadir}/bash-completion/completions/timedatectl
 
