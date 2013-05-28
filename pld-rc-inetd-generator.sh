@@ -2,7 +2,6 @@
 
 parse_one_service() {
 	SOCKET_FILE="$1/rc-inetd-${CURRENT_SERVICE}.socket"
-	SERVICE_FILE="$1/rc-inetd-${CURRENT_SERVICE}@.service"
 
 	case "$FAMILY" in
 		ipv4)
@@ -18,13 +17,16 @@ parse_one_service() {
 		stream)
 			[ "$PROTOCOL" = "tcp" ] || return
 			__LISTEN="ListenStream=$PORT"
+			SERVICE_FILE="$1/rc-inetd-${CURRENT_SERVICE}@.service"
 			;;
 		dgram)
 			[ "$PROTOCOL" = "udp" ] || return
 			__LISTEN="ListenDatagram=$PORT"
+			SERVICE_FILE="$1/rc-inetd-${CURRENT_SERVICE}.service"
 			;;
 		seqpacket)
 			__LISTEN="ListenSequentialPacket=$PORT"
+			SERVICE_FILE="$1/rc-inetd-${CURRENT_SERVICE}.service"
 			;;
 		*)
 			return
