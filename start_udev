@@ -76,11 +76,11 @@ get_dev_mounts() {
 	}' /proc/mounts
 }
 
+show "Starting udev"; busy
+
 export ACTION=add
 prog=udev
 ret=0
-show "Starting udev"
-busy
 
 # mount the devtmpfs on $udev_root, if not already done
 awk "\$2 == \"$udev_root\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
@@ -112,12 +112,15 @@ awk "\$2 == \"$udev_root\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
 kill_udevd > "$udev_root/null" 2>&1
 
 # Start udevd daemon
-$udevd --daemon
-ret=$(( $ret + $? ))
+$udevd --daemon; rc=$?
+test $rc -eq 0 && ok || fail
+ret=$(( $ret + $rc ))
 
 # Making extra nodes
-make_extra_nodes
-ret=$(( $ret + $? ))
+show "Setup extra nodes"; busy
+make_extra_nodes; rc=$?
+test $rc -eq 0 && ok || fail
+ret=$(( $ret + $rc ))
 
 if [ -f "/sys/class/tty/console/uevent" ]; then
 	# Setting default hotplug handler
@@ -125,18 +128,23 @@ if [ -f "/sys/class/tty/console/uevent" ]; then
 	ret=$(( $ret + $? ))
 
 	# retrigger all events
-	/sbin/udevadm trigger --type=subsystems --action=add
-	ret=$(( $ret + $? ))
-	/sbin/udevadm trigger --type=devices --action=add
-	ret=$(( $ret + $? ))
+	show "Retrigger subsystem events"; busy
+	/sbin/udevadm trigger --type=subsystems --action=add; rc=$?
+	test $rc -eq 0 && ok || fail
+	ret=$(( $ret + $rc ))
+
+	show "Retrigger subsystem events"; busy
+	/sbin/udevadm trigger --type=devices --action=add; rc=$?
+	test $rc -eq 0 && ok || fail
+	ret=$(( $ret + $rc ))
 
 	# wait for the events to finish
-	/sbin/udevadm settle
-	ret=$(( $ret + $? ))
+	show "udevadm settle"; busy
+	/sbin/udevadm settle; rc=$?
+	test $rc -eq 0 && ok || fail
+	ret=$(( $ret + $rc ))
 else
 	echo "Kernel too old for this udev version"
 fi
 
-ret=$(( $ret + $? ))
-[ $ret -eq 0 ] && ok || fail
-exit 0
+exit $ret
