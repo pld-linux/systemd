@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	204
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -981,7 +981,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-update-utmp
 %attr(755,root,root) /lib/systemd/systemd-user-sessions
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
-%dir /lib/systemd/system-generators
 %attr(755,root,root) /lib/systemd/systemd
 %attr(755,root,root) /lib/systemd/system-generators/systemd-*-generator
 /lib/udev/rules.d/70-uaccess.rules
@@ -1133,6 +1132,7 @@ fi
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
+%dir /lib/systemd/system-generators
 %dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
 %{_libexecdir}/sysctl.d/50-coredump.conf
