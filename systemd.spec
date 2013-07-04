@@ -15,13 +15,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	204
-Release:	3
+Version:	205
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	a07619bb19f48164fbf0761d12fd39a8
+# Source0-md5:	3afc38170371929cf6ab056bf6a52fc6
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -360,18 +360,6 @@ Header files for systemd libraries.
 %description devel -l pl.UTF-8
 Pliki nagłówkowe bibliotek systemd.
 
-%package static
-Summary:	Static systemd libraries
-Summary(pl.UTF-8):	Statyczne biblioteki systemd
-Group:		Development/Libraries
-Requires:	%{name}-devel = %{epoch}:%{version}-%{release}
-
-%description static
-Static systemd libraries.
-
-%description static -l pl.UTF-8
-Statyczne biblioteki systemd.
-
 %package -n bash-completion-systemd
 Summary:	bash-completion for systemd
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
@@ -459,18 +447,6 @@ Header file for libudev library.
 %description -n udev-devel -l pl.UTF-8
 Plik nagłówkowy biblioteki libudev.
 
-%package -n udev-static
-Summary:	Static libudev library
-Summary(pl.UTF-8):	Biblioteka statyczna libudev
-Group:		Development/Libraries
-Requires:	udev-devel = %{epoch}:%{version}-%{release}
-
-%description -n udev-static
-Static libudev library.
-
-%description -n udev-static -l pl.UTF-8
-Biblioteka statyczna libudev.
-
 %package -n udev-apidocs
 Summary:	libudev API documentation
 Summary(pl.UTF-8):	Dokumentacja API libudev
@@ -509,18 +485,6 @@ Header file for libgudev library.
 
 %description -n udev-glib-devel -l pl.UTF-8
 Plik nagłówkowy biblioteki libgudev.
-
-%package -n udev-glib-static
-Summary:	Static libgudev library
-Summary(pl.UTF-8):	Biblioteka statyczna libgudev
-Group:		Development/Libraries
-Requires:	udev-glib-devel = %{epoch}:%{version}-%{release}
-
-%description -n udev-glib-static
-Static libgudev library.
-
-%description -n udev-glib-static -l pl.UTF-8
-Biblioteka statyczna libgudev.
 
 %package -n udev-glib-apidocs
 Summary:	libgudev API documentation
@@ -602,7 +566,6 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--enable-gtk-doc \
 	--enable-introspection \
 	--enable-split-usr \
-	--enable-static \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-kbd-loadkeys=/usr/bin/loadkeys \
 	--with-kbd-setfont=/bin/setfont \
@@ -728,7 +691,7 @@ cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
 #	- syslog _might_ be used by some syslog implementation (none for now),
 #	- isn't dbus populated by dbus-systemd only (so to be moved there)?
-install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,initrd,kexec,poweroff,reboot,syslog}.target.wants
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,initrd,kexec,poweroff,reboot,shutdown,syslog}.target.wants
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,timezone,vconsole.conf}
@@ -908,6 +871,7 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.hostname1.conf
 /etc/dbus-1/system.d/org.freedesktop.locale1.conf
 /etc/dbus-1/system.d/org.freedesktop.login1.conf
+/etc/dbus-1/system.d/org.freedesktop.machine1.conf
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
@@ -928,6 +892,7 @@ fi
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
 %attr(755,root,root) /bin/loginctl
+%attr(755,root,root) /bin/machinectl
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
 %attr(755,root,root) /bin/systemd-inhibit
@@ -945,6 +910,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
 %attr(755,root,root) %{_bindir}/systemd-nspawn
+%attr(755,root,root) %{_bindir}/systemd-run
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/timedatectl
@@ -964,6 +930,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-journald
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
+%attr(755,root,root) /lib/systemd/systemd-machined
 %attr(755,root,root) /lib/systemd/systemd-modules-load
 %attr(755,root,root) /lib/systemd/systemd-multi-seat-x
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
@@ -1004,6 +971,7 @@ fi
 %{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
@@ -1149,6 +1117,7 @@ fi
 %{systemdunitdir}/*.mount
 %{systemdunitdir}/*.path
 %{systemdunitdir}/*.service
+%{systemdunitdir}/*.slice
 %exclude %{systemdunitdir}/rc-inetd.service
 %{systemdunitdir}/*.socket
 %{systemdunitdir}/*.target
@@ -1179,7 +1148,6 @@ fi
 %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
 %{systemdunitdir}/runlevel[12345].target.wants/*
-%{systemdunitdir}/shutdown.target.wants/*
 %{systemdunitdir}/sockets.target.wants/*
 %{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
 %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
@@ -1213,8 +1181,7 @@ fi
 %{_mandir}/man8/systemd-modules-load.service.8*
 %{_mandir}/man8/systemd-poweroff.service.8*
 %{_mandir}/man8/systemd-quotacheck.service.8*
-%{_mandir}/man8/systemd-random-seed-load.service.8*
-%{_mandir}/man8/systemd-random-seed-save.service.8*
+%{_mandir}/man8/systemd-random-seed.service.8*
 %{_mandir}/man8/systemd-readahead-collect.service.8*
 %{_mandir}/man8/systemd-readahead-done.service.8*
 %{_mandir}/man8/systemd-readahead-done.timer.8*
@@ -1234,7 +1201,7 @@ fi
 %{_mandir}/man8/systemd-udevd-control.socket.8*
 %{_mandir}/man8/systemd-udevd-kernel.socket.8*
 %{_mandir}/man8/systemd-update-utmp-runlevel.service.8*
-%{_mandir}/man8/systemd-update-utmp-shutdown.service.8*
+%{_mandir}/man8/systemd-update-utmp.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
 %{_mandir}/man8/systemd-vconsole-setup.service.8*
 
@@ -1273,13 +1240,6 @@ fi
 %{_pkgconfigdir}/libsystemd-login.pc
 %{_mandir}/man3/SD_*.3*
 %{_mandir}/man3/sd*.3*
-
-%files static
-%defattr(644,root,root,755)
-%{_libdir}/libsystemd-daemon.a
-%{_libdir}/libsystemd-id128.a
-%{_libdir}/libsystemd-journal.a
-%{_libdir}/libsystemd-login.a
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
@@ -1390,10 +1350,6 @@ fi
 %{_pkgconfigdir}/libudev.pc
 %{_npkgconfigdir}/udev.pc
 
-%files -n udev-static
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libudev.a
-
 %files -n udev-apidocs
 %defattr(644,root,root,755)
 %{_gtkdocdir}/libudev
@@ -1410,10 +1366,6 @@ fi
 %{_includedir}/gudev-1.0
 %{_pkgconfigdir}/gudev-1.0.pc
 %{_datadir}/gir-1.0/GUdev-1.0.gir
-
-%files -n udev-glib-static
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libgudev-1.0.a
 
 %files -n udev-glib-apidocs
 %defattr(644,root,root,755)

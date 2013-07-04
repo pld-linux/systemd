@@ -12,9 +12,9 @@ index 170465a..bce467d 100644
  SYSTEM_UNIT_ALIASES =
  USER_UNIT_ALIASES =
 @@ -214,6 +216,8 @@
- 	what="$(SYSINIT_TARGET_WANTS)" && wants=sysinit.target && $(add-wants)
  	what="$(SOCKETS_TARGET_WANTS)" && wants=sockets.target && $(add-wants)
  	what="$(TIMERS_TARGET_WANTS)" && wants=timers.target && $(add-wants)
+ 	what="$(SLICES_TARGET_WANTS)" && wants=slices.target && $(add-wants)
 +	what="$(FINAL_TARGET_WANTS)" && wants=final.target && $(add-wants)
 +	what="$(GRAPHICAL_TARGET_WANTS)" && wants=graphical.target && $(add-wants)
  
