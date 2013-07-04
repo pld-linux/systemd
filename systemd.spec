@@ -353,6 +353,7 @@ Summary:	Header files for systemd libraries
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Obsoletes:	systemd-static
 
 %description devel
 Header files for systemd libraries.
@@ -440,6 +441,7 @@ Summary:	Header file for libudev library
 Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libudev
 Group:		Development/Libraries
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
+Obsoletes:	udev-static
 
 %description -n udev-devel
 Header file for libudev library.
@@ -479,6 +481,7 @@ Group:		Development/Libraries
 Requires:	glib2-devel >= 1:2.22.0
 Requires:	udev-devel = %{epoch}:%{version}-%{release}
 Requires:	udev-glib = %{epoch}:%{version}-%{release}
+Obsoletes:	udev-glib-static
 
 %description -n udev-glib-devel
 Header file for libgudev library.
