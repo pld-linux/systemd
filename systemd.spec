@@ -15,13 +15,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	205
-Release:	1
+Version:	206
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	3afc38170371929cf6ab056bf6a52fc6
+# Source0-md5:	89e36f2d3ba963020b72738549954cbc
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -66,7 +66,7 @@ BuildRequires:	attr-devel
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
-%{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.4.3}
+%{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
 BuildRequires:	dbus-devel >= 1.3.2
 BuildRequires:	docbook-style-xsl
 BuildRequires:	glib2-devel >= 1:2.22.0
@@ -75,7 +75,7 @@ BuildRequires:	gobject-introspection-devel >= 1.31.1
 BuildRequires:	gperf
 BuildRequires:	gtk-doc >= 1.18
 BuildRequires:	intltool >= 0.40.0
-BuildRequires:	kmod-devel >= 5
+BuildRequires:	kmod-devel >= 14
 BuildRequires:	libblkid-devel >= 2.20
 BuildRequires:	libcap-devel
 BuildRequires:	libgcrypt-devel >= 1.4.5
@@ -108,7 +108,7 @@ Requires(pre):	/usr/sbin/useradd
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
-%{?with_cryptsetup:Requires:	cryptsetup >= 1.4.3}
+%{?with_cryptsetup:Requires:	cryptsetup >= 1.6.0}
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-3
 Requires:	libutempter
@@ -120,7 +120,7 @@ Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	virtual(module-tools)
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
-Suggests:	kmod >= 5
+Suggests:	kmod >= 14
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	group(systemd-journal)
@@ -405,7 +405,7 @@ Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - główna cz�
 Group:		Base
 Requires:	coreutils
 Requires:	filesystem >= 3.0-45
-Requires:	kmod-libs >= 5
+Requires:	kmod-libs >= 14
 Requires:	libblkid >= 2.20
 %{?with_selinux:Requires:	libselinux >= 2.1.9}
 Requires:	setup >= 2.6.1-1
@@ -989,6 +989,7 @@ fi
 %{_mandir}/man1/journalctl.1*
 %{_mandir}/man1/localectl.1*
 %{_mandir}/man1/loginctl.1*
+%{_mandir}/man1/machinectl.1*
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-bootchart.1*
@@ -1002,6 +1003,7 @@ fi
 %{_mandir}/man1/systemd-machine-id-setup.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
+%{_mandir}/man1/systemd-run.1*
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man1/timedatectl.1*
 %{_mandir}/man5/binfmt.d.5*
@@ -1045,6 +1047,7 @@ fi
 %{_mandir}/man8/systemd-journald.8*
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
+%{_mandir}/man8/systemd-machined.8*
 %{_mandir}/man8/systemd-modules-load.8*
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
@@ -1155,6 +1158,7 @@ fi
 %{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
 %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
 %{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
+%{systemdunitdir}/sysinit.target.wants/kmod-static-nodes.service
 %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/sysinit.target.wants/sys-*.mount
 %{systemdunitdir}/sysinit.target.wants/systemd-*
@@ -1181,6 +1185,7 @@ fi
 %{_mandir}/man8/systemd-kexec.service.8*
 %{_mandir}/man8/systemd-localed.service.8*
 %{_mandir}/man8/systemd-logind.service.8*
+%{_mandir}/man8/systemd-machined.service.8*
 %{_mandir}/man8/systemd-modules-load.service.8*
 %{_mandir}/man8/systemd-poweroff.service.8*
 %{_mandir}/man8/systemd-quotacheck.service.8*
@@ -1268,8 +1273,6 @@ fi
 
 %attr(755,root,root) /lib/udev/collect
 
-%attr(755,root,root) /lib/udev/keyboard-force-release.sh
-
 %attr(755,root,root) /lib/udev/net_helper
 
 %attr(755,root,root) /lib/udev/ata_id
@@ -1280,12 +1283,7 @@ fi
 
 %attr(755,root,root) /lib/udev/udevd
 
-%attr(755,root,root) /lib/udev/keymap
-%dir /lib/udev/keymaps
-/lib/udev/keymaps/*
-
 %attr(755,root,root) /lib/udev/accelerometer
-%attr(755,root,root) /lib/udev/findkeyboards
 
 %dir /lib/udev/hwdb.d
 /lib/udev/hwdb.d/20-OUI.hwdb
@@ -1295,6 +1293,7 @@ fi
 /lib/udev/hwdb.d/20-pci-vendor-model.hwdb
 /lib/udev/hwdb.d/20-usb-classes.hwdb
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
+/lib/udev/hwdb.d/60-keyboard.hwdb
 
 %attr(755,root,root) %{_sbindir}/start_udev
 %attr(755,root,root) %{_sbindir}/udevd
@@ -1318,6 +1317,7 @@ fi
 /lib/udev/rules.d/42-usb-hid-pm.rules
 /lib/udev/rules.d/50-udev-default.rules
 /lib/udev/rules.d/60-cdrom_id.rules
+/lib/udev/rules.d/60-keyboard.rules
 /lib/udev/rules.d/60-persistent-alsa.rules
 /lib/udev/rules.d/60-persistent-input.rules
 /lib/udev/rules.d/60-persistent-serial.rules
@@ -1333,8 +1333,6 @@ fi
 /lib/udev/rules.d/78-sound-card.rules
 /lib/udev/rules.d/80-drivers.rules
 /lib/udev/rules.d/80-net-name-slot.rules
-/lib/udev/rules.d/95-keyboard-force-release.rules
-/lib/udev/rules.d/95-keymap.rules
 /lib/udev/rules.d/95-udev-late.rules
 
 %{_mandir}/man7/udev.7*
