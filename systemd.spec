@@ -105,6 +105,7 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	uname(release) >= 3.0
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
@@ -411,6 +412,7 @@ Requires:	libblkid >= 2.20
 Requires:	setup >= 2.6.1-1
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 2.6.32
+#Suggests:	uname(release) >= 3.0
 Obsoletes:	udev-compat
 Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 Conflicts:	geninitrd < 12639
