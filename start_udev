@@ -38,7 +38,29 @@ udevd=/lib/udev/udevd
 # trim traling slash, code expects it not to be there
 udev_root=${udev_root%/}
 
-make_extra_nodes () {
+create_static_nodes() {
+	/sbin/kmod static-nodes --format=tmpfiles | \
+	while read type file mode uid gid age dev ; do
+		case $type in
+			d|D)
+				mkdir -p --mode=$mode $file
+				;;
+			*)
+				oldIFS=$IFS
+				IFS=":"
+				set -- $dev
+				maj=$1
+				min=$2
+				IFS=$oldIFS
+				mknod --mode=$mode $file $type $maj $min
+				;;
+		esac
+		[ $uid = "-" ] || chown $uid $file
+		[ $gid = "-" ] || chgrp $gid $file
+	done
+}
+
+make_extra_nodes() {
 	grep '^[^#]' /etc/udev/links.conf | \
 	while read type name arg1; do
 		[ "$type" -a "$name" -a ! -e "$udev_root/$name" -a ! -L "/dev/$name" ] ||continue
@@ -110,6 +132,9 @@ awk "\$2 == \"$udev_root\" && \$3 == \"devtmpfs\" { exit 1 }" /proc/mounts && {
 }
 
 kill_udevd > "$udev_root/null" 2>&1
+
+# Create required static device nodes for the current kernel
+create_static_nodes
 
 # Start udevd daemon
 $udevd --daemon; rc=$?
