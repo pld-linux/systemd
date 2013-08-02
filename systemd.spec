@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	206
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -118,10 +118,9 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	virtual(module-tools)
+Requires:	kmod >= 14
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
-Suggests:	kmod >= 14
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	group(systemd-journal)
@@ -406,7 +405,7 @@ Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - główna cz�
 Group:		Base
 Requires:	coreutils
 Requires:	filesystem >= 3.0-45
-Requires:	kmod-libs >= 14
+Requires:	kmod >= 14
 Requires:	libblkid >= 2.20
 %{?with_selinux:Requires:	libselinux >= 2.1.9}
 Requires:	setup >= 2.6.1-1
