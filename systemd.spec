@@ -124,9 +124,7 @@ Suggests:	fsck >= 2.20
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	group(systemd-journal)
-Provides:	group(systemd-journal-gateway)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
-Provides:	user(systemd-journal-gateway)
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
 # systemd takes care of that and causes problems
@@ -286,6 +284,25 @@ zarządcy systemu i usług systemd.
 
 Ten pakiet zawiera ogólną konfigurację, ustawienia można nadpisać
 poprzez katalog %{_sysconfdir}/systemd/system.
+
+%package journal-gateway
+Summary:	Gateway for serving journal events over the network using HTTP
+License:	LGPL v2+
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
+Provides:	group(systemd-journal-gateway)
+Provides:	user(systemd-journal-gateway)
+Conflicts:	systemd < 1:206-3
+
+%description journal-gateway
+systemd-journal-gatewayd serves journal events over the network using
+HTTP.
 
 %package inetd
 Summary:	Native inet service support for systemd via socket activation
@@ -722,8 +739,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 %groupadd -g 288 systemd-journal
-%groupadd -g 287 systemd-journal-gateway
-%useradd -u 287 -g 287 -d /var/log/journal -s /bin/false -c "Systemd Journal Gateway" systemd-journal-gateway
 
 %post
 # should we?
@@ -736,8 +751,6 @@ if [ $1 -ge 1 ]; then
 	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
 fi
 if [ "$1" = "0" ]; then
-	%userremove systemd-journal-gateway
-	%groupremove systemd-journal-gateway
 	%groupremove systemd-journal
 fi
 
@@ -828,6 +841,24 @@ fi
 
 %postun inetd
 %systemd_reload
+
+%pre journal-gateway
+%groupadd -g 287 systemd-journal-gateway
+%useradd -u 287 -g 287 -d /var/log/journal -s /bin/false -c "Systemd Journal Gateway" systemd-journal-gateway
+
+%post journal-gateway
+%systemd_post systemd-journal-gatewayd.socket systemd-journal-gatewayd.service
+
+%preun journal-gateway
+%systemd_preun systemd-journal-gatewayd.socket systemd-journal-gatewayd.service
+
+%postun journal-gateway
+%systemd_reload
+
+if [ "$1" = "0" ]; then
+	%userremove systemd-journal-gateway
+	%groupremove systemd-journal-gateway
+fi
 
 %triggerpostun -n udev-core -- dev
 if [ "$2" = 0 ]; then
@@ -933,7 +964,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
 %attr(755,root,root) /lib/systemd/systemd-initctl
-%{?with_microhttpd:%attr(755,root,root) /lib/systemd/systemd-journal-gatewayd}
 %attr(755,root,root) /lib/systemd/systemd-journald
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
@@ -1049,7 +1079,6 @@ fi
 %{_mandir}/man8/systemd-getty-generator.8*
 %{_mandir}/man8/systemd-hostnamed.8*
 %{_mandir}/man8/systemd-initctl.8*
-%{?with_microhttpd:%{_mandir}/man8/systemd-journal-gatewayd.8*}
 %{_mandir}/man8/systemd-journald.8*
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
@@ -1184,8 +1213,6 @@ fi
 %{_mandir}/man8/systemd-hybrid-sleep.service.8*
 %{_mandir}/man8/systemd-initctl.service.8*
 %{_mandir}/man8/systemd-initctl.socket.8*
-%{?with_microhttpd:%{_mandir}/man8/systemd-journal-gatewayd.service.8*}
-%{?with_microhttpd:%{_mandir}/man8/systemd-journal-gatewayd.socket.8*}
 %{_mandir}/man8/systemd-journald.service.8*
 %{_mandir}/man8/systemd-journald.socket.8*
 %{_mandir}/man8/systemd-kexec.service.8*
@@ -1218,6 +1245,15 @@ fi
 %{_mandir}/man8/systemd-update-utmp.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
 %{_mandir}/man8/systemd-vconsole-setup.service.8*
+
+%if %{with microhttpd}
+%files journal-gateway
+%defattr(644,root,root,755)
+%attr(755,root,root) /lib/systemd/systemd-journal-gatewayd
+%{_mandir}/man8/systemd-journal-gatewayd.8*
+%{_mandir}/man8/systemd-journal-gatewayd.service.8*
+%{_mandir}/man8/systemd-journal-gatewayd.socket.8*
+%endif
 
 %files inetd
 %defattr(644,root,root,755)
