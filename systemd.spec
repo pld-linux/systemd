@@ -105,20 +105,20 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
-Requires:	uname(release) >= 3.0
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
 %{?with_cryptsetup:Requires:	cryptsetup >= 1.6.0}
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-3
+Requires:	kmod >= 14
 Requires:	libutempter
 Requires:	polkit
 Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	kmod >= 14
+Requires:	uname(release) >= 3.0
 Suggests:	ConsoleKit
 Suggests:	fsck >= 2.20
 Suggests:	service(klogd)
@@ -678,7 +678,7 @@ ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.targ
 ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 
 # Install rc-inetd replacement
-cp -p %{SOURCE16} $RPM_BUILD_ROOT/lib/systemd/system-generators/pld-rc-inetd-generator
+cp -p %{SOURCE16} $RPM_BUILD_ROOT%{systemdunitdir}-generators/pld-rc-inetd-generator
 cp -p %{SOURCE17} $RPM_BUILD_ROOT%{systemdunitdir}/rc-inetd.service
 
 cp -p %{SOURCE18} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system-preset/default.preset
@@ -686,16 +686,19 @@ cp -p %{SOURCE18} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system-preset/default.pr
 cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 
 # handled by rc-local sysv service, no need for generator
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/system-generators/systemd-rc-local-generator
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}-generators/systemd-rc-local-generator
 
 # provided by rc-scripts
-%{__rm} $RPM_BUILD_ROOT/lib/systemd/system/rc-local.service
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/rc-local.service
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
 #	- syslog _might_ be used by some syslog implementation (none for now),
 #	- isn't dbus populated by dbus-systemd only (so to be moved there)?
 install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,initrd,kexec,poweroff,reboot,shutdown,syslog}.target.wants
+
+# Make sure the shutdown/sleep drop-in dirs exist
+install -d $RPM_BUILD_ROOT%{_libexecdir}/systemd/system-{shutdown,sleep}
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,timezone,vconsole.conf}
@@ -959,6 +962,8 @@ fi
 /lib/udev/rules.d/73-seat-late.rules
 /lib/udev/rules.d/99-systemd.rules
 %dir %{_libexecdir}/systemd
+%dir %{_libexecdir}/systemd/system-shutdown
+%dir %{_libexecdir}/systemd/system-sleep
 %dir %{_libexecdir}/systemd/catalog
 %{_libexecdir}/systemd/catalog/systemd.catalog
 %{_libexecdir}/systemd/user
