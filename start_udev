@@ -147,18 +147,18 @@ make_extra_nodes; rc=$?
 test $rc -eq 0 && ok || fail
 ret=$(( $ret + $rc ))
 
-if [ -f "/sys/class/tty/console/uevent" ]; then
+if [ -f /sys/class/tty/console/uevent ]; then
 	# Setting default hotplug handler
 	set_hotplug_handler
 	ret=$(( $ret + $? ))
 
 	# retrigger all events
-	show "Retrigger subsystem events"; busy
+	show "Retrigger subsystems events"; busy
 	/sbin/udevadm trigger --type=subsystems --action=add; rc=$?
 	test $rc -eq 0 && ok || fail
 	ret=$(( $ret + $rc ))
 
-	show "Retrigger subsystem events"; busy
+	show "Retrigger devices events"; busy
 	/sbin/udevadm trigger --type=devices --action=add; rc=$?
 	test $rc -eq 0 && ok || fail
 	ret=$(( $ret + $rc ))
