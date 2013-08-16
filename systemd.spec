@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	206
-Release:	4
+Release:	5
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -725,6 +725,9 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-inf
 # Install SysV conversion tool for systemd
 install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
 
+# Create directory for service helper scripts
+install -d $RPM_BUILD_ROOT/lib/systemd/pld-helpers.d
+
 install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/btmp
 :> $RPM_BUILD_ROOT/var/log/wtmp
@@ -1143,6 +1146,7 @@ fi
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
+%dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
