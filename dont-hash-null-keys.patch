@@ -1,0 +1,16 @@
+--- systemd-206/src/shared/hashmap.c~	2013-07-22 00:43:28.172182934 +0200
++++ systemd-206/src/shared/hashmap.c	2013-08-16 17:28:17.374796716 +0200
+@@ -272,9 +272,11 @@
+         assert(h);
+         assert(e);
+ 
+-        hash = h->hash_func(e->key) % NBUCKETS;
++	if (e->key) {
++	        hash = h->hash_func(e->key) % NBUCKETS;
+ 
+-        unlink_entry(h, e, hash);
++	        unlink_entry(h, e, hash);
++	}
+ 
+         if (h->from_pool)
+                 deallocate_tile(&first_entry_tile, e);
