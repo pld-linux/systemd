@@ -288,6 +288,7 @@ poprzez katalog %{_sysconfdir}/systemd/system.
 
 %package journal-gateway
 Summary:	Gateway for serving journal events over the network using HTTP
+Summary(pl.UTF-8):	Bramka do serwowania zdarzeń dziennika po sieci poprzez HTTP
 License:	LGPL v2+
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
@@ -303,6 +304,10 @@ Conflicts:	systemd < 1:206-3
 
 %description journal-gateway
 systemd-journal-gatewayd serves journal events over the network using
+HTTP.
+
+%description journal-gateway -l pl.UTF-8
+systemd-journal-gatewayd serwuje zdarzenia dziennika po sieci poprzez
 HTTP.
 
 %package inetd
