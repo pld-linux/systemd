@@ -289,7 +289,7 @@ poprzez katalog %{_sysconfdir}/systemd/system.
 %package journal-gateway
 Summary:	Gateway for serving journal events over the network using HTTP
 Summary(pl.UTF-8):	Bramka do serwowania zdarzeń dziennika po sieci poprzez HTTP
-License:	LGPL v2+
+License:	LGPL v2.1+
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
