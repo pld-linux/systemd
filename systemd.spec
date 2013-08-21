@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	206
-Release:	6
+Release:	7
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -566,7 +566,8 @@ Wiązania do Systemd dla Pythona.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
-%patch14 -p1
+# possible cause of infinite loop inside systemd-login
+#patch14 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
