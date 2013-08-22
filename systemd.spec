@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	206
-Release:	7
+Release:	8
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -602,6 +602,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--with-kbd-setfont=/bin/setfont \
 	--with-sysvinit-path=/etc/rc.d/init.d \
 	--with-sysvrcnd-path=/etc/rc.d \
+	--with-firmware-path=/lib/firmware \
 	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
 	--with-rc-local-script-path-stop=/sbin/halt.local \
 	--with-rootprefix="" \
@@ -1371,6 +1372,7 @@ fi
 
 # rules below are NOT supposed to be changed by users
 /lib/udev/rules.d/42-usb-hid-pm.rules
+/lib/udev/rules.d/50-firmware.rules
 /lib/udev/rules.d/50-udev-default.rules
 /lib/udev/rules.d/60-cdrom_id.rules
 /lib/udev/rules.d/60-keyboard.rules
