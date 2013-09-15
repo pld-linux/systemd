@@ -15,13 +15,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	206
-Release:	8
+Version:	207
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	89e36f2d3ba963020b72738549954cbc
+# Source0-md5:	7799f3cc9d289b8db1c1fa56ae7ecd88
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -58,7 +58,6 @@ Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 Patch12:	proc-hidepid.patch
-Patch13:	hwdb-dell-keyboard.patch
 Patch14:	dont-hash-null-keys.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
@@ -565,7 +564,6 @@ Wiązania do Systemd dla Pythona.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
 # possible cause of infinite loop inside systemd-login
 #patch14 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
@@ -994,7 +992,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-sleep
 %attr(755,root,root) /lib/systemd/systemd-sysctl
 %attr(755,root,root) /lib/systemd/systemd-timedated
-%attr(755,root,root) /lib/systemd/systemd-timestamp
 %attr(755,root,root) /lib/systemd/systemd-udevd
 %attr(755,root,root) /lib/systemd/systemd-update-utmp
 %attr(755,root,root) /lib/systemd/systemd-user-sessions
