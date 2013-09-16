@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	207
-Release:	0.1
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -396,6 +396,18 @@ bash-completion for systemd.
 %description -n bash-completion-systemd -l pl.UTF-8
 Bashowe dopełnianie składni dla systemd.
 
+%package -n zsh-completion-systemd
+Summary:	zsh completion for systemd commands
+Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń systemd
+Group:		Applications/Shells
+Requires:	%{name} = %{epoch}:%{version}
+
+%description -n zsh-completion-systemd
+zsh completion for systemd commands.
+
+%description -n zsh-completion-systemd -l pl.UTF-8
+Uzupełnianie parametrów w zsh dla poleceń systemd.
+
 %package -n udev
 Summary:	Device manager for the Linux 2.6 kernel series
 Summary(pl.UTF-8):	Zarządca urządzeń dla Linuksa 2.6
@@ -537,6 +549,17 @@ bash-completion for udev.
 %description -n bash-completion-udev -l pl.UTF-8
 Bashowe dopełnianie składni dla udev.
 
+%package -n zsh-completion-udev
+Summary:	zsh completion for udev commands
+Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń udev
+Group:		Applications/Shells
+Requires:	%{name} = %{epoch}:%{version}
+
+%description -n zsh-completion-udev
+zsh completion for udev commands.
+
+%description -n zsh-completion-udev -l pl.UTF-8
+Uzupełnianie parametrów w zsh dla poleceń udev.
 
 %package -n python-systemd
 Summary:	Systemd Python bindings
@@ -702,6 +725,10 @@ install -p %{SOURCE15} $RPM_BUILD_ROOT/lib/systemd/pld-clean-tmp
 ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
+
+# As of 207 the systemd-sysctl tool no longer natively reads the file /etc/sysctl.conf.
+# If desired, the file should be symlinked from /etc/sysctl.d/99-sysctl.conf.
+ln -s /etc/sysctl.conf $RPM_BUILD_ROOT/etc/sysctl.d/99-sysctl.conf
 
 # Install rc-inetd replacement
 cp -p %{SOURCE16} $RPM_BUILD_ROOT%{systemdunitdir}-generators/pld-rc-inetd-generator
@@ -939,6 +966,7 @@ fi
 %dir %{_sysconfdir}/systemd/system/*.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/*.target.wants/*.service
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/*.target.wants/*.target
+%config(noreplace) %verify(not md5 mtime size) /etc/pam.d/systemd-user
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
 %attr(755,root,root) /bin/loginctl
@@ -968,6 +996,7 @@ fi
 %attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-ac-power
 %attr(755,root,root) /lib/systemd/systemd-activate
+%attr(755,root,root) /lib/systemd/systemd-backlight
 %attr(755,root,root) /lib/systemd/systemd-binfmt
 %attr(755,root,root) /lib/systemd/systemd-bootchart
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
@@ -1083,9 +1112,12 @@ fi
 %{_mandir}/man8/kernel-install.8*
 %{_mandir}/man8/nss-myhostname.8*
 %{_mandir}/man8/systemd-activate.8*
+%{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-binfmt.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-fsck.8*
+%{_mandir}/man8/systemd-efi-boot-generator.8*
+%{_mandir}/man8/systemd-gpt-auto-generator.8*
 %{_mandir}/man8/systemd-fstab-generator.8*
 %{_mandir}/man8/systemd-getty-generator.8*
 %{_mandir}/man8/systemd-hostnamed.8*
@@ -1144,6 +1176,7 @@ fi
 %dir %{_sysconfdir}/modules-load.d
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/modules-load.d/modules.conf
 %dir %{_sysconfdir}/sysctl.d
+%{_sysconfdir}/sysctl.d/99-sysctl.conf
 %dir %{_sysconfdir}/systemd
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/systemd/system-preset
@@ -1214,6 +1247,7 @@ fi
 %{_mandir}/man8/systemd-ask-password-console.service.8*
 %{_mandir}/man8/systemd-ask-password-wall.path.8*
 %{_mandir}/man8/systemd-ask-password-wall.service.8*
+%{_mandir}/man8/systemd-backlight@.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup@.service.8*}
@@ -1312,7 +1346,26 @@ fi
 %{_datadir}/bash-completion/completions/systemctl
 %{_datadir}/bash-completion/completions/systemd-analyze
 %{_datadir}/bash-completion/completions/systemd-coredumpctl
+%{_datadir}/bash-completion/completions/systemd-run
 %{_datadir}/bash-completion/completions/timedatectl
+
+%files -n zsh-completion-systemd
+%defattr(644,root,root,755)
+%{_datadir}/zsh/site-functions/_hostnamectl
+%{_datadir}/zsh/site-functions/_journalctl
+%{_datadir}/zsh/site-functions/_localectl
+%{_datadir}/zsh/site-functions/_loginctl
+%{_datadir}/zsh/site-functions/_machinectl
+%{_datadir}/zsh/site-functions/_sd_hosts_or_user_at_host
+%{_datadir}/zsh/site-functions/_systemctl
+%{_datadir}/zsh/site-functions/_systemd
+%{_datadir}/zsh/site-functions/_systemd-analyze
+%{_datadir}/zsh/site-functions/_systemd-coredumpctl
+%{_datadir}/zsh/site-functions/_systemd-delta
+%{_datadir}/zsh/site-functions/_systemd-inhibit
+%{_datadir}/zsh/site-functions/_systemd-nspawn
+%{_datadir}/zsh/site-functions/_systemd-tmpfiles
+%{_datadir}/zsh/site-functions/_timedatectl
 
 %files -n udev
 %defattr(644,root,root,755)
@@ -1430,6 +1483,10 @@ fi
 %files -n bash-completion-udev
 %defattr(644,root,root,755)
 %{_datadir}/bash-completion/completions/udevadm
+
+%files -n zsh-completion-udev
+%defattr(644,root,root,755)
+%{_datadir}/zsh/site-functions/_udevadm
 
 %files -n python-systemd
 %defattr(644,root,root,755)
