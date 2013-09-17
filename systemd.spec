@@ -383,11 +383,24 @@ Header files for systemd libraries.
 %description devel -l pl.UTF-8
 Pliki nagłówkowe bibliotek systemd.
 
+%package -n python-systemd
+Summary:	Systemd Python bindings
+Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona
+Group:		Development/Languages/Python
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	python
+
+%description -n python-systemd
+Systemd Python bindings.
+
+%description -n python-systemd -l pl.UTF-8
+Wiązania do Systemd dla Pythona.
+
 %package -n bash-completion-systemd
 Summary:	bash-completion for systemd
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
 Group:		Applications/Shells
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	bash-completion >= 2.0
 
 %description -n bash-completion-systemd
@@ -400,7 +413,7 @@ Bashowe dopełnianie składni dla systemd.
 Summary:	zsh completion for systemd commands
 Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń systemd
 Group:		Applications/Shells
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description -n zsh-completion-systemd
 zsh completion for systemd commands.
@@ -541,7 +554,7 @@ Summary:	bash-completion for udev
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
 Group:		Applications/Shells
 Requires:	bash-completion >= 2.0
-Requires:	udev = %{epoch}:%{version}
+Requires:	udev = %{epoch}:%{version}-%{release}
 
 %description -n bash-completion-udev
 bash-completion for udev.
@@ -553,26 +566,13 @@ Bashowe dopełnianie składni dla udev.
 Summary:	zsh completion for udev commands
 Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń udev
 Group:		Applications/Shells
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description -n zsh-completion-udev
 zsh completion for udev commands.
 
 %description -n zsh-completion-udev -l pl.UTF-8
 Uzupełnianie parametrów w zsh dla poleceń udev.
-
-%package -n python-systemd
-Summary:	Systemd Python bindings
-Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona
-Group:		Development/Languages/Python
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
-Requires:	python
-
-%description -n python-systemd
-Systemd Python bindings.
-
-%description -n python-systemd -l pl.UTF-8
-Wiązania do Systemd dla Pythona.
 
 %prep
 %setup -q
@@ -1337,10 +1337,21 @@ fi
 %{_mandir}/man3/SD_*.3*
 %{_mandir}/man3/sd*.3*
 
+%files -n python-systemd
+%defattr(644,root,root,755)
+%dir %{py_sitedir}/systemd
+%{py_sitedir}/systemd/*.py[co]
+%attr(755,root,root) %{py_sitedir}/systemd/_daemon.so
+%attr(755,root,root) %{py_sitedir}/systemd/_journal.so
+%attr(755,root,root) %{py_sitedir}/systemd/_reader.so
+%attr(755,root,root) %{py_sitedir}/systemd/id128.so
+%attr(755,root,root) %{py_sitedir}/systemd/login.so
+
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
 %{_datadir}/bash-completion/completions/hostnamectl
 %{_datadir}/bash-completion/completions/journalctl
+%{_datadir}/bash-completion/completions/kernel-install
 %{_datadir}/bash-completion/completions/localectl
 %{_datadir}/bash-completion/completions/loginctl
 %{_datadir}/bash-completion/completions/systemctl
@@ -1353,6 +1364,7 @@ fi
 %defattr(644,root,root,755)
 %{_datadir}/zsh/site-functions/_hostnamectl
 %{_datadir}/zsh/site-functions/_journalctl
+%{_datadir}/zsh/site-functions/_kernel-install
 %{_datadir}/zsh/site-functions/_localectl
 %{_datadir}/zsh/site-functions/_loginctl
 %{_datadir}/zsh/site-functions/_machinectl
@@ -1487,9 +1499,3 @@ fi
 %files -n zsh-completion-udev
 %defattr(644,root,root,755)
 %{_datadir}/zsh/site-functions/_udevadm
-
-%files -n python-systemd
-%defattr(644,root,root,755)
-%dir %{py_sitedir}/systemd
-%{py_sitedir}/systemd/*.py*
-%attr(755,root,root) %{py_sitedir}/systemd/*.so
