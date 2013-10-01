@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	207
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1042,6 +1042,7 @@ fi
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/tmp.conf
 %{_libexecdir}/tmpfiles.d/x11.conf
+%{_libexecdir}/sysctl.d/50-coredump.conf
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
@@ -1189,7 +1190,6 @@ fi
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
-%{_libexecdir}/sysctl.d/50-coredump.conf
 %{_libexecdir}/sysctl.d/50-default.conf
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
