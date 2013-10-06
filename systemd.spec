@@ -15,13 +15,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	207
-Release:	2
+Version:	208
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	7799f3cc9d289b8db1c1fa56ae7ecd88
+# Source0-md5:	df64550d92afbffb4f67a434193ee165
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -793,6 +793,10 @@ if [ "$1" = "0" ]; then
 	%groupremove systemd-journal
 fi
 
+%triggerpostun -- systemd < 208-1
+chgrp -R systemd-journal /var/log/journal
+chmod g+s /var/log/journal
+
 %post   libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
@@ -1146,7 +1150,7 @@ fi
 %dir /var/lib/%{name}/coredump
 %attr(640,root,root) %ghost /var/log/btmp
 %attr(664,root,utmp) %ghost /var/log/wtmp
-%dir /var/log/journal
+%attr(2755,root,systemd-journal) %dir /var/log/journal
 
 %if %{with pam}
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
