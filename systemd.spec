@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	208
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -101,6 +101,7 @@ Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
+Requires(post):	/bin/setfacl
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
@@ -780,13 +781,16 @@ rm -rf $RPM_BUILD_ROOT
 %groupadd -g 288 systemd-journal
 
 %post
-# should we?
-#setfacl -nm g:logs:rx,d:g:logs:rx /var/log/journal
-/bin/systemd-machine-id-setup > /dev/null 2>&1 || :
-/bin/systemctl daemon-reexec > /dev/null 2>&1 || :
+/bin/systemd-machine-id-setup >/dev/null 2>&1 || :
+/usr/lib/systemd/systemd-random-seed save >/dev/null 2>&1 || :
+/bin/systemctl --system daemon-reexec >/dev/null 2>&1 || :
+/bin/journalctl --update-catalog >/dev/null 2>&1 || :
+# Apply ACL to the journal directory
+/bin/setfacl -Rnm g:logs:rx,d:g:logs:rx /var/log/journal >/dev/null 2>&1 || :
 
 %postun
 if [ $1 -ge 1 ]; then
+	/bin/systemctl --system daemon-reload >/dev/null 2>&1 || :
 	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
 fi
 if [ "$1" = "0" ]; then
@@ -922,6 +926,7 @@ fi
 /sbin/udevadm info --convert-db
 
 %post -n udev-core
+/sbin/udevadm hwdb --update >/dev/null 2>&1 || :
 if [ $1 -gt 1 ]; then
 	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
 		if grep -qs devtmpfs /proc/mounts && [ -n "$(pidof udevd)" ]; then
