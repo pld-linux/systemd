@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	208
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -674,6 +674,8 @@ install -p %{SOURCE111} $RPM_BUILD_ROOT%{_sbindir}/start_udev
 cp -a %{SOURCE120} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/udev_blacklist.conf
 cp -a %{SOURCE121} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 
+:>$RPM_BUILD_ROOT%{_sysconfdir}/udev/hwdb.bin
+
 mv $RPM_BUILD_ROOT%{_mandir}/man8/{systemd-,}udevd.8
 echo ".so man8/udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/systemd-udevd.8
 
@@ -781,17 +783,17 @@ rm -rf $RPM_BUILD_ROOT
 %groupadd -g 288 systemd-journal
 
 %post
-/bin/systemd-machine-id-setup >/dev/null 2>&1 || :
-/usr/lib/systemd/systemd-random-seed save >/dev/null 2>&1 || :
-/bin/systemctl --system daemon-reexec >/dev/null 2>&1 || :
-/bin/journalctl --update-catalog >/dev/null 2>&1 || :
+/bin/systemd-machine-id-setup || :
+/usr/lib/systemd/systemd-random-seed save || :
+/bin/systemctl --system daemon-reexec || :
+/bin/journalctl --update-catalog || :
 # Apply ACL to the journal directory
-/bin/setfacl -Rnm g:logs:rx,d:g:logs:rx /var/log/journal >/dev/null 2>&1 || :
+/bin/setfacl -Rnm g:logs:rx,d:g:logs:rx /var/log/journal || :
 
 %postun
 if [ $1 -ge 1 ]; then
-	/bin/systemctl --system daemon-reload >/dev/null 2>&1 || :
-	/bin/systemctl try-restart systemd-logind.service >/dev/null 2>&1 || :
+	/bin/systemctl --system daemon-reload || :
+	/bin/systemctl try-restart systemd-logind.service || :
 fi
 if [ "$1" = "0" ]; then
 	%groupremove systemd-journal
@@ -807,7 +809,7 @@ chmod g+s /var/log/journal
 %post units
 if [ $1 -eq 1 ]; then
 	# Try to read default runlevel from the old inittab if it exists
-	runlevel=$(/bin/awk -F ':' '$3 == "initdefault" && $1 !~ "^#" { print $2 }' /etc/inittab 2> /dev/null)
+	runlevel=$(/bin/awk -F ':' '$3 == "initdefault" && $1 !~ "^#" { print $2 }' /etc/inittab 2>/dev/null)
 	if [ -z "$runlevel" ] ; then
 		target="%{systemdunitdir}/graphical.target"
 	else
@@ -815,7 +817,7 @@ if [ $1 -eq 1 ]; then
 	fi
 
 	# And symlink what we found to the new-style default.target
-	ln -s "$target" %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
+	ln -s "$target" %{_sysconfdir}/systemd/system/default.target || :
 
 	# Setup hostname
 	[ -f /etc/sysconfig/network ] && . /etc/sysconfig/network
@@ -832,7 +834,7 @@ if [ $1 -eq 1 ]; then
 		remote-fs.target \
 		systemd-readahead-replay.service \
 		systemd-readahead-collect.service \
-		systemd-udev-settle.service >/dev/null 2>&1 || :
+		systemd-udev-settle.service || :
 fi
 
 %preun units
@@ -843,26 +845,26 @@ if [ $1 -eq 0 ] ; then
 		remote-fs.target \
 		systemd-readahead-replay.service \
 		systemd-readahead-collect.service \
-		systemd-udev-settle.service >/dev/null 2>&1 || :
+		systemd-udev-settle.service || :
 
-	%{__rm} -f %{_sysconfdir}/systemd/system/default.target >/dev/null 2>&1 || :
+	%{__rm} -f %{_sysconfdir}/systemd/system/default.target || :
 fi
 
 %postun units
 if [ $1 -ge 1 ]; then
-	/bin/systemctl daemon-reload > /dev/null 2>&1 || :
+	/bin/systemctl daemon-reload || :
 fi
 
 %triggerpostun units -- systemd-units < 43-7
 # Remove design fialures
-%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service >/dev/null 2>&1 || :
-%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service >/dev/null 2>&1 || :
-%{__rm} -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service >/dev/null 2>&1 || :
-/bin/systemctl reenable network.service >/dev/null 2>&1 || :
+%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service || :
+%{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service || :
+%{__rm} -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service || :
+/bin/systemctl reenable network.service || :
 
 %triggerpostun units -- systemd-units < 1:183
-/bin/systemctl --quiet enable systemd-udev-settle.service >/dev/null 2>&1 || :
-%{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service >/dev/null 2>&1 || :
+/bin/systemctl --quiet enable systemd-udev-settle.service || :
+%{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service || :
 # preserve renamed configs
 if [ -f /etc/systemd/systemd-journald.conf.rpmsave ]; then
 	%{__mv} /etc/systemd/journald.conf{,.rpmnew}
@@ -926,7 +928,7 @@ fi
 /sbin/udevadm info --convert-db
 
 %post -n udev-core
-/sbin/udevadm hwdb --update >/dev/null 2>&1 || :
+/sbin/udevadm hwdb --update || :
 if [ $1 -gt 1 ]; then
 	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
 		if grep -qs devtmpfs /proc/mounts && [ -n "$(pidof udevd)" ]; then
@@ -1431,6 +1433,7 @@ fi
 %dir %{_sysconfdir}/udev
 %dir %{_sysconfdir}/udev/rules.d
 %dir %{_sysconfdir}/udev/hwdb.d
+%ghost %{_sysconfdir}/udev/hwdb.bin
 
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/udev_blacklist.conf
