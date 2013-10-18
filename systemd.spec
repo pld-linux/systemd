@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	208
-Release:	3
+Release:	4
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -784,7 +784,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /bin/systemd-machine-id-setup || :
-/usr/lib/systemd/systemd-random-seed save || :
+/lib/systemd/systemd-random-seed save || :
 /bin/systemctl --system daemon-reexec || :
 /bin/journalctl --update-catalog || :
 # Apply ACL to the journal directory
