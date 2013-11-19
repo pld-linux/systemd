@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	208
-Release:	4
+Release:	5
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -59,6 +59,7 @@ Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 Patch12:	proc-hidepid.patch
 Patch14:	dont-hash-null-keys.patch
+Patch15:	hibernate-to-file.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -590,6 +591,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch12 -p1
 # possible cause of infinite loop inside systemd-login
 #patch14 -p1
+%patch15 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
