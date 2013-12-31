@@ -1098,8 +1098,6 @@ fi
 %{_mandir}/man1/timedatectl.1*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/bootchart.conf.5*
-# cfl with rc-scripts
-#%{_mandir}/man5/crypttab.5*
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/locale.conf.5*
