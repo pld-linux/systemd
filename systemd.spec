@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	208
-Release:	6
+Release:	7
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1044,13 +1044,8 @@ fi
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
 /lib/udev/rules.d/99-systemd.rules
-%dir %{_libexecdir}/systemd
-%dir %{_libexecdir}/systemd/system-shutdown
-%dir %{_libexecdir}/systemd/system-sleep
 %dir %{_libexecdir}/systemd/catalog
 %{_libexecdir}/systemd/catalog/systemd.catalog
-%{_libexecdir}/systemd/user
-%dir %{_libexecdir}/systemd/user-generators
 %{_libexecdir}/tmpfiles.d/legacy.conf
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/tmp.conf
@@ -1197,11 +1192,18 @@ fi
 %dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
+%{_libexecdir}/sysctl.d/50-default.conf
+%dir %{_libexecdir}/systemd
+%dir %{_libexecdir}/systemd/system-shutdown
+%dir %{_libexecdir}/systemd/system-sleep
+%dir %{_libexecdir}/systemd/user
+%{_libexecdir}/systemd/user/*.target
+%{_libexecdir}/systemd/user/systemd-exit.service
+%dir %{_libexecdir}/systemd/user-generators
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
-%{_libexecdir}/sysctl.d/50-default.conf
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %attr(755,root,root) /bin/systemd_booted
