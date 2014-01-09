@@ -1,8 +1,7 @@
-diff --git a/Makefile.am b/Makefile.am
-index 170465a..bce467d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -196,6 +196,8 @@
+diff -dur -x '*~' -x '*.orig' systemd-208.orig/Makefile.am systemd-208/Makefile.am
+--- systemd-208.orig/Makefile.am	2013-10-02 04:57:09.000000000 +0200
++++ systemd-208/Makefile.am	2014-01-09 15:15:41.000000000 +0100
+@@ -211,6 +211,8 @@
  SYSINIT_TARGET_WANTS =
  SOCKETS_TARGET_WANTS =
  TIMERS_TARGET_WANTS =
@@ -11,7 +10,7 @@ index 170465a..bce467d 100644
  
  SYSTEM_UNIT_ALIASES =
  USER_UNIT_ALIASES =
-@@ -214,6 +216,8 @@
+@@ -230,6 +232,8 @@
  	what="$(SOCKETS_TARGET_WANTS)" && wants=sockets.target && $(add-wants)
  	what="$(TIMERS_TARGET_WANTS)" && wants=timers.target && $(add-wants)
  	what="$(SLICES_TARGET_WANTS)" && wants=slices.target && $(add-wants)
@@ -20,7 +19,7 @@ index 170465a..bce467d 100644
  
  define add-wants
  	[ -z "$$what" ] || ( \
-@@ -3388,9 +3392,16 @@
+@@ -4001,9 +4005,16 @@
  	$(systemdstatedir)
  
  MULTI_USER_TARGET_WANTS += \
@@ -37,7 +36,7 @@ index 170465a..bce467d 100644
  SYSTEM_UNIT_ALIASES += \
  	systemd-logind.service dbus-org.freedesktop.login1.service
  
-@@ -3790,6 +3801,10 @@
+@@ -4493,6 +4504,10 @@
  uninstall-hook: $(UNINSTALL_DATA_HOOKS) $(UNINSTALL_EXEC_HOOKS)
  
  install-data-hook: $(INSTALL_DATA_HOOKS)
@@ -48,11 +47,10 @@ index 170465a..bce467d 100644
  
  distclean-local: $(DISTCLEAN_LOCAL_HOOKS)
  
-diff --git a/src/core/hostname-setup.c b/src/core/hostname-setup.c
-index 2c2f10c..754f0c7 100644
---- a/src/core/hostname-setup.c
-+++ b/src/core/hostname-setup.c
-@@ -64,13 +64,84 @@ static int read_and_strip_hostname(const char *path, char **hn) {
+diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/hostname-setup.c systemd-208/src/core/hostname-setup.c
+--- systemd-208.orig/src/core/hostname-setup.c	2013-08-13 22:02:46.000000000 +0200
++++ systemd-208/src/core/hostname-setup.c	2014-01-09 15:15:41.000000000 +0100
+@@ -53,13 +53,84 @@
          return 0;
  }
  
@@ -138,11 +136,10 @@ index 2c2f10c..754f0c7 100644
          if (r < 0) {
                  if (r == -ENOENT)
                          enoent = true;
-diff --git a/src/core/locale-setup.c b/src/core/locale-setup.c
-index 7f692e9..0a45854 100644
---- a/src/core/locale-setup.c
-+++ b/src/core/locale-setup.c
-@@ -74,6 +74,7 @@ int locale_setup(void) {
+diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-208/src/core/locale-setup.c
+--- systemd-208.orig/src/core/locale-setup.c	2013-10-01 00:17:21.000000000 +0200
++++ systemd-208/src/core/locale-setup.c	2014-01-09 15:15:41.000000000 +0100
+@@ -76,6 +76,7 @@
  
          if (detect_container(NULL) <= 0) {
                  r = parse_env_file("/proc/cmdline", WHITESPACE,
@@ -150,7 +147,7 @@ index 7f692e9..0a45854 100644
                                     "locale.LANG",              &variables[VARIABLE_LANG],
                                     "locale.LANGUAGE",          &variables[VARIABLE_LANGUAGE],
                                     "locale.LC_CTYPE",          &variables[VARIABLE_LC_CTYPE],
-@@ -121,6 +121,15 @@ int locale_setup(void) {
+@@ -120,6 +121,15 @@
                          log_warning("Failed to read /etc/locale.conf: %s", strerror(-r));
          }
  
@@ -165,10 +162,11 @@ index 7f692e9..0a45854 100644
 +
          add = NULL;
          for (i = 0; i < _VARIABLE_MAX; i++) {
-                 if (variables[i]) {
---- systemd-196/src/timedate/timedated.c~	2012-10-16 23:35:40.589269718 +0200
-+++ systemd-196/src/timedate/timedated.c	2012-12-21 11:46:13.545086335 +0100
-@@ -175,6 +175,13 @@
+                 char *s;
+diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/timedate/timedated.c systemd-208/src/timedate/timedated.c
+--- systemd-208.orig/src/timedate/timedated.c	2013-08-13 22:02:47.000000000 +0200
++++ systemd-208/src/timedate/timedated.c	2014-01-09 15:15:41.000000000 +0100
+@@ -183,6 +183,13 @@
                  }
          }
  
@@ -182,25 +180,24 @@ index 7f692e9..0a45854 100644
  have_timezone:
          if (isempty(tz.zone)) {
                  free(tz.zone);
-diff --git a/src/vconsole/vconsole-setup.c b/src/vconsole/vconsole-setup.c
-index 9196789..1d1a916 100644
---- a/src/vconsole/vconsole-setup.c
-+++ b/src/vconsole/vconsole-setup.c
-@@ -358,6 +358,17 @@
-                 if (r < 0 && r != -ENOENT)
-                         log_warning("Failed to read /etc/vconsole.conf: %s", strerror(-r));
+diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c systemd-208/src/vconsole/vconsole-setup.c
+--- systemd-208.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
++++ systemd-208/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100
+@@ -296,6 +296,17 @@
+                         font_copy_to_all_vcs(fd);
          }
-+
+ 
 +        if (r <= 0) {
-+                r = parse_env_file("/etc/sysconfig/console", NEWLINE,
++		int r1 = parse_env_file("/etc/sysconfig/console", NEWLINE,
 +                                   "CONSOLEFONT", &vc_font,
 +                                   "CONSOLEMAP", &vc_font_map,
 +                                   "CONSOLESCREENFONTMAP", &vc_font_unimap,
 +                                   "KEYTABLE", &vc_keymap,
 +                                   NULL);
-+                if (r < 0 && r != -ENOENT)
-+                        log_warning("Failed to read /etc/sysconfig/console: %s", strerror(-r));
++                if (r1 < 0 && r1 != -ENOENT)
++                        log_warning("Failed to read /etc/sysconfig/console: %s", strerror(-r1));
 +        }
- 
-         if (utf8)
-                 enable_utf8(fd);
++
+         free(vc_keymap);
+         free(vc_font);
+         free(vc_font_map);
