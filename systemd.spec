@@ -833,7 +833,6 @@ if [ $1 -eq 1 ]; then
 
 	# Enable the services we install by default.
 	/bin/systemctl enable \
-		getty@.service \
 		network.service \
 		remote-fs.target \
 		systemd-readahead-replay.service \
@@ -844,7 +843,6 @@ fi
 %preun units
 if [ $1 -eq 0 ] ; then
 	/bin/systemctl disable \
-		getty@.service \
 		network.service \
 		remote-fs.target \
 		systemd-readahead-replay.service \
@@ -885,6 +883,12 @@ if [ -f /etc/sysconfig/rpm ]; then
 	if [ ${RPM_ENABLE_SYSTEMD_SERVICE:-yes} = no ]; then
 		echo "disable *" >>%{_sysconfdir}/systemd/system-preset/default.preset
 	fi
+fi
+
+%triggerpostun units -- systemd-units < 1:208-9
+# remove buggy symlink
+if [ -L /etc/systemd/system/getty.target.wants/getty@.service ] ; then
+	rm -f /etc/systemd/system/getty.target.wants/getty@.service || :
 fi
 
 %post inetd
