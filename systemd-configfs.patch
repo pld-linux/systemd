@@ -1,6 +1,6 @@
-diff -durN systemd-208.orig/Makefile.am systemd-208/Makefile.am
---- systemd-208.orig/Makefile.am	2014-01-06 11:46:16.758882910 +0100
-+++ systemd-208/Makefile.am	2014-01-06 11:45:46.942216959 +0100
+diff -durN -x '*.orig' systemd-208.orig/Makefile.am systemd-208/Makefile.am
+--- systemd-208.orig/Makefile.am	2014-01-10 10:21:40.000000000 +0100
++++ systemd-208/Makefile.am	2014-01-10 10:22:33.000000000 +0100
 @@ -411,6 +411,7 @@
  	units/syslog.socket \
  	units/dev-hugepages.mount \
@@ -9,9 +9,17 @@ diff -durN systemd-208.orig/Makefile.am systemd-208/Makefile.am
  	units/sys-kernel-config.mount \
  	units/sys-kernel-debug.mount \
  	units/sys-fs-fuse-connections.mount \
-diff -durN systemd-208.orig/units/sys-kernel-config.mount systemd-208/units/sys-kernel-config.mount
---- systemd-208.orig/units/sys-kernel-config.mount	2013-08-13 22:02:52.798756199 +0200
-+++ systemd-208/units/sys-kernel-config.mount	2014-01-06 11:42:49.095554041 +0100
+@@ -4435,7 +4436,6 @@
+ SYSINIT_TARGET_WANTS += \
+ 	dev-hugepages.mount \
+ 	dev-mqueue.mount \
+-	sys-kernel-config.mount \
+ 	sys-kernel-debug.mount \
+ 	sys-fs-fuse-connections.mount \
+ 	systemd-sysctl.service \
+diff -durN -x '*.orig' systemd-208.orig/units/sys-kernel-config.mount systemd-208/units/sys-kernel-config.mount
+--- systemd-208.orig/units/sys-kernel-config.mount	2013-08-13 22:02:52.000000000 +0200
++++ systemd-208/units/sys-kernel-config.mount	2014-01-10 10:22:04.000000000 +0100
 @@ -10,8 +10,8 @@
  Documentation=https://www.kernel.org/doc/Documentation/filesystems/configfs/configfs.txt
  Documentation=http://www.freedesktop.org/wiki/Software/systemd/APIFileSystems
@@ -23,9 +31,9 @@ diff -durN systemd-208.orig/units/sys-kernel-config.mount systemd-208/units/sys-
  Before=sysinit.target
  
  [Mount]
-diff -durN systemd-208.orig/units/sys-kernel-config.service systemd-208/units/sys-kernel-config.service
+diff -durN -x '*.orig' systemd-208.orig/units/sys-kernel-config.service systemd-208/units/sys-kernel-config.service
 --- systemd-208.orig/units/sys-kernel-config.service	1970-01-01 01:00:00.000000000 +0100
-+++ systemd-208/units/sys-kernel-config.service	2014-01-06 11:41:04.962223257 +0100
++++ systemd-208/units/sys-kernel-config.service	2014-01-10 10:22:04.000000000 +0100
 @@ -0,0 +1,8 @@
 +[Unit]
 +Description=Load the configfs module for /sys/kernel/config mount
