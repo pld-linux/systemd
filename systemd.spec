@@ -61,6 +61,7 @@ Patch12:	proc-hidepid.patch
 Patch14:	dont-hash-null-keys.patch
 Patch15:	hibernate-to-file.patch
 Patch16:	systemd-configfs.patch
+Patch17:	pld-boot_efi_mount.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -594,6 +595,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 #patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build

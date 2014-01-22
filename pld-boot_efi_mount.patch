@@ -1,0 +1,59 @@
+diff -dur systemd-208.orig/src/efi-boot-generator/efi-boot-generator.c systemd-208/src/efi-boot-generator/efi-boot-generator.c
+--- systemd-208.orig/src/efi-boot-generator/efi-boot-generator.c	2013-09-25 03:38:17.000000000 +0200
++++ systemd-208/src/efi-boot-generator/efi-boot-generator.c	2014-01-22 21:05:38.281137494 +0100
+@@ -52,7 +52,7 @@
+         if (!is_efi_boot())
+                 return EXIT_SUCCESS;
+ 
+-        if (dir_is_empty("/boot") <= 0)
++        if (dir_is_empty("/boot/efi") <= 0)
+                 return EXIT_SUCCESS;
+ 
+         r = efi_loader_get_device_part_uuid(&id);
+@@ -63,7 +63,7 @@
+                 return EXIT_FAILURE;
+         }
+ 
+-        name = strjoin(arg_dest, "/boot.mount", NULL);
++        name = strjoin(arg_dest, "/boot-efi.mount", NULL);
+         if (!name) {
+                 log_oom();
+                 return EXIT_FAILURE;
+@@ -80,13 +80,13 @@
+                 "[Unit]\n"
+                 "Description=EFI System Partition\n\n"
+                 "[Mount]\n"
+-                "Where=/boot\n"
++                "Where=/boot/efi\n"
+                 "What=/dev/disk/by-partuuid/%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n"
+                 "Options=umask=0077\n",
+                 SD_ID128_FORMAT_VAL(id));
+ 
+         free(name);
+-        name = strjoin(arg_dest, "/boot.automount", NULL);
++        name = strjoin(arg_dest, "/boot-efi.automount", NULL);
+         if (!name) {
+                 log_oom();
+                 return EXIT_FAILURE;
+@@ -103,10 +103,10 @@
+               "[Unit]\n"
+               "Description=EFI System Partition Automount\n\n"
+               "[Automount]\n"
+-              "Where=/boot\n", f);
++              "Where=/boot/efi\n", f);
+ 
+         free(name);
+-        name = strjoin(arg_dest, "/local-fs.target.wants/boot.automount", NULL);
++        name = strjoin(arg_dest, "/local-fs.target.wants/boot-efi.automount", NULL);
+         if (!name) {
+                 log_oom();
+                 return EXIT_FAILURE;
+@@ -114,7 +114,7 @@
+ 
+         mkdir_parents(name, 0755);
+ 
+-        if (symlink("../boot.automount", name) < 0) {
++        if (symlink("../boot-efi.automount", name) < 0) {
+                 log_error("Failed to create symlink %s: %m", name);
+                 return EXIT_FAILURE;
+         }
