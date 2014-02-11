@@ -6,7 +6,7 @@
 if ! is_no "$DM_MULTIPATH" && [ -x /sbin/multipath ]; then
 	modprobe -s dm-mod >/dev/null 2>&1
 	modprobe -s dm-multipath >/dev/null 2>&1
-	/sbin/multipath -u -v 0
+	/sbin/multipath -v 0
 	[ -x /sbin/kpartx ] && /sbin/dmsetup ls --target multipath --exec '/sbin/kpartx -u -a -p p'
 fi
 
