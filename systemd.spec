@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	208
-Release:	10
+Release:	11
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -62,6 +62,7 @@ Patch14:	dont-hash-null-keys.patch
 Patch15:	hibernate-to-file.patch
 Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
+Patch18:	optional-tmp-on-tmpfs.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -596,6 +597,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -719,8 +721,7 @@ cp -p %{SOURCE5} $RPM_BUILD_ROOT%{systemdunitdir}/var-run.mount
 ln -s ../var-lock.mount $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 ln -s ../var-run.mount $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 
-# and remove tmp on tmpfs mount
-%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/tmp.mount
+# and remove mounting tmp on tmpfs by default
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/tmp.mount
 
 # Install and enable storage subsystems support services (RAID, LVM, etc.)
