@@ -513,6 +513,9 @@ Summary:	libudev API documentation
 Summary(pl.UTF-8):	Dokumentacja API libudev
 Group:		Documentation
 Requires:	gtk-doc-common
+%if "%{_rpmversion}" >= "5"
+BuildArch:	noarch
+%endif
 
 %description -n udev-apidocs
 libudev API documentation.
@@ -553,6 +556,9 @@ Summary:	libgudev API documentation
 Summary(pl.UTF-8):	Dokumentacja API libgudev
 Group:		Documentation
 Requires:	gtk-doc-common
+%if "%{_rpmversion}" >= "5"
+BuildArch:	noarch
+%endif
 
 %description -n udev-glib-apidocs
 libgudev API documentation.
