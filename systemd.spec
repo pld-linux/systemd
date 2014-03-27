@@ -1,5 +1,8 @@
 # TODO:
 # - merge rpm macros provided by systemd with ours
+# - handle udev package removal:
+#   - http://lists.pld-linux.org/mailman/pipermail/pld-devel-en/2014-March/023852.html
+#   - restore (write) sane value for kernel.hotplug, i.e from rc-scripts: sysctl -q -e -w kernel.hotplug=/lib/firmware/firmware-loader.sh
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
