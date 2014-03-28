@@ -3,6 +3,8 @@
 # - handle udev package removal:
 #   - http://lists.pld-linux.org/mailman/pipermail/pld-devel-en/2014-March/023852.html
 #   - restore (write) sane value for kernel.hotplug, i.e from rc-scripts: sysctl -q -e -w kernel.hotplug=/lib/firmware/firmware-loader.sh
+# - dev->udev upgrade:
+#   - /dev/urandom remains missing, not created with start_udev anymore
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
