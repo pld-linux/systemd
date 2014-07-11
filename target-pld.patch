@@ -2,20 +2,20 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/Makefile.am systemd-208/Makefile.
 --- systemd-208.orig/Makefile.am	2013-10-02 04:57:09.000000000 +0200
 +++ systemd-208/Makefile.am	2014-01-09 15:15:41.000000000 +0100
 @@ -211,6 +211,8 @@
- SYSINIT_TARGET_WANTS =
- SOCKETS_TARGET_WANTS =
  TIMERS_TARGET_WANTS =
+ USER_SOCKETS_TARGET_WANTS =
+ USER_BUSNAMES_TARGET_WANTS =
 +FINAL_TARGET_WANTS =
 +GRAPHICAL_TARGET_WANTS =
  
  SYSTEM_UNIT_ALIASES =
  USER_UNIT_ALIASES =
 @@ -230,6 +232,8 @@
- 	what="$(SOCKETS_TARGET_WANTS)" && wants=sockets.target && $(add-wants)
- 	what="$(TIMERS_TARGET_WANTS)" && wants=timers.target && $(add-wants)
  	what="$(SLICES_TARGET_WANTS)" && wants=slices.target && $(add-wants)
-+	what="$(FINAL_TARGET_WANTS)" && wants=final.target && $(add-wants)
-+	what="$(GRAPHICAL_TARGET_WANTS)" && wants=graphical.target && $(add-wants)
+ 	what="$(USER_SOCKETS_TARGET_WANTS)" && wants=sockets.target && dir=$(userunitdir) && $(add-wants)
+ 	what="$(USER_BUSNAMES_TARGET_WANTS)" && wants=busnames.target && dir=$(userunitdir) && $(add-wants)
++	what="$(FINAL_TARGET_WANTS)" && wants=final.target && dir=$(systemunitdir) && $(add-wants)
++	what="$(GRAPHICAL_TARGET_WANTS)" && wants=graphical.target && dir=$(systemunitdir) && $(add-wants)
  
  define add-wants
  	[ -z "$$what" ] || ( \
@@ -166,20 +166,21 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/timedate/timedated.c systemd-208/src/timedate/timedated.c
 --- systemd-208.orig/src/timedate/timedated.c	2013-08-13 22:02:47.000000000 +0200
 +++ systemd-208/src/timedate/timedated.c	2014-01-09 15:15:41.000000000 +0100
-@@ -183,6 +183,13 @@
+@@ -183,6 +183,14 @@
                  }
          }
  
 +	r = parse_env_file("/etc/sysconfig/timezone", NEWLINE,
-+			   "TIMEZONE", &tz.zone,
++			   "TIMEZONE", &c->zone,
 +			   NULL);
 +	if (r < 0) {
 +		if (r != -ENOENT)
 +			log_warning("Failed to read /etc/sysconfig/timezone: %s", strerror(-r));
 +	}
++ 
  have_timezone:
-         if (isempty(tz.zone)) {
-                 free(tz.zone);
+         if (isempty(c->zone)) {
+                 free(c->zone);
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c systemd-208/src/vconsole/vconsole-setup.c
 --- systemd-208.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
 +++ systemd-208/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100

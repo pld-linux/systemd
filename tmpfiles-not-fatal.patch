@@ -4,8 +4,8 @@
  [Service]
  Type=oneshot
  RemainAfterExit=yes
--ExecStart=@rootbindir@/systemd-tmpfiles --create --remove --exclude-prefix=/dev
-+ExecStart=-@rootbindir@/systemd-tmpfiles --create --remove --exclude-prefix=/dev
+-ExecStart=@rootbindir@/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
++ExecStart=-@rootbindir@/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
 --- systemd-39/units/systemd-tmpfiles-clean.service.in~	2011-12-30 22:27:36.520529020 +0100
 +++ systemd-39/units/systemd-tmpfiles-clean.service.in	2012-01-29 22:56:15.626015474 +0100
 @@ -18,5 +18,5 @@
