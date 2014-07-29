@@ -78,17 +78,21 @@ BuildRequires:	binutils >= 3:2.22.52.0.1-2
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
 BuildRequires:	dbus-devel >= 1.3.2
 BuildRequires:	docbook-style-xsl
+BuildRequires:	elfutils-devel
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
+BuildRequires:	gnutls-devel >= 3.1.4
 BuildRequires:	gobject-introspection-devel >= 1.31.1
 BuildRequires:	gperf
 BuildRequires:	gtk-doc >= 1.18
 BuildRequires:	intltool >= 0.40.0
 BuildRequires:	kmod-devel >= 14
+BuildRequires:	libapparmor-devel
 BuildRequires:	libblkid-devel >= 2.20
 BuildRequires:	libcap-devel
 BuildRequires:	libgcrypt-devel >= 1.4.5
-%{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.5}
+%{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
+BuildRequires:	libseccomp-devel >= 1.0.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
 BuildRequires:	libtool >= 2:2.2
 %{?with_tcpd:BuildRequires:	libwrap-devel}
@@ -123,6 +127,7 @@ Requires:	agetty
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-3
 Requires:	kmod >= 14
+%{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
 Requires:	libutempter
 Requires:	polkit
 Requires:	rc-scripts >= 0.4.5.3-7
@@ -994,7 +999,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc DISTRO_PORTING README TODO
+%doc DISTRO_PORTING NEWS README TODO
 /etc/dbus-1/system.d/org.freedesktop.hostname1.conf
 /etc/dbus-1/system.d/org.freedesktop.locale1.conf
 /etc/dbus-1/system.d/org.freedesktop.login1.conf
@@ -1103,6 +1108,9 @@ fi
 %{_libexecdir}/kernel/install.d/90-loaderentry.install
 %dir %{_libexecdir}/systemd/catalog
 %{_libexecdir}/systemd/catalog/systemd.catalog
+%lang(fr) %{_libexecdir}/systemd/catalog/systemd.fr.catalog
+%lang(it) %{_libexecdir}/systemd/catalog/systemd.it.catalog
+%lang(ru) %{_libexecdir}/systemd/catalog/systemd.ru.catalog
 %dir %{_libexecdir}/systemd/ntp-units.d
 %{_libexecdir}/systemd/ntp-units.d/90-systemd.list
 %dir %{_libexecdir}/sysusers.d
