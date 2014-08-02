@@ -57,14 +57,12 @@ Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
-Patch6:		udev-so.patch
 Patch8:		udev-ploop-rules.patch
 Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 Patch12:	proc-hidepid.patch
 Patch14:	dont-hash-null-keys.patch
-Patch15:	hibernate-to-file.patch
 Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
 Patch18:	optional-tmp-on-tmpfs.patch
@@ -613,18 +611,16 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch0 -p1
 %patch1 -p1
 #patch2 -p1
-#patch3 -p1
+%patch3 -p1
 %patch4 -p1
-# made upstream
-#patch6 -p1
 %patch8 -p1
 %patch9 -p1
+# rejected upstream
 #patch10 -p1
 %patch11 -p1
 %patch12 -p1
 # possible cause of infinite loop inside systemd-login
 #patch14 -p1
-#patch15 -p1
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
