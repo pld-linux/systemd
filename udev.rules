@@ -45,9 +45,6 @@ KERNEL=="sequencer[0-9]*",	GROUP="audio"
 # input devices
 KERNEL=="js*",			MODE="0664", GROUP="sys"
 
-# misc devices
-KERNEL=="fuse",			MODE="0660", GROUP="fuse"
-
 # graphics
 KERNEL=="agpgart",		MODE="0660", GROUP="video"
 
