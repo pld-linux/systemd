@@ -20,13 +20,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	215
-Release:	0.5
+Version:	217
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	d2603e9fffd8b18d242543e36f2e7d31
+# Source0-md5:	e68dbff3cc19f66e341572d9fb2ffa89
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -95,6 +95,7 @@ BuildRequires:	libseccomp-devel >= 1.0.0
 BuildRequires:	libtool >= 2:2.2
 %{?with_tcpd:BuildRequires:	libwrap-devel}
 BuildRequires:	libxslt-progs
+BuildRequires:	lz4-devel
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel}
 BuildRequires:	pkgconfig >= 0.9.0
@@ -132,9 +133,9 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 3.0
+Requires:	uname(release) >= 3.7
 Suggests:	ConsoleKit
-Suggests:	fsck >= 2.20
+Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	group(systemd-journal)
@@ -176,6 +177,7 @@ Conflicts:	cups < 1:1.5.0-10
 Conflicts:	dovecot < 1:2.0.16-3
 Conflicts:	dspam < 3.9.0-6
 Conflicts:	fail2ban < 0.8.4-4
+Conflicts:	fsck < 2.25.0
 Conflicts:	gammu-smsd < 1:1.31.0-3
 # Break gdm2.20 installs
 #Conflicts:	gdm < 2:3.2.1.1-9
@@ -478,7 +480,7 @@ Requires:	libblkid >= 2.20
 Requires:	setup >= 2.6.1-1
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 2.6.32
-#Suggests:	uname(release) >= 3.0
+#Suggests:	uname(release) >= 3.7
 Obsoletes:	udev-compat
 Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 Conflicts:	geninitrd < 12639
@@ -654,6 +656,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--enable-gtk-doc \
 	--enable-introspection \
 	--enable-split-usr \
+	--enable-lz4 \
 	--with-html-dir=%{_gtkdocdir} \
 	--with-kbd-loadkeys=/usr/bin/loadkeys \
 	--with-kbd-setfont=/bin/setfont \
@@ -1107,7 +1110,6 @@ fi
 %lang(fr) %{_libexecdir}/systemd/catalog/systemd.fr.catalog
 %lang(it) %{_libexecdir}/systemd/catalog/systemd.it.catalog
 %lang(ru) %{_libexecdir}/systemd/catalog/systemd.ru.catalog
-%dir %{_libexecdir}/systemd/ntp-units.d
 %{_libexecdir}/systemd/ntp-units.d/90-systemd.list
 %dir %{_libexecdir}/sysusers.d
 %{_libexecdir}/sysusers.d/basic.conf
@@ -1284,6 +1286,7 @@ fi
 %dir %{_libexecdir}/sysctl.d
 %{_libexecdir}/sysctl.d/50-default.conf
 %dir %{_libexecdir}/systemd
+%dir %{_libexecdir}/systemd/ntp-units.d
 %dir %{_libexecdir}/systemd/system-shutdown
 %dir %{_libexecdir}/systemd/system-sleep
 %dir %{_libexecdir}/systemd/user

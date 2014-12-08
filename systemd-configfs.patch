@@ -20,11 +20,12 @@ diff -durN -x '*.orig' systemd-208.orig/Makefile.am systemd-208/Makefile.am
 diff -durN -x '*.orig' systemd-208.orig/units/sys-kernel-config.mount systemd-208/units/sys-kernel-config.mount
 --- systemd-208.orig/units/sys-kernel-config.mount	2013-08-13 22:02:52.000000000 +0200
 +++ systemd-208/units/sys-kernel-config.mount	2014-01-10 10:22:04.000000000 +0100
-@@ -10,8 +10,8 @@
+@@ -10,9 +10,9 @@ Description=Configuration File System
  Documentation=https://www.kernel.org/doc/Documentation/filesystems/configfs/configfs.txt
  Documentation=http://www.freedesktop.org/wiki/Software/systemd/APIFileSystems
  DefaultDependencies=no
 -ConditionPathExists=/sys/kernel/config
+ ConditionCapability=CAP_SYS_RAWIO
 -After=systemd-modules-load.service
 +Wants=sys-kernel-config.service
 +After=systemd-modules-load.service sys-kernel-config.service

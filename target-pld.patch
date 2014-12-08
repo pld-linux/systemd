@@ -184,21 +184,21 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/timedate/timedated.c systemd-
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c systemd-208/src/vconsole/vconsole-setup.c
 --- systemd-208.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
 +++ systemd-208/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100
-@@ -296,6 +296,17 @@
-                         font_copy_to_all_vcs(fd);
-         }
+@@ -284,6 +284,17 @@ int main(int argc, char **argv) {
+         if (r < 0 && r != -ENOENT)
+                 log_warning("Failed to read /etc/vconsole.conf: %s", strerror(-r));
  
 +        if (r <= 0) {
-+		int r1 = parse_env_file("/etc/sysconfig/console", NEWLINE,
-+                                   "CONSOLEFONT", &vc_font,
-+                                   "CONSOLEMAP", &vc_font_map,
-+                                   "CONSOLESCREENFONTMAP", &vc_font_unimap,
-+                                   "KEYTABLE", &vc_keymap,
-+                                   NULL);
++                int r1 = parse_env_file("/etc/sysconfig/console", NEWLINE,
++                                "CONSOLEFONT", &vc_font,
++                                "CONSOLEMAP", &vc_font_map,
++                                "CONSOLESCREENFONTMAP", &vc_font_unimap,
++                                "KEYTABLE", &vc_keymap,
++                                NULL);
 +                if (r1 < 0 && r1 != -ENOENT)
 +                        log_warning("Failed to read /etc/sysconfig/console: %s", strerror(-r1));
-+        }
++        } 
 +
-         free(vc_keymap);
-         free(vc_font);
-         free(vc_font_map);
+         /* Let the kernel command line override /etc/vconsole.conf */
+         if (detect_container(NULL) <= 0) {
+                 r = parse_env_file("/proc/cmdline", WHITESPACE,
