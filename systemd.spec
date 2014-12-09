@@ -62,6 +62,7 @@ Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 Patch12:	proc-hidepid.patch
+Patch13:	systemd-bug-87125.patch
 Patch14:	dont-hash-null-keys.patch
 Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
@@ -621,6 +622,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 #patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 # possible cause of infinite loop inside systemd-login
 #patch14 -p1
 %patch16 -p1
@@ -1003,6 +1005,7 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.locale1.conf
 /etc/dbus-1/system.d/org.freedesktop.login1.conf
 /etc/dbus-1/system.d/org.freedesktop.machine1.conf
+/etc/dbus-1/system.d/org.freedesktop.resolve1.conf
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
@@ -1013,6 +1016,8 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/bootchart.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/coredump.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-remote.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-upload.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
@@ -1028,8 +1033,11 @@ fi
 %attr(755,root,root) /bin/journalctl
 %attr(755,root,root) /bin/loginctl
 %attr(755,root,root) /bin/machinectl
+%attr(755,root,root) /bin/networkctl
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
+%attr(755,root,root) /bin/systemd-escape
+%attr(755,root,root) /bin/systemd-firstboot
 %attr(755,root,root) /bin/systemd-inhibit
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
@@ -1044,7 +1052,6 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-cat
 %attr(755,root,root) %{_bindir}/systemd-cgls
 %attr(755,root,root) %{_bindir}/systemd-cgtop
-%attr(755,root,root) %{_bindir}/systemd-coredumpctl
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
 %attr(755,root,root) %{_bindir}/systemd-nspawn
@@ -1065,22 +1072,23 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
 %attr(755,root,root) /lib/systemd/systemd-fsck
+%attr(755,root,root) /lib/systemd/systemd-hibernate-resume
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
 %attr(755,root,root) /lib/systemd/systemd-initctl
 %attr(755,root,root) /lib/systemd/systemd-journald
 %attr(755,root,root) /lib/systemd/systemd-journal-remote
+%attr(755,root,root) /lib/systemd/systemd-journal-upload
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-machined
 %attr(755,root,root) /lib/systemd/systemd-modules-load
-%attr(755,root,root) /lib/systemd/systemd-multi-seat-x
 %attr(755,root,root) /lib/systemd/systemd-networkd
 %attr(755,root,root) /lib/systemd/systemd-networkd-wait-online
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
-%attr(755,root,root) /lib/systemd/systemd-readahead
 %attr(755,root,root) /lib/systemd/systemd-remount-fs
 %attr(755,root,root) /lib/systemd/systemd-reply-password
+%attr(755,root,root) /lib/systemd/systemd-resolve-host
 %attr(755,root,root) /lib/systemd/systemd-resolved
 %attr(755,root,root) /lib/systemd/systemd-rfkill
 %attr(755,root,root) /lib/systemd/systemd-shutdown
@@ -1109,15 +1117,17 @@ fi
 %{_libexecdir}/systemd/catalog/systemd.catalog
 %lang(fr) %{_libexecdir}/systemd/catalog/systemd.fr.catalog
 %lang(it) %{_libexecdir}/systemd/catalog/systemd.it.catalog
+%lang(pl) %{_libexecdir}/systemd/catalog/systemd.pl.catalog
 %lang(ru) %{_libexecdir}/systemd/catalog/systemd.ru.catalog
-%{_libexecdir}/systemd/ntp-units.d/90-systemd.list
 %dir %{_libexecdir}/sysusers.d
 %{_libexecdir}/sysusers.d/basic.conf
 %{_libexecdir}/sysusers.d/systemd.conf
+%{_libexecdir}/sysusers.d/systemd-remote.conf
 %{_libexecdir}/tmpfiles.d/etc.conf
 %{_libexecdir}/tmpfiles.d/legacy.conf
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/systemd-nologin.conf
+%{_libexecdir}/tmpfiles.d/systemd-remote.conf
 %{_libexecdir}/tmpfiles.d/tmp.conf
 %{_libexecdir}/tmpfiles.d/var.conf
 %{_libexecdir}/tmpfiles.d/x11.conf
@@ -1127,6 +1137,7 @@ fi
 %{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.resolve1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
@@ -1153,6 +1164,9 @@ fi
 %{_mandir}/man1/systemd-cgtop.1*
 %{_mandir}/man1/systemd-delta.1*
 %{_mandir}/man1/systemd-detect-virt.1*
+%{_mandir}/man1/systemd-escape.1*
+%{_mandir}/man1/systemd-firstboot.1*
+%{_mandir}/man1/systemd-firstboot.service.1*
 %{_mandir}/man1/systemd-inhibit.1*
 %{_mandir}/man1/systemd-machine-id-setup.1*
 %{_mandir}/man1/systemd-notify.1*
@@ -1180,6 +1194,7 @@ fi
 %{_mandir}/man5/systemd-system.conf.5*
 %{_mandir}/man5/systemd-user.conf.5*
 %{_mandir}/man5/sysusers.d.5*
+%{_mandir}/man5/timesyncd.conf.5*
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/bootup.7*
 %{_mandir}/man7/daemon.7*
@@ -1195,6 +1210,7 @@ fi
 %{_mandir}/man8/systemd-activate.8*
 %{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-binfmt.8*
+%{_mandir}/man8/systemd-coredump.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-debug-generator.8.gz
 %{_mandir}/man8/systemd-fsck.8*
@@ -1202,22 +1218,25 @@ fi
 %{_mandir}/man8/systemd-gpt-auto-generator.8*
 %{_mandir}/man8/systemd-fstab-generator.8*
 %{_mandir}/man8/systemd-getty-generator.8*
+%{_mandir}/man8/systemd-hibernate-resume-generator.8*
+%{_mandir}/man8/systemd-hibernate-resume.8*
+%{_mandir}/man8/systemd-hibernate-resume@.service.8*
 %{_mandir}/man8/systemd-hostnamed.8*
 %{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8
 %{_mandir}/man8/systemd-journald.8*
-%{_mandir}/man8/systemd-journal-remote.8.gz
+%{_mandir}/man8/systemd-journal-remote.8.*
+%{_mandir}/man8/systemd-journal-upload.8.*
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
 %{_mandir}/man8/systemd-machined.8*
 %{_mandir}/man8/systemd-modules-load.8*
 %{_mandir}/man8/systemd-networkd-wait-online.8
-%{_mandir}/man8/systemd-networkd-wait-online.service.8.gz
+%{_mandir}/man8/systemd-networkd-wait-online.service.8.*
 %{_mandir}/man8/systemd-networkd.8
 %{_mandir}/man8/systemd-networkd.service.8.gz
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
-%{_mandir}/man8/systemd-readahead.8*
 %{_mandir}/man8/systemd-remount-fs.8*
 %{_mandir}/man8/systemd-resolved.8
 %{_mandir}/man8/systemd-resolved.service.8.gz
@@ -1286,7 +1305,6 @@ fi
 %dir %{_libexecdir}/sysctl.d
 %{_libexecdir}/sysctl.d/50-default.conf
 %dir %{_libexecdir}/systemd
-%dir %{_libexecdir}/systemd/ntp-units.d
 %dir %{_libexecdir}/systemd/system-shutdown
 %dir %{_libexecdir}/systemd/system-sleep
 %dir %{_libexecdir}/systemd/user
@@ -1321,10 +1339,7 @@ fi
 %{systemdunitdir}/*.target
 %{systemdunitdir}/*.timer
 %dir %{systemdunitdir}/basic.target.wants
-%dir %{systemdunitdir}/busnames.target.wants
 %dir %{systemdunitdir}/dbus.target.wants
-%dir %{systemdunitdir}/final.target.wants
-%dir %{systemdunitdir}/graphical.target.wants
 %dir %{systemdunitdir}/halt.target.wants
 %dir %{systemdunitdir}/initrd.target.wants
 %dir %{systemdunitdir}/kexec.target.wants
@@ -1338,24 +1353,12 @@ fi
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
 %dir %{systemdunitdir}/timers.target.wants
-%{systemdunitdir}/final.target.wants/*
-%{systemdunitdir}/graphical.target.wants/*
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.hostname1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.locale1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.login1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.machine1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.timedate1.busname
 %{systemdunitdir}/local-fs.target.wants/*
 %{systemdunitdir}/multi-user.target.wants/getty.target
 %{systemdunitdir}/multi-user.target.wants/rc-local.service
 %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
 %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
-%{systemdunitdir}/org.freedesktop.hostname1.busname
-%{systemdunitdir}/org.freedesktop.locale1.busname
-%{systemdunitdir}/org.freedesktop.login1.busname
-%{systemdunitdir}/org.freedesktop.machine1.busname
-%{systemdunitdir}/org.freedesktop.timedate1.busname
 %{systemdunitdir}/runlevel[12345].target.wants/*
 %{systemdunitdir}/sockets.target.wants/*
 %{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
@@ -1393,10 +1396,6 @@ fi
 %{_mandir}/man8/systemd-poweroff.service.8*
 %{_mandir}/man8/systemd-quotacheck.service.8*
 %{_mandir}/man8/systemd-random-seed.service.8*
-%{_mandir}/man8/systemd-readahead-collect.service.8*
-%{_mandir}/man8/systemd-readahead-done.service.8*
-%{_mandir}/man8/systemd-readahead-done.timer.8*
-%{_mandir}/man8/systemd-readahead-replay.service.8*
 %{_mandir}/man8/systemd-reboot.service.8*
 %{_mandir}/man8/systemd-remount-fs.service.8*
 %{_mandir}/man8/systemd-shutdownd.service.8*
@@ -1437,6 +1436,8 @@ fi
 
 %files libs
 %defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libnss_mymachines.so.2
+%attr(755,root,root) %{_libdir}/libnss_resolve.so.2
 %attr(755,root,root) /%{_lib}/libnss_myhostname.so.2
 %attr(755,root,root) /%{_lib}/libsystemd.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd.so.0
@@ -1510,6 +1511,8 @@ fi
 %{_datadir}/zsh/site-functions/_machinectl
 %{_datadir}/zsh/site-functions/_sd_hosts_or_user_at_host
 %{_datadir}/zsh/site-functions/_sd_machines
+%{_datadir}/zsh/site-functions/_sd_outputmodes
+%{_datadir}/zsh/site-functions/_sd_unit_files
 %{_datadir}/zsh/site-functions/_systemctl
 %{_datadir}/zsh/site-functions/_systemd
 %{_datadir}/zsh/site-functions/_systemd-analyze
@@ -1579,7 +1582,6 @@ fi
 
 # rules below are NOT supposed to be changed by users
 /lib/udev/rules.d/42-usb-hid-pm.rules
-/lib/udev/rules.d/50-firmware.rules
 /lib/udev/rules.d/50-udev-default.rules
 /lib/udev/rules.d/60-cdrom_id.rules
 /lib/udev/rules.d/60-drm.rules
@@ -1601,6 +1603,7 @@ fi
 /lib/udev/rules.d/80-net-setup-link.rules
 /lib/udev/rules.d/95-udev-late.rules
 
+%{_mandir}/man5/udev.conf.5*
 %{_mandir}/man7/udev.7*
 %{_mandir}/man8/udevadm.8*
 %{_mandir}/man8/udevd.8*
@@ -1623,8 +1626,8 @@ fi
 
 %files -n udev-glib
 %defattr(644,root,root,755)
-%attr(755,root,root) /%{_lib}/libgudev-1.0.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libgudev-1.0.so.0
+%attr(755,root,root) %{_libdir}/libgudev-1.0.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libgudev-1.0.so.0
 %{_libdir}/girepository-1.0/GUdev-1.0.typelib
 
 %files -n udev-glib-devel
