@@ -16,7 +16,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	208
-Release:	11
+Release:	12
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -132,8 +132,6 @@ Provides:	group(systemd-journal)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
-# systemd takes care of that and causes problems
-Conflicts:	binfmt-detector
 # sytemd wants pam with pam_systemd.so in system-auth...
 Conflicts:	pam < 1:1.1.5-5
 # ...and sudo hates it
@@ -262,6 +260,8 @@ Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
 Conflicts:	rc-scripts < 0.4.5.5-2
 Conflicts:	upstart
+# systemd takes care of that and causes problems
+Conflicts:	binfmt-detector
 
 %description init
 Install this package when you are ready to final switch to systemd.
