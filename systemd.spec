@@ -143,8 +143,6 @@ Provides:	group(systemd-journal)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
-# systemd takes care of that and causes problems
-Conflicts:	binfmt-detector
 # sytemd wants pam with pam_systemd.so in system-auth...
 Conflicts:	pam < 1:1.1.5-5
 # ...and sudo hates it
@@ -274,6 +272,8 @@ Obsoletes:	readahead < 1:1.5.7-3
 Obsoletes:	virtual(init-daemon)
 Conflicts:	rc-scripts < 0.4.5.5-2
 Conflicts:	upstart
+# systemd takes care of that and causes problems
+Conflicts:	binfmt-detector
 
 %description init
 Install this package when you are ready to final switch to systemd.
