@@ -57,6 +57,7 @@ Patch1:		config-pld.patch
 Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
+Patch5:		ignore-sysv-if-native-exists.patch
 Patch8:		udev-ploop-rules.patch
 Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
@@ -616,6 +617,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 #patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 %patch8 -p1
 %patch9 -p1
 # rejected upstream
