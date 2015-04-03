@@ -1,6 +1,7 @@
---- systemd-215/src/efi-boot-generator/efi-boot-generator.c.orig	2014-03-18 18:05:49.801378306 +0100
-+++ systemd-215/src/efi-boot-generator/efi-boot-generator.c	2014-07-11 11:44:46.017114762 +0200
-@@ -69,9 +69,9 @@ int main(int argc, char *argv[]) {
+diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator/efi-boot-generator.c systemd-218/src/efi-boot-generator/efi-boot-generator.c
+--- systemd-218.orig/src/efi-boot-generator/efi-boot-generator.c	2014-12-05 01:26:51.000000000 +0100
++++ systemd-218/src/efi-boot-generator/efi-boot-generator.c	2015-04-02 15:45:18.000000000 +0200
+@@ -69,9 +69,9 @@
                  return EXIT_SUCCESS;
          }
  
@@ -13,7 +14,7 @@
                  return EXIT_SUCCESS;
          }
  
-@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
+@@ -84,7 +84,7 @@
                  return EXIT_FAILURE;
          }
  
@@ -21,8 +22,8 @@
 +        name = strappenda(arg_dest, "/boot-efi.mount");
          f = fopen(name, "wxe");
          if (!f) {
-                 log_error("Failed to create mount unit file %s: %m", name);
-@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
+                 log_error_errno(errno, "Failed to create mount unit file %s: %m", name);
+@@ -105,7 +105,7 @@
                  "Description=EFI System Partition\n"
                  "Documentation=man:systemd-efi-boot-generator(8)\n");
  
@@ -31,7 +32,7 @@
          if (r < 0)
                  return EXIT_FAILURE;
  
-@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
+@@ -113,7 +113,7 @@
                  "\n"
                  "[Mount]\n"
                  "What=%s\n"
@@ -40,7 +41,7 @@
                  "Type=vfat\n"
                  "Options=umask=0077,noauto\n",
                  what);
-@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
+@@ -124,7 +124,7 @@
                  return EXIT_FAILURE;
          }
  
@@ -49,7 +50,7 @@
          fclose(f);
          f = fopen(name, "wxe");
          if (!f) {
-@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
+@@ -136,7 +136,7 @@
                "[Unit]\n"
                "Description=EFI System Partition Automount\n\n"
                "[Automount]\n"
@@ -58,7 +59,7 @@
  
          fflush(f);
          if (ferror(f)) {
-@@ -144,10 +144,10 @@ int main(int argc, char *argv[]) {
+@@ -144,10 +144,10 @@
                  return EXIT_FAILURE;
          }
  
@@ -68,6 +69,6 @@
  
 -        if (symlink("../boot.automount", name) < 0) {
 +        if (symlink("../boot-efi.automount", name) < 0) {
-                 log_error("Failed to create symlink %s: %m", name);
+                 log_error_errno(errno, "Failed to create symlink %s: %m", name);
                  return EXIT_FAILURE;
          }

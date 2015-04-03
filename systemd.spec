@@ -20,13 +20,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	217
+Version:	218
 Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	e68dbff3cc19f66e341572d9fb2ffa89
+# Source0-md5:	4e2c511b0a7932d7fc9d79822273aac6
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -62,7 +62,6 @@ Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 Patch12:	proc-hidepid.patch
-Patch13:	systemd-bug-87125.patch
 Patch14:	dont-hash-null-keys.patch
 Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
@@ -91,6 +90,7 @@ BuildRequires:	libblkid-devel >= 2.20
 BuildRequires:	libcap-devel
 BuildRequires:	libgcrypt-devel >= 1.4.5
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
+BuildRequires:	libmount-devel
 BuildRequires:	libseccomp-devel >= 1.0.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
 BuildRequires:	libtool >= 2:2.2
@@ -622,7 +622,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 #patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
 # possible cause of infinite loop inside systemd-login
 #patch14 -p1
 %patch16 -p1
@@ -1081,6 +1080,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-machined
+%attr(755,root,root) /lib/systemd/systemd-machine-id-commit
 %attr(755,root,root) /lib/systemd/systemd-modules-load
 %attr(755,root,root) /lib/systemd/systemd-networkd
 %attr(755,root,root) /lib/systemd/systemd-networkd-wait-online
@@ -1168,6 +1168,7 @@ fi
 %{_mandir}/man1/systemd-firstboot.1*
 %{_mandir}/man1/systemd-firstboot.service.1*
 %{_mandir}/man1/systemd-inhibit.1*
+%{_mandir}/man1/systemd-machine-id-commit.1*
 %{_mandir}/man1/systemd-machine-id-setup.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
@@ -1177,24 +1178,33 @@ fi
 %{_mandir}/man1/timedatectl.1*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/bootchart.conf.5*
+%{_mandir}/man5/bootchart.conf.d.5*
 %{_mandir}/man5/coredump.conf.5*
+%{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/journald.conf.5*
+%{_mandir}/man5/journald.conf.d.5*
 %{_mandir}/man5/locale.conf.5*
 %{_mandir}/man5/localtime.5*
 %{_mandir}/man5/logind.conf.5*
+%{_mandir}/man5/logind.conf.d.5*
 %{_mandir}/man5/machine-id.5*
 %{_mandir}/man5/machine-info.5*
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/resolved.conf.5*
+%{_mandir}/man5/resolved.conf.d.5*
+%{_mandir}/man5/sleep.conf.d.5*
 %{_mandir}/man5/sysctl.d.5*
+%{_mandir}/man5/system.conf.d.5*
 %{_mandir}/man5/systemd.*.5*
 %{_mandir}/man5/systemd-sleep.conf.5*
 %{_mandir}/man5/systemd-system.conf.5*
 %{_mandir}/man5/systemd-user.conf.5*
 %{_mandir}/man5/sysusers.d.5*
 %{_mandir}/man5/timesyncd.conf.5*
+%{_mandir}/man5/timesyncd.conf.d.5*
+%{_mandir}/man5/user.conf.d.5*
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/bootup.7*
 %{_mandir}/man7/daemon.7*
@@ -1230,6 +1240,7 @@ fi
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
 %{_mandir}/man8/systemd-machined.8*
+%{_mandir}/man8/systemd-machine-id-commit.service.8*
 %{_mandir}/man8/systemd-modules-load.8*
 %{_mandir}/man8/systemd-networkd-wait-online.8
 %{_mandir}/man8/systemd-networkd-wait-online.service.8.*
@@ -1248,6 +1259,7 @@ fi
 %{_mandir}/man8/systemd-socket-proxyd.8.gz
 %{_mandir}/man8/systemd-sysctl.8*
 %{_mandir}/man8/systemd-system-update-generator.8*
+%{_mandir}/man8/systemd-sysv-generator.8*
 %{_mandir}/man8/systemd-sysusers.8.gz
 %{_mandir}/man8/systemd-sysusers.service.8
 %{_mandir}/man8/systemd-timedated.8*
@@ -1560,6 +1572,7 @@ fi
 /lib/udev/hwdb.d/20-usb-classes.hwdb
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
+/lib/udev/hwdb.d/70-mouse.hwdb
 
 %attr(755,root,root) %{_sbindir}/start_udev
 %attr(755,root,root) %{_sbindir}/udevd
@@ -1594,6 +1607,7 @@ fi
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/61-accelerometer.rules
 /lib/udev/rules.d/64-btrfs.rules
+/lib/udev/rules.d/70-mouse.rules
 /lib/udev/rules.d/70-power-switch.rules
 /lib/udev/rules.d/75-net-description.rules
 /lib/udev/rules.d/75-probe_mtd.rules
@@ -1601,6 +1615,7 @@ fi
 /lib/udev/rules.d/78-sound-card.rules
 /lib/udev/rules.d/80-drivers.rules
 /lib/udev/rules.d/80-net-setup-link.rules
+/lib/udev/rules.d/90-vconsole.rules
 /lib/udev/rules.d/95-udev-late.rules
 
 %{_mandir}/man5/udev.conf.5*
