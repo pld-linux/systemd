@@ -9,7 +9,7 @@
 # Conditional build:
 %bcond_without	audit		# without audit support
 %bcond_without	cryptsetup	# without cryptsetup support
-%bcond_without	microhttpd	# microhttpd support
+%bcond_without	microhttpd	# use microhttpd for network journal access
 %bcond_without	pam		# PAM authentication support
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
@@ -1017,8 +1017,10 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/bootchart.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/coredump.conf
+%if %{with microhttpd}
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-remote.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-upload.conf
+%endif
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
@@ -1077,8 +1079,10 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
 %attr(755,root,root) /lib/systemd/systemd-initctl
 %attr(755,root,root) /lib/systemd/systemd-journald
+%if %{with microhttpd}
 %attr(755,root,root) /lib/systemd/systemd-journal-remote
 %attr(755,root,root) /lib/systemd/systemd-journal-upload
+%endif
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-machined
@@ -1124,12 +1128,16 @@ fi
 %dir %{_libexecdir}/sysusers.d
 %{_libexecdir}/sysusers.d/basic.conf
 %{_libexecdir}/sysusers.d/systemd.conf
+%if %{with microhttpd}
 %{_libexecdir}/sysusers.d/systemd-remote.conf
+%endif
 %{_libexecdir}/tmpfiles.d/etc.conf
 %{_libexecdir}/tmpfiles.d/legacy.conf
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/systemd-nologin.conf
+%if %{with microhttpd}
 %{_libexecdir}/tmpfiles.d/systemd-remote.conf
+%endif
 %{_libexecdir}/tmpfiles.d/tmp.conf
 %{_libexecdir}/tmpfiles.d/var.conf
 %{_libexecdir}/tmpfiles.d/x11.conf
@@ -1237,8 +1245,10 @@ fi
 %{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8
 %{_mandir}/man8/systemd-journald.8*
+%if %{with microhttpd}
 %{_mandir}/man8/systemd-journal-remote.8.*
 %{_mandir}/man8/systemd-journal-upload.8.*
+%endif
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
 %{_mandir}/man8/systemd-machined.8*
