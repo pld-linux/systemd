@@ -21,7 +21,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	218
-Release:	0.1
+Release:	0.2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -67,6 +67,7 @@ Patch14:	dont-hash-null-keys.patch
 Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
 Patch18:	optional-tmp-on-tmpfs.patch
+Patch19:	uids_gids.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -140,7 +141,19 @@ Suggests:	ConsoleKit
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
+Provides:	group(systemd-bus-proxy)
+Provides:	group(systemd-network)
+Provides:	group(systemd-resolve)
+Provides:	group(systemd-timesync)
 Provides:	group(systemd-journal)
+Provides:	group(systemd-journal-remote)
+Provides:	group(systemd-journal-upload)
+Provides:	user(systemd-bus-proxy)
+Provides:	user(systemd-network)
+Provides:	user(systemd-resolve)
+Provides:	user(systemd-timesync)
+Provides:	user(systemd-journal-remote)
+Provides:	user(systemd-journal-upload)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
@@ -629,6 +642,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -823,6 +837,18 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 %groupadd -g 288 systemd-journal
+%groupadd -g 315 systemd-bus-proxy
+%useradd -u 315 -g 315 -d /var/log/journal -s /bin/false -c "Systemd Bus Proxy" systemd-bus-proxy
+%groupadd -g 316 systemd-network
+%useradd -u 316 -g 316 -d /var/log/journal -s /bin/false -c "Systemd Network Management" systemd-network
+%groupadd -g 317 systemd-resolve
+%useradd -u 317 -g 317 -d /var/log/journal -s /bin/false -c "Systemd Resolver" systemd-resolve
+%groupadd -g 318 systemd-timesync
+%useradd -u 318 -g 318 -d /var/log/journal -s /bin/false -c "Systemd Time Synchronization" systemd-timesync
+%groupadd -g 319 systemd-journal-remote
+%useradd -u 319 -g 319 -d /var/log/journal -s /bin/false -c "Systemd Journal Remote" systemd-journal-remote
+%groupadd -g 320 systemd-journal-upload
+%useradd -u 320 -g 320 -d /var/log/journal -s /bin/false -c "Systemd Journal Upload" systemd-journal-upload
 
 %post
 /bin/systemd-machine-id-setup || :
