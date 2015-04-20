@@ -340,6 +340,41 @@ HTTP.
 systemd-journal-gatewayd serwuje zdarzenia dziennika po sieci poprzez
 HTTP.
 
+%package networkd
+Summary:	systemd network manager
+Summary(pl.UTF-8):	Zarządca sieci systemd
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Suggests:	%{name}-resolved = %{epoch}:%{version}-%{release}
+
+%description networkd
+systemd-networkd is a system service that manages networks. It detects
+and configures network devices as they appear, as well as creating
+virtual network devices.
+
+%description networkd -l pl.UTF-8
+systemd-networkd to usługa systemowa zarządzająca siecią. Wykrywa
+i konfiguruje interfejsy sieciowe gdy się pojawiają, a także tworzy
+wirtualne urządzenia sieciowe.
+
+%package resolved
+Summary:	systemd network name resolution manager
+Summary(pl.UTF-8):	Zarządca rozwiązywania nazw sieciowych systemd
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description resolved
+systemd-resolved is a system service that manages network name
+resolution. It implements a caching DNS stub resolver and an LLMNR
+resolver and responder.
+It also generates /run/systemd/resolve/resolv.conf for compatibility
+which may be symlinked from /etc/resolv.conf.
+
+%description resolved -l pl.UTF-8
+systemd-resolved to usługa systemowa zarządzająca rozwiązywaniem nazw
+sieciowych. Implementuje keszujący serwer DNS oraz LLMNR resolver
+i responder.
+
 %package inetd
 Summary:	Native inet service support for systemd via socket activation
 Summary(pl.UTF-8):	Natywna obsługa usług inet dla systemd
@@ -819,6 +854,10 @@ install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
 # Create directory for service helper scripts
 install -d $RPM_BUILD_ROOT/lib/systemd/pld-helpers.d
 
+# to be enabled only when the packages are installed
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-networkd.service
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-resolved.service
+
 install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/btmp
 :> $RPM_BUILD_ROOT/var/log/wtmp
@@ -981,6 +1020,24 @@ if [ "$1" = "0" ]; then
 	%groupremove systemd-journal-gateway
 fi
 
+%post networkd
+%systemd_post systemd-networkd.service
+
+%preun networkd
+%systemd_preun systemd-networkd.service
+
+%postun networkd
+%systemd_reload
+
+%post resolved
+%systemd_post systemd-resolved.service
+
+%preun resolved
+%systemd_preun systemd-resolved.service
+
+%postun resolved
+%systemd_reload
+
 %triggerpostun -n udev-core -- dev
 if [ "$2" = 0 ]; then
 	# need to kill and restart udevd as after obsoleting dev package the
@@ -1049,7 +1106,6 @@ fi
 %endif
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/timesyncd.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
@@ -1114,14 +1170,11 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-machined
 %attr(755,root,root) /lib/systemd/systemd-machine-id-commit
 %attr(755,root,root) /lib/systemd/systemd-modules-load
-%attr(755,root,root) /lib/systemd/systemd-networkd
-%attr(755,root,root) /lib/systemd/systemd-networkd-wait-online
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
 %attr(755,root,root) /lib/systemd/systemd-remount-fs
 %attr(755,root,root) /lib/systemd/systemd-reply-password
 %attr(755,root,root) /lib/systemd/systemd-resolve-host
-%attr(755,root,root) /lib/systemd/systemd-resolved
 %attr(755,root,root) /lib/systemd/systemd-rfkill
 %attr(755,root,root) /lib/systemd/systemd-shutdown
 %attr(755,root,root) /lib/systemd/systemd-shutdownd
@@ -1228,8 +1281,6 @@ fi
 %{_mandir}/man5/machine-info.5*
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/os-release.5*
-%{_mandir}/man5/resolved.conf.5*
-%{_mandir}/man5/resolved.conf.d.5*
 %{_mandir}/man5/sleep.conf.d.5*
 %{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/system.conf.d.5*
@@ -1280,15 +1331,9 @@ fi
 %{_mandir}/man8/systemd-machined.8*
 %{_mandir}/man8/systemd-machine-id-commit.service.8*
 %{_mandir}/man8/systemd-modules-load.8*
-%{_mandir}/man8/systemd-networkd-wait-online.8
-%{_mandir}/man8/systemd-networkd-wait-online.service.8.*
-%{_mandir}/man8/systemd-networkd.8
-%{_mandir}/man8/systemd-networkd.service.8.gz
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
 %{_mandir}/man8/systemd-remount-fs.8*
-%{_mandir}/man8/systemd-resolved.8
-%{_mandir}/man8/systemd-resolved.service.8.gz
 %{_mandir}/man8/systemd-rfkill.8
 %{_mandir}/man8/systemd-rfkill@.service.8.gz
 %{_mandir}/man8/systemd-shutdown.8*
@@ -1473,6 +1518,24 @@ fi
 %{_mandir}/man8/systemd-journal-gatewayd.service.8*
 %{_mandir}/man8/systemd-journal-gatewayd.socket.8*
 %endif
+
+%files networkd
+%defattr(644,root,root,755)
+%attr(755,root,root) /lib/systemd/systemd-networkd
+%attr(755,root,root) /lib/systemd/systemd-networkd-wait-online
+%{_mandir}/man8/systemd-networkd-wait-online.8
+%{_mandir}/man8/systemd-networkd-wait-online.service.8.*
+%{_mandir}/man8/systemd-networkd.8
+%{_mandir}/man8/systemd-networkd.service.8.gz
+
+%files resolved
+%defattr(644,root,root,755)
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
+%attr(755,root,root) /lib/systemd/systemd-resolved
+%{_mandir}/man5/resolved.conf.5*
+%{_mandir}/man5/resolved.conf.d.5*
+%{_mandir}/man8/systemd-resolved.8
+%{_mandir}/man8/systemd-resolved.service.8.gz
 
 %files inetd
 %defattr(644,root,root,755)
