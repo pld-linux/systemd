@@ -25,7 +25,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	219
-Release:	0.1
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1442,10 +1442,6 @@ fi
 %{_libexecdir}/systemd/user/timers.target
 %{_libexecdir}/systemd/user/systemd-exit.service
 %dir %{_libexecdir}/systemd/user-generators
-%dir /lib/systemd/network
-/lib/systemd/network/80-container-host0.network
-/lib/systemd/network/80-container-ve.network
-/lib/systemd/network/99-default.link
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
@@ -1758,12 +1754,17 @@ fi
 %files networkd
 %defattr(644,root,root,755)
 /etc/dbus-1/system.d/org.freedesktop.network1.conf
+%dir %{_sysconfdir}/systemd/network
+%dir %{_sysconfdir}/systemd/system/network-online.target.wants
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+%dir /lib/systemd/network
+/lib/systemd/network/80-container-host0.network
+/lib/systemd/network/80-container-ve.network
+/lib/systemd/network/99-default.link
 %{systemdunitdir}/dbus-org.freedesktop.network1.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
 %{systemdunitdir}/systemd-networkd.socket
-%dir %{_sysconfdir}/systemd/system/network-online.target.wants
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.network1.service
 %attr(755,root,root) /bin/networkctl
 %attr(755,root,root) /lib/systemd/systemd-networkd
