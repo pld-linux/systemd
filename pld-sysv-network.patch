@@ -2,16 +2,16 @@ diff -dur -x '*.orig' systemd-218.orig/man/systemd.special.xml systemd-218/man/s
 --- systemd-218.orig/man/systemd.special.xml	2014-12-05 01:26:51.000000000 +0100
 +++ systemd-218/man/systemd.special.xml	2015-04-03 15:01:42.000000000 +0200
 @@ -910,6 +910,10 @@
-                                         an LSB header referring to the
-                                         <literal>$network</literal>
-                                         facility.</para>
+           <varname>After=</varname> for this target unit to all SysV
+           init script service units with an LSB header referring to
+           the <literal>$network</literal> facility.</para>
 +
-+										<para>PLD specific: also scripts with
-+										<literal>. /etc/sysconfig/network</literal>
-+										source line get the dependency.</para>
-                                 </listitem>
-                         </varlistentry>
-                         <varlistentry>
++          <para>PLD specific: also scripts with
++          <literal>. /etc/sysconfig/network</literal>
++          source line get the dependency.</para>
+         </listitem>
+       </varlistentry>
+       <varlistentry>
 diff -dur -x '*.orig' systemd-218.orig/src/sysv-generator/sysv-generator.c systemd-218/src/sysv-generator/sysv-generator.c
 --- systemd-218.orig/src/sysv-generator/sysv-generator.c	2014-12-05 01:26:51.000000000 +0100
 +++ systemd-218/src/sysv-generator/sysv-generator.c	2015-04-03 15:02:21.000000000 +0200

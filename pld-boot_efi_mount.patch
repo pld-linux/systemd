@@ -18,8 +18,8 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator
                  return EXIT_FAILURE;
          }
  
--        name = strappenda(arg_dest, "/boot.mount");
-+        name = strappenda(arg_dest, "/boot-efi.mount");
+-        name = strjoina(arg_dest, "/boot.mount");
++        name = strjoina(arg_dest, "/boot-efi.mount");
          f = fopen(name, "wxe");
          if (!f) {
                  log_error_errno(errno, "Failed to create mount unit file %s: %m", name);
@@ -45,8 +45,8 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator
                  return EXIT_FAILURE;
          }
  
--        name = strappenda(arg_dest, "/boot.automount");
-+        name = strappenda(arg_dest, "/boot-efi.automount");
+-        name = strjoina(arg_dest, "/boot.automount");
++        name = strjoina(arg_dest, "/boot-efi.automount");
          fclose(f);
          f = fopen(name, "wxe");
          if (!f) {
@@ -63,8 +63,8 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator
                  return EXIT_FAILURE;
          }
  
--        name = strappenda(arg_dest, "/" SPECIAL_LOCAL_FS_TARGET ".wants/boot.automount");
-+        name = strappenda(arg_dest, "/" SPECIAL_LOCAL_FS_TARGET ".wants/boot-efi.automount");
+-        name = strjoina(arg_dest, "/" SPECIAL_LOCAL_FS_TARGET ".wants/boot.automount");
++        name = strjoina(arg_dest, "/" SPECIAL_LOCAL_FS_TARGET ".wants/boot-efi.automount");
          mkdir_parents(name, 0755);
  
 -        if (symlink("../boot.automount", name) < 0) {
