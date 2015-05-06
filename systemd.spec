@@ -370,13 +370,17 @@ Requires:	%{name} = %{epoch}:%{version}-%{release}
 systemd-resolved is a system service that manages network name
 resolution. It implements a caching DNS stub resolver and an LLMNR
 resolver and responder.
+
 It also generates /run/systemd/resolve/resolv.conf for compatibility
 which may be symlinked from /etc/resolv.conf.
 
 %description resolved -l pl.UTF-8
 systemd-resolved to usługa systemowa zarządzająca rozwiązywaniem nazw
-sieciowych. Implementuje keszujący serwer DNS oraz LLMNR resolver
-i responder.
+sieciowych. Implementuje keszujący resolver DNS oraz resolver i
+responder LLMNR.
+
+Generuje także dla zgodności plik /run/systemd/resolve/resolv.conf,
+który można użyć do dowiązania symbolicznego z /etc/resolv.conf.
 
 %package inetd
 Summary:	Native inet service support for systemd via socket activation
@@ -1325,8 +1329,8 @@ fi
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man7/systemd.time.7*
 %{_mandir}/man8/kernel-install.8*
-%{_mandir}/man8/libnss_myhostname.so.2.8
-%{_mandir}/man8/libnss_mymachines.so.2.8
+%{_mandir}/man8/libnss_myhostname.so.2.8*
+%{_mandir}/man8/libnss_mymachines.so.2.8*
 %{_mandir}/man8/nss-myhostname.8*
 %{_mandir}/man8/nss-mymachines.8*
 %{_mandir}/man8/systemd-activate.8*
@@ -1345,7 +1349,7 @@ fi
 %{_mandir}/man8/systemd-hibernate-resume@.service.8*
 %{_mandir}/man8/systemd-hostnamed.8*
 %{_mandir}/man8/systemd-initctl.8*
-%{_mandir}/man8/systemd-journald-dev-log.socket.8
+%{_mandir}/man8/systemd-journald-dev-log.socket.8*
 %{_mandir}/man8/systemd-journald.8*
 %if %{with microhttpd}
 %{_mandir}/man8/systemd-journal-remote.8.*
@@ -1359,7 +1363,7 @@ fi
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
 %{_mandir}/man8/systemd-remount-fs.8*
-%{_mandir}/man8/systemd-rfkill.8
+%{_mandir}/man8/systemd-rfkill.8*
 %{_mandir}/man8/systemd-rfkill@.service.8*
 %{_mandir}/man8/systemd-shutdown.8*
 %{_mandir}/man8/systemd-shutdownd.8*
@@ -1369,12 +1373,12 @@ fi
 %{_mandir}/man8/systemd-system-update-generator.8*
 %{_mandir}/man8/systemd-sysv-generator.8*
 %{_mandir}/man8/systemd-sysusers.8*
-%{_mandir}/man8/systemd-sysusers.service.8
+%{_mandir}/man8/systemd-sysusers.service.8*
 %{_mandir}/man8/systemd-timedated.8*
-%{_mandir}/man8/systemd-timesyncd.8
+%{_mandir}/man8/systemd-timesyncd.8*
 %{_mandir}/man8/systemd-timesyncd.service.8*
 %{_mandir}/man8/systemd-udevd.8*
-%{_mandir}/man8/systemd-update-done.8
+%{_mandir}/man8/systemd-update-done.8*
 %{_mandir}/man8/systemd-update-done.service.8*
 %{_mandir}/man8/systemd-update-utmp.8*
 %{_mandir}/man8/systemd-user-sessions.8*
@@ -1770,9 +1774,9 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-networkd
 %attr(755,root,root) /lib/systemd/systemd-networkd-wait-online
 %{_mandir}/man1/networkctl.1*
-%{_mandir}/man8/systemd-networkd-wait-online.8
+%{_mandir}/man8/systemd-networkd-wait-online.8*
 %{_mandir}/man8/systemd-networkd-wait-online.service.8*
-%{_mandir}/man8/systemd-networkd.8
+%{_mandir}/man8/systemd-networkd.8*
 %{_mandir}/man8/systemd-networkd.service.8*
 
 %files resolved
@@ -1785,7 +1789,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-resolved
 %{_mandir}/man5/resolved.conf.5*
 %{_mandir}/man5/resolved.conf.d.5*
-%{_mandir}/man8/systemd-resolved.8
+%{_mandir}/man8/systemd-resolved.8*
 %{_mandir}/man8/systemd-resolved.service.8*
 
 %files inetd
