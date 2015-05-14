@@ -1,14 +1,11 @@
 # TODO:
+# - consider providing the factory files via appropriate packages (setup, pam)
 # - merge rpm macros provided by systemd with ours
 # - handle udev package removal:
 #   - http://lists.pld-linux.org/mailman/pipermail/pld-devel-en/2014-March/023852.html
 #   - restore (write) sane value for kernel.hotplug, i.e from rc-scripts: sysctl -q -e -w kernel.hotplug=/lib/firmware/firmware-loader.sh
 # - dev->udev upgrade:
 #   - /dev/urandom remains missing, not created with start_udev anymore
-#
-#	/usr/share/factory/etc/nsswitch.conf
-#	/usr/share/factory/etc/pam.d/other
-#	/usr/share/factory/etc/pam.d/system-auth
 #
 # Conditional build:
 %bcond_without	audit		# without audit support
@@ -132,7 +129,7 @@ Requires:	SysVinit-tools
 Requires:	agetty
 %{?with_cryptsetup:Requires:	cryptsetup >= 1.6.0}
 Requires:	dbus >= 1.4.16-6
-Requires:	filesystem >= 4.0-3
+Requires:	filesystem >= 4.0-39
 Requires:	kmod >= 14
 %{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
 Requires:	libutempter
@@ -1266,6 +1263,9 @@ fi
 %{?with_microhttpd:%{_datadir}/systemd/gatewayd}
 %{_datadir}/systemd/kbd-model-map
 %{_datadir}/systemd/language-fallback-map
+%{_datadir}/factory/etc/nsswitch.conf
+%{_datadir}/factory/etc/pam.d/other
+%{_datadir}/factory/etc/pam.d/system-auth
 %{_mandir}/man1/bootctl.1*
 %{_mandir}/man1/busctl.1*
 %{_mandir}/man1/coredumpctl.1*
