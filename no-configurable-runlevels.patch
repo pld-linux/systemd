@@ -1,0 +1,212 @@
+From d5d8429a12c4b1ef0dcd226c0904f00f4fa4898a Mon Sep 17 00:00:00 2001
+From: Lennart Poettering <lennart@poettering.net>
+Date: Wed, 18 Feb 2015 20:17:49 +0100
+Subject: everywhere: remove configurability of sysv runlevel to target mapping
+
+With this change runlevel 2, 3, 4 are mapped to multi-user.target for
+good, and 5 to graphical.target. This was already the previous mapping
+but is now no longer reconfigurable, but hard-coded into the core.
+
+This should generally simplify things, but also fix one bug: the
+sysv-generator previously generated symlinks to runlevel[2-5].target
+units, which possibly weren't picked up if these aliases were otherwise
+only referenced by the real names "multi-user.target" and
+"graphical.target".
+
+We keep compat aliases "runlevel[2345].target" arround for cases where
+this target name is explicitly requested.
+
+diff --git a/Makefile.am b/Makefile.am
+index d9d71df..ba63f68 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -242,14 +242,11 @@ endef
+ 
+ INSTALL_DIRS =
+ 
+-RUNLEVEL1_TARGET_WANTS =
+-RUNLEVEL2_TARGET_WANTS =
+-RUNLEVEL3_TARGET_WANTS =
+-RUNLEVEL4_TARGET_WANTS =
+-RUNLEVEL5_TARGET_WANTS =
+ SHUTDOWN_TARGET_WANTS =
+ LOCAL_FS_TARGET_WANTS =
+ MULTI_USER_TARGET_WANTS =
++GRAPHICAL_TARGET_WANTS =
++RESCUE_TARGET_WANTS =
+ SYSINIT_TARGET_WANTS =
+ SOCKETS_TARGET_WANTS =
+ BUSNAMES_TARGET_WANTS =
+@@ -263,14 +260,11 @@ USER_UNIT_ALIASES =
+ GENERAL_ALIASES =
+ 
+ install-target-wants-hook:
+-	what="$(RUNLEVEL1_TARGET_WANTS)" && wants=runlevel1.target && dir=$(systemunitdir) && $(add-wants)
+-	what="$(RUNLEVEL2_TARGET_WANTS)" && wants=runlevel2.target && dir=$(systemunitdir) && $(add-wants)
+-	what="$(RUNLEVEL3_TARGET_WANTS)" && wants=runlevel3.target && dir=$(systemunitdir) && $(add-wants)
+-	what="$(RUNLEVEL4_TARGET_WANTS)" && wants=runlevel4.target && dir=$(systemunitdir) && $(add-wants)
+-	what="$(RUNLEVEL5_TARGET_WANTS)" && wants=runlevel5.target && dir=$(systemunitdir) && $(add-wants)
+ 	what="$(SHUTDOWN_TARGET_WANTS)" && wants=shutdown.target && dir=$(systemunitdir) && $(add-wants)
+ 	what="$(LOCAL_FS_TARGET_WANTS)" && wants=local-fs.target && dir=$(systemunitdir) && $(add-wants)
+ 	what="$(MULTI_USER_TARGET_WANTS)" && wants=multi-user.target && dir=$(systemunitdir) && $(add-wants)
++	what="$(GRAPHICAL_TARGET_WANTS)" && wants=graphical.target && dir=$(systemunitdir) && $(add-wants)
++	what="$(RESCUE_TARGET_WANTS)" && wants=rescue.target && dir=$(systemunitdir) && $(add-wants)
+ 	what="$(SYSINIT_TARGET_WANTS)" && wants=sysinit.target && dir=$(systemunitdir) && $(add-wants)
+ 	what="$(SOCKETS_TARGET_WANTS)" && wants=sockets.target && dir=$(systemunitdir) && $(add-wants)
+ 	what="$(TIMERS_TARGET_WANTS)" && wants=timers.target && dir=$(systemunitdir) && $(add-wants)
+@@ -6572,15 +6566,11 @@ SOCKETS_TARGET_WANTS += \
+ 
+ if HAVE_UTMP
+ if HAVE_SYSV_COMPAT
+-RUNLEVEL1_TARGET_WANTS += \
+-	systemd-update-utmp-runlevel.service
+-RUNLEVEL2_TARGET_WANTS += \
+-	systemd-update-utmp-runlevel.service
+-RUNLEVEL3_TARGET_WANTS += \
++MULTI_USER_TARGET_WANTS += \
+ 	systemd-update-utmp-runlevel.service
+-RUNLEVEL4_TARGET_WANTS += \
++GRAPHICAL_TARGET_WANTS += \
+ 	systemd-update-utmp-runlevel.service
+-RUNLEVEL5_TARGET_WANTS += \
++RESCUE_TARGET_WANTS += \
+ 	systemd-update-utmp-runlevel.service
+ endif
+ 
+diff --git a/src/core/main.c b/src/core/main.c
+index ba2de85..08f46f5 100644
+--- a/src/core/main.c
++++ b/src/core/main.c
+@@ -280,10 +280,10 @@ static int parse_proc_cmdline_item(const char *key, const char *value) {
+                 "s",         SPECIAL_RESCUE_TARGET,
+                 "S",         SPECIAL_RESCUE_TARGET,
+                 "1",         SPECIAL_RESCUE_TARGET,
+-                "2",         SPECIAL_RUNLEVEL2_TARGET,
+-                "3",         SPECIAL_RUNLEVEL3_TARGET,
+-                "4",         SPECIAL_RUNLEVEL4_TARGET,
+-                "5",         SPECIAL_RUNLEVEL5_TARGET,
++                "2",         SPECIAL_MULTI_USER_TARGET,
++                "3",         SPECIAL_MULTI_USER_TARGET,
++                "4",         SPECIAL_MULTI_USER_TARGET,
++                "5",         SPECIAL_GRAPHICAL_TARGET,
+         };
+         int r;
+ 
+diff --git a/src/initctl/initctl.c b/src/initctl/initctl.c
+index 7a6a383..8b632e8 100644
+--- a/src/initctl/initctl.c
++++ b/src/initctl/initctl.c
+@@ -78,15 +78,15 @@ static const char *translate_runlevel(int runlevel, bool *isolate) {
+                 const char *special;
+                 bool isolate;
+         } table[] = {
+-                { '0', SPECIAL_POWEROFF_TARGET,  false },
+-                { '1', SPECIAL_RESCUE_TARGET,    true  },
+-                { 's', SPECIAL_RESCUE_TARGET,    true  },
+-                { 'S', SPECIAL_RESCUE_TARGET,    true  },
+-                { '2', SPECIAL_RUNLEVEL2_TARGET, true  },
+-                { '3', SPECIAL_RUNLEVEL3_TARGET, true  },
+-                { '4', SPECIAL_RUNLEVEL4_TARGET, true  },
+-                { '5', SPECIAL_RUNLEVEL5_TARGET, true  },
+-                { '6', SPECIAL_REBOOT_TARGET,    false },
++                { '0', SPECIAL_POWEROFF_TARGET,   false },
++                { '1', SPECIAL_RESCUE_TARGET,     true  },
++                { 's', SPECIAL_RESCUE_TARGET,     true  },
++                { 'S', SPECIAL_RESCUE_TARGET,     true  },
++                { '2', SPECIAL_MULTI_USER_TARGET, true  },
++                { '3', SPECIAL_MULTI_USER_TARGET, true  },
++                { '4', SPECIAL_MULTI_USER_TARGET, true  },
++                { '5', SPECIAL_GRAPHICAL_TARGET,  true  },
++                { '6', SPECIAL_REBOOT_TARGET,     false },
+         };
+ 
+         unsigned i;
+diff --git a/src/shared/special.h b/src/shared/special.h
+index b045047..e51310e 100644
+--- a/src/shared/special.h
++++ b/src/shared/special.h
+@@ -42,6 +42,8 @@
+ /* Special boot targets */
+ #define SPECIAL_RESCUE_TARGET "rescue.target"
+ #define SPECIAL_EMERGENCY_TARGET "emergency.target"
++#define SPECIAL_MULTI_USER_TARGET "multi-user.target"
++#define SPECIAL_GRAPHICAL_TARGET "graphical.target"
+ 
+ /* Early boot targets */
+ #define SPECIAL_SYSINIT_TARGET "sysinit.target"
+@@ -108,13 +110,6 @@
+ #define SPECIAL_SIGPWR_TARGET "sigpwr.target"
+ #define SPECIAL_CTRL_ALT_DEL_TARGET "ctrl-alt-del.target"
+ 
+-/* For SysV compatibility. Usually an alias for a saner target. On
+- * SysV-free systems this doesn't exist. */
+-#define SPECIAL_RUNLEVEL2_TARGET "runlevel2.target"
+-#define SPECIAL_RUNLEVEL3_TARGET "runlevel3.target"
+-#define SPECIAL_RUNLEVEL4_TARGET "runlevel4.target"
+-#define SPECIAL_RUNLEVEL5_TARGET "runlevel5.target"
+-
+ /* Where we add all our system units, users and machines by default */
+ #define SPECIAL_SYSTEM_SLICE "system.slice"
+ #define SPECIAL_USER_SLICE "user.slice"
+diff --git a/src/systemctl/systemctl.c b/src/systemctl/systemctl.c
+index afd4b71..9b08313 100644
+--- a/src/systemctl/systemctl.c
++++ b/src/systemctl/systemctl.c
+@@ -2650,10 +2650,10 @@ static const struct {
+         [ACTION_POWEROFF]     = { SPECIAL_POWEROFF_TARGET,     "poweroff",     "replace-irreversibly" },
+         [ACTION_REBOOT]       = { SPECIAL_REBOOT_TARGET,       "reboot",       "replace-irreversibly" },
+         [ACTION_KEXEC]        = { SPECIAL_KEXEC_TARGET,        "kexec",        "replace-irreversibly" },
+-        [ACTION_RUNLEVEL2]    = { SPECIAL_RUNLEVEL2_TARGET,    NULL,           "isolate" },
+-        [ACTION_RUNLEVEL3]    = { SPECIAL_RUNLEVEL3_TARGET,    NULL,           "isolate" },
+-        [ACTION_RUNLEVEL4]    = { SPECIAL_RUNLEVEL4_TARGET,    NULL,           "isolate" },
+-        [ACTION_RUNLEVEL5]    = { SPECIAL_RUNLEVEL5_TARGET,    NULL,           "isolate" },
++        [ACTION_RUNLEVEL2]    = { SPECIAL_MULTI_USER_TARGET,   NULL,           "isolate" },
++        [ACTION_RUNLEVEL3]    = { SPECIAL_MULTI_USER_TARGET,   NULL,           "isolate" },
++        [ACTION_RUNLEVEL4]    = { SPECIAL_MULTI_USER_TARGET,   NULL,           "isolate" },
++        [ACTION_RUNLEVEL5]    = { SPECIAL_GRAPHICAL_TARGET,    NULL,           "isolate" },
+         [ACTION_RESCUE]       = { SPECIAL_RESCUE_TARGET,       "rescue",       "isolate" },
+         [ACTION_EMERGENCY]    = { SPECIAL_EMERGENCY_TARGET,    "emergency",    "isolate" },
+         [ACTION_DEFAULT]      = { SPECIAL_DEFAULT_TARGET,      "default",      "isolate" },
+diff --git a/src/sysv-generator/sysv-generator.c b/src/sysv-generator/sysv-generator.c
+index 6e39b44..2091854 100644
+--- a/src/sysv-generator/sysv-generator.c
++++ b/src/sysv-generator/sysv-generator.c
+@@ -51,11 +51,11 @@ static const struct {
+         const RunlevelType type;
+ } rcnd_table[] = {
+         /* Standard SysV runlevels for start-up */
+-        { "rc1.d",  SPECIAL_RESCUE_TARGET,    RUNLEVEL_UP },
+-        { "rc2.d",  SPECIAL_RUNLEVEL2_TARGET, RUNLEVEL_UP },
+-        { "rc3.d",  SPECIAL_RUNLEVEL3_TARGET, RUNLEVEL_UP },
+-        { "rc4.d",  SPECIAL_RUNLEVEL4_TARGET, RUNLEVEL_UP },
+-        { "rc5.d",  SPECIAL_RUNLEVEL5_TARGET, RUNLEVEL_UP },
++        { "rc1.d",  SPECIAL_RESCUE_TARGET,     RUNLEVEL_UP },
++        { "rc2.d",  SPECIAL_MULTI_USER_TARGET, RUNLEVEL_UP },
++        { "rc3.d",  SPECIAL_MULTI_USER_TARGET, RUNLEVEL_UP },
++        { "rc4.d",  SPECIAL_MULTI_USER_TARGET, RUNLEVEL_UP },
++        { "rc5.d",  SPECIAL_GRAPHICAL_TARGET,  RUNLEVEL_UP },
+ 
+         /* Standard SysV runlevels for shutdown */
+         { "rc0.d",  SPECIAL_POWEROFF_TARGET,  RUNLEVEL_DOWN },
+diff --git a/src/update-utmp/update-utmp.c b/src/update-utmp/update-utmp.c
+index 15da831..5e7498c 100644
+--- a/src/update-utmp/update-utmp.c
++++ b/src/update-utmp/update-utmp.c
+@@ -80,11 +80,9 @@ static int get_current_runlevel(Context *c) {
+                  * here over the others, since these are the main
+                  * runlevels used on Fedora. It might make sense to
+                  * change the order on some distributions. */
+-                { '5', SPECIAL_RUNLEVEL5_TARGET },
+-                { '3', SPECIAL_RUNLEVEL3_TARGET },
+-                { '4', SPECIAL_RUNLEVEL4_TARGET },
+-                { '2', SPECIAL_RUNLEVEL2_TARGET },
+-                { '1', SPECIAL_RESCUE_TARGET },
++                { '5', SPECIAL_GRAPHICAL_TARGET  },
++                { '3', SPECIAL_MULTI_USER_TARGET },
++                { '1', SPECIAL_RESCUE_TARGET     },
+         };
+ 
+         _cleanup_bus_error_free_ sd_bus_error error = SD_BUS_ERROR_NULL;
+-- 
+cgit v0.10.2
+
