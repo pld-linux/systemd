@@ -25,7 +25,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	219
-Release:	1
+Release:	1.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -71,6 +71,7 @@ Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
 Patch18:	optional-tmp-on-tmpfs.patch
 Patch19:	uids_gids.patch
+Patch20:	sysv-symlinks-warning.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -684,6 +685,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
