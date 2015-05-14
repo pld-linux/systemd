@@ -79,8 +79,10 @@ BuildRequires:	automake >= 1:1.11
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
 BuildRequires:	dbus-devel >= 1.3.2
+BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl
 BuildRequires:	elfutils-devel
+BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
 BuildRequires:	gnutls-devel >= 3.1.4
