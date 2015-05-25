@@ -19,13 +19,12 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/Makefile.am systemd-208/Makefile.
  
  define add-wants
  	[ -z "$$what" ] || ( \
-@@ -4001,9 +4005,16 @@
+@@ -4001,8 +4005,15 @@
  	$(systemdstatedir)
  
  MULTI_USER_TARGET_WANTS += \
 +	rc-local.service \
- 	systemd-logind.service \
- 	systemd-user-sessions.service
+ 	systemd-logind.service
  
 +FINAL_TARGET_WANTS += \
 +	halt-local.service
@@ -114,7 +113,7 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/hostname-setup.c systemd
 +        /* First, try to load the generic hostname configuration file,
 +         * that we support on all distributions */
 +
-+        r = read_and_strip_hostname("/etc/hostname", hn);
++        r = read_hostname_config("/etc/hostname", hn);
 +        if (r < 0) {
 +                if (r == -ENOENT)
 +                        return read_distro_hostname(hn);
@@ -131,7 +130,7 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/hostname-setup.c systemd
          const char *hn;
          bool enoent = false;
  
--        r = read_and_strip_hostname("/etc/hostname", &b);
+-        r = read_hostname_config("/etc/hostname", &b);
 +        r = read_hostname(&b);
          if (r < 0) {
                  if (r == -ENOENT)
@@ -166,7 +165,11 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/timedate/timedated.c systemd-208/src/timedate/timedated.c
 --- systemd-208.orig/src/timedate/timedated.c	2013-08-13 22:02:47.000000000 +0200
 +++ systemd-208/src/timedate/timedated.c	2014-01-09 15:15:41.000000000 +0100
-@@ -183,6 +183,14 @@
+@@ -183,9 +183,19 @@
+                         c->zone = strdup(e);
+                         if (!c->zone)
+                                 return log_oom();
++                        goto have_timezone;
                  }
          }
  
@@ -178,9 +181,10 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/timedate/timedated.c systemd-
 +			log_warning("Failed to read /etc/sysconfig/timezone: %s", strerror(-r));
 +	}
 + 
- have_timezone:
++have_timezone:
          if (isempty(c->zone)) {
                  free(c->zone);
+                 c->zone = NULL;
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c systemd-208/src/vconsole/vconsole-setup.c
 --- systemd-208.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
 +++ systemd-208/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100

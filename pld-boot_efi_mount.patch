@@ -1,15 +1,23 @@
 diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator/efi-boot-generator.c systemd-218/src/efi-boot-generator/efi-boot-generator.c
 --- systemd-218.orig/src/efi-boot-generator/efi-boot-generator.c	2014-12-05 01:26:51.000000000 +0100
 +++ systemd-218/src/efi-boot-generator/efi-boot-generator.c	2015-04-02 15:45:18.000000000 +0200
-@@ -69,9 +69,9 @@
+@@ -69,15 +69,15 @@
                  return EXIT_SUCCESS;
          }
  
--        if (path_is_mount_point("/boot", true) <= 0 &&
--            dir_is_empty("/boot") <= 0) {
+-        r = path_is_mount_point("/boot", true);
++        r = path_is_mount_point("/boot/efi", true);
+         if (r > 0) {
+-                log_debug("/boot is already a mount point, exiting.");
++                log_debug("/boot/efi is already a mount point, exiting.");
+                 return EXIT_SUCCESS;
+         }
+         if (r == -ENOENT)
+-                log_debug("/boot does not exist, continuing.");
+-        else if (dir_is_empty("/boot") <= 0) {
 -                log_debug("/boot already populated, exiting.");
-+        if (path_is_mount_point("/boot/efi", true) <= 0 &&
-+            dir_is_empty("/boot/efi") <= 0) {
++                log_debug("/boot/efi does not exist, continuing.");
++        else if (dir_is_empty("/boot/efi") <= 0) {
 +                log_debug("/boot/efi already populated, exiting.");
                  return EXIT_SUCCESS;
          }
@@ -54,11 +62,11 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator
                "[Unit]\n"
                "Description=EFI System Partition Automount\n\n"
                "[Automount]\n"
--              "Where=/boot\n", f);
-+              "Where=/boot/efi\n", f);
+-              "Where=/boot\n"
++              "Where=/boot/efi\n"
+               "TimeoutIdleSec=120\n", f);
  
          fflush(f);
-         if (ferror(f)) {
 @@ -144,10 +144,10 @@
                  return EXIT_FAILURE;
          }

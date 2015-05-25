@@ -21,13 +21,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	219
-Release:	2
+Version:	220
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	e0d6c9a4b4f69f66932d2230298c9a34
+# Source0-md5:	60acd92b04c0f5faa806678abd433014
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -68,8 +68,6 @@ Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
 Patch18:	optional-tmp-on-tmpfs.patch
 Patch19:	uids_gids.patch
-Patch20:	sysv-symlinks-warning.patch
-Patch21:	no-configurable-runlevels.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -685,8 +683,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
-%patch20 -p1
-%patch21 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
@@ -1170,9 +1166,11 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
+%attr(755,root,root) /lib/systemd/systemd-export
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-hibernate-resume
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
+%attr(755,root,root) /lib/systemd/systemd-import
 %attr(755,root,root) /lib/systemd/systemd-importd
 %attr(755,root,root) /lib/systemd/systemd-initctl
 %attr(755,root,root) /lib/systemd/systemd-journald
@@ -1193,7 +1191,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-resolve-host
 %attr(755,root,root) /lib/systemd/systemd-rfkill
 %attr(755,root,root) /lib/systemd/systemd-shutdown
-%attr(755,root,root) /lib/systemd/systemd-shutdownd
 %attr(755,root,root) /lib/systemd/systemd-sleep
 %attr(755,root,root) /lib/systemd/systemd-socket-proxyd
 %attr(755,root,root) /lib/systemd/systemd-sysctl
@@ -1236,6 +1233,7 @@ fi
 %{_libexecdir}/sysusers.d/systemd-remote.conf
 %endif
 %{_libexecdir}/tmpfiles.d/etc.conf
+%{_libexecdir}/tmpfiles.d/home.conf
 %{_libexecdir}/tmpfiles.d/legacy.conf
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/systemd-nologin.conf
@@ -1302,6 +1300,10 @@ fi
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/hostname.5*
+%if %{with microhttpd}
+%{_mandir}/man5/journal-remote.conf.5*
+%{_mandir}/man5/journal-remote.conf.d.5*
+%endif
 %{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/journald.conf.d.5*
 %{_mandir}/man5/locale.conf.5*
@@ -1372,7 +1374,6 @@ fi
 %{_mandir}/man8/systemd-rfkill.8*
 %{_mandir}/man8/systemd-rfkill@.service.8*
 %{_mandir}/man8/systemd-shutdown.8*
-%{_mandir}/man8/systemd-shutdownd.8*
 %{_mandir}/man8/systemd-sleep.8*
 %{_mandir}/man8/systemd-socket-proxyd.8*
 %{_mandir}/man8/systemd-sysctl.8*
@@ -1464,7 +1465,7 @@ fi
 %{_mandir}/man1/systemctl.1*
 %{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man8/systemd-tmpfiles.8*
-%{_pkgconfigdir}/systemd.pc
+%{_npkgconfigdir}/systemd.pc
 
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/dev-hugepages.mount
@@ -1474,6 +1475,7 @@ fi
 %{systemdunitdir}/sys-kernel-config.mount
 %{systemdunitdir}/sys-kernel-debug.mount
 %{systemdunitdir}/tmp.mount
+%{systemdunitdir}/var-lib-machines.mount
 %{systemdunitdir}/var-lock.mount
 %{systemdunitdir}/var-run.mount
 %{systemdunitdir}/systemd-ask-password-console.path
@@ -1551,7 +1553,6 @@ fi
 %{systemdunitdir}/systemd-reboot.service
 %{systemdunitdir}/systemd-remount-fs.service
 %{systemdunitdir}/systemd-rfkill@.service
-%{systemdunitdir}/systemd-shutdownd.service
 %{systemdunitdir}/systemd-suspend.service
 %{systemdunitdir}/systemd-sysctl.service
 %{systemdunitdir}/systemd-sysusers.service
@@ -1580,7 +1581,6 @@ fi
 %{systemdunitdir}/systemd-journald-audit.socket
 %{systemdunitdir}/systemd-journald-dev-log.socket
 %{systemdunitdir}/systemd-journald.socket
-%{systemdunitdir}/systemd-shutdownd.socket
 %{systemdunitdir}/systemd-udevd-control.socket
 %{systemdunitdir}/systemd-udevd-kernel.socket
 %{systemdunitdir}/basic.target
@@ -1642,6 +1642,7 @@ fi
 %{systemdunitdir}/systemd-tmpfiles-clean.timer
 %dir %{systemdunitdir}/basic.target.wants
 %dir %{systemdunitdir}/dbus.target.wants
+%dir %{systemdunitdir}/graphical.target.wants
 %dir %{systemdunitdir}/halt.target.wants
 %dir %{systemdunitdir}/initrd.target.wants
 %dir %{systemdunitdir}/kexec.target.wants
@@ -1649,28 +1650,33 @@ fi
 %dir %{systemdunitdir}/multi-user.target.wants
 %dir %{systemdunitdir}/poweroff.target.wants
 %dir %{systemdunitdir}/reboot.target.wants
+%dir %{systemdunitdir}/rescue.target.wants
 %dir %{systemdunitdir}/runlevel[12345].target.wants
 %dir %{systemdunitdir}/shutdown.target.wants
 %dir %{systemdunitdir}/sockets.target.wants
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
 %dir %{systemdunitdir}/timers.target.wants
+%{systemdunitdir}/graphical.target.wants/display-manager.service
+%{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
 %{systemdunitdir}/local-fs.target.wants/pld-storage-init-late.service
 %{systemdunitdir}/local-fs.target.wants/pld-storage-init.service
 %{systemdunitdir}/local-fs.target.wants/systemd-remount-fs.service
+%{systemdunitdir}/local-fs.target.wants/var-lib-machines.mount
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
 %{systemdunitdir}/local-fs.target.wants/var-run.mount
 %{systemdunitdir}/multi-user.target.wants/getty.target
 %{systemdunitdir}/multi-user.target.wants/rc-local.service
 %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
 %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
+%{systemdunitdir}/multi-user.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
+%{systemdunitdir}/rescue.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/sockets.target.wants/systemd-initctl.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald-audit.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald-dev-log.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald.socket
-%{systemdunitdir}/sockets.target.wants/systemd-shutdownd.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-control.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-kernel.socket
 %{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
@@ -1729,8 +1735,6 @@ fi
 %{_mandir}/man8/systemd-random-seed.service.8*
 %{_mandir}/man8/systemd-reboot.service.8*
 %{_mandir}/man8/systemd-remount-fs.service.8*
-%{_mandir}/man8/systemd-shutdownd.service.8*
-%{_mandir}/man8/systemd-shutdownd.socket.8*
 %{_mandir}/man8/systemd-suspend.service.8*
 %{_mandir}/man8/systemd-sysctl.service.8*
 %{_mandir}/man8/systemd-timedated.service.8*
@@ -1917,18 +1921,20 @@ fi
 %attr(755,root,root) /lib/udev/accelerometer
 
 %dir /lib/udev/hwdb.d
-/lib/udev/hwdb.d/20-OUI.hwdb
 /lib/udev/hwdb.d/20-acpi-vendor.hwdb
 /lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb
 /lib/udev/hwdb.d/20-net-ifname.hwdb
+/lib/udev/hwdb.d/20-OUI.hwdb
 /lib/udev/hwdb.d/20-pci-classes.hwdb
 /lib/udev/hwdb.d/20-pci-vendor-model.hwdb
 /lib/udev/hwdb.d/20-sdio-classes.hwdb
 /lib/udev/hwdb.d/20-sdio-vendor-model.hwdb
 /lib/udev/hwdb.d/20-usb-classes.hwdb
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
+/lib/udev/hwdb.d/60-evdev.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
 /lib/udev/hwdb.d/70-mouse.hwdb
+/lib/udev/hwdb.d/70-pointingstick.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
 
 %attr(755,root,root) %{_sbindir}/start_udev
@@ -1954,15 +1960,16 @@ fi
 # rules below are NOT supposed to be changed by users
 /lib/udev/rules.d/42-usb-hid-pm.rules
 /lib/udev/rules.d/50-udev-default.rules
+/lib/udev/rules.d/60-block.rules
 /lib/udev/rules.d/60-cdrom_id.rules
 /lib/udev/rules.d/60-drm.rules
-/lib/udev/rules.d/60-keyboard.rules
+/lib/udev/rules.d/60-evdev.rules
 /lib/udev/rules.d/60-persistent-alsa.rules
 /lib/udev/rules.d/60-persistent-input.rules
-/lib/udev/rules.d/60-persistent-serial.rules
-/lib/udev/rules.d/60-persistent-storage-tape.rules
 /lib/udev/rules.d/60-persistent-storage.rules
+/lib/udev/rules.d/60-persistent-storage-tape.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
+/lib/udev/rules.d/60-serial.rules
 /lib/udev/rules.d/61-accelerometer.rules
 /lib/udev/rules.d/64-btrfs.rules
 /lib/udev/rules.d/70-mouse.rules
@@ -1970,12 +1977,10 @@ fi
 /lib/udev/rules.d/70-touchpad.rules
 /lib/udev/rules.d/75-net-description.rules
 /lib/udev/rules.d/75-probe_mtd.rules
-/lib/udev/rules.d/75-tty-description.rules
 /lib/udev/rules.d/78-sound-card.rules
 /lib/udev/rules.d/80-drivers.rules
 /lib/udev/rules.d/80-net-setup-link.rules
 /lib/udev/rules.d/90-vconsole.rules
-/lib/udev/rules.d/95-udev-late.rules
 
 %{_mandir}/man5/udev.conf.5*
 %{_mandir}/man7/udev.7*
