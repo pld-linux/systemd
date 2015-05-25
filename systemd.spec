@@ -22,7 +22,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	219
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -55,7 +55,6 @@ Source120:	udev.blacklist
 Source121:	fbdev.blacklist
 Patch0:		target-pld.patch
 Patch1:		config-pld.patch
-Patch2:		shut-sysv-up.patch
 Patch3:		pld-sysv-network.patch
 Patch4:		tmpfiles-not-fatal.patch
 Patch8:		udev-ploop-rules.patch
@@ -63,7 +62,6 @@ Patch9:		udevadm-in-sbin.patch
 Patch10:	net-rename-revert.patch
 Patch11:	nss-in-rootlib.patch
 Patch12:	proc-hidepid.patch
-Patch14:	dont-hash-null-keys.patch
 Patch16:	systemd-configfs.patch
 Patch17:	pld-boot_efi_mount.patch
 Patch18:	optional-tmp-on-tmpfs.patch
@@ -670,17 +668,14 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-#patch2 -p1
 %patch3 -p1
 %patch4 -p1
 %patch8 -p1
 %patch9 -p1
-# rejected upstream
-#patch10 -p1
+# rejected upstream (do not disable this!)
+%patch10 -p1
 %patch11 -p1
 %patch12 -p1
-# possible cause of infinite loop inside systemd-login
-#patch14 -p1
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
@@ -729,7 +724,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib}
 
-%{__make} -j1
+%{__make}
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
 
 %{?with_tests:%{__make} check}
