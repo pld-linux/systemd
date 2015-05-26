@@ -910,11 +910,11 @@ if [ "$1" = "0" ]; then
 	%groupremove systemd-journal
 fi
 
-%triggerpostun -- systemd < 208-1
+%triggerpostun -- systemd < 1:208-1
 chgrp -R systemd-journal /var/log/journal
 chmod g+s /var/log/journal
 
-%triggerpostun -- systemd < 220-1
+%triggerpostun -- systemd < 1:220-1
 # https://bugs.freedesktop.org/show_bug.cgi?id=89202
 /bin/getfacl -p /var/log/journal/$(cat /etc/machine-id) | grep -v '^#' | sort -u | /bin/setfacl -R --set-file=- /var/log/journal/$(cat /etc/machine-id) || :
 
