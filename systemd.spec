@@ -22,7 +22,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	220
-Release:	0.1
+Release:	0.2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -900,8 +900,6 @@ rm -rf $RPM_BUILD_ROOT
 /lib/systemd/systemd-random-seed save || :
 /bin/systemctl --system daemon-reexec || :
 /bin/journalctl --update-catalog || :
-# Apply ACL to the journal directory
-/bin/setfacl -Rnm g:logs:rx,d:g:logs:rx /var/log/journal || :
 
 %postun
 if [ $1 -ge 1 ]; then
@@ -915,6 +913,10 @@ fi
 %triggerpostun -- systemd < 208-1
 chgrp -R systemd-journal /var/log/journal
 chmod g+s /var/log/journal
+
+%triggerpostun -- systemd < 220-1
+# https://bugs.freedesktop.org/show_bug.cgi?id=89202
+/bin/getfacl -p /var/log/journal/$(cat /etc/machine-id) | grep -v '^#' | sort -u | /bin/setfacl -R --set-file=- /var/log/journal/$(cat /etc/machine-id) || :
 
 %post   libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
