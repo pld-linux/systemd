@@ -935,6 +935,7 @@ if [ $1 -eq 1 ]; then
 	ln -s "$target" %{_sysconfdir}/systemd/system/default.target || :
 
 	# Setup hostname
+	HOSTNAME=
 	[ -f /etc/sysconfig/network ] && . /etc/sysconfig/network
 	if [ -n "$HOSTNAME" -a "$HOSTNAME" != "pldmachine" ]; then
 		[ -f /etc/hostname ] && mv -f /etc/hostname /etc/hostname.rpmsave
