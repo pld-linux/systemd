@@ -935,7 +935,7 @@ if [ $1 -eq 1 ]; then
 	ln -s "$target" %{_sysconfdir}/systemd/system/default.target || :
 
 	# Setup hostname if not yet done so
-	if [ ! -f /etc/hostname ] || [ ! -s /etc/hostname ]; then
+	if [ ! -s /etc/hostname ]; then
 		HOSTNAME=
 		[ -f /etc/sysconfig/network ] && . /etc/sysconfig/network
 		if [ -n "$HOSTNAME" -a "$HOSTNAME" != "pldmachine" ]; then
