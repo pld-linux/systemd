@@ -15,6 +15,7 @@
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
 %bcond_without	tcpd		# libwrap (tcp_wrappers) support
+%bcond_with	efi		# EFI boot support [missing files in 220]
 %bcond_with	tests		# "make check" (requires systemd already installed)
 
 Summary:	A System and Service Manager
@@ -82,6 +83,7 @@ BuildRequires:	elfutils-devel
 BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
+%{?with_efi:BuildRequires:	gnu-efi}
 BuildRequires:	gnutls-devel >= 3.1.4
 BuildRequires:	gobject-introspection-devel >= 1.31.1
 BuildRequires:	gperf
@@ -702,6 +704,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	%{?debug:--enable-debug} \
 	%{__enable_disable audit} \
 	%{__enable_disable cryptsetup libcryptsetup} \
+	%{__enable_disable efi gnuefi} \
 	%{__enable_disable pam} \
 	%{__enable_disable selinux} \
 	%{__enable_disable tcpd tcpwrap} \
