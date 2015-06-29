@@ -57,16 +57,14 @@ diff -dur systemd-218.orig/sysusers.d/systemd-remote.conf systemd-218/sysusers.d
 +u systemd-journal-upload  320 "systemd Journal Upload"
 --- systemd-220/sysusers.d/systemd.conf.m4~	2014-12-05 01:26:51.000000000 +0100
 +++ systemd-220/sysusers.d/systemd.conf.m4	2015-05-25 17:34:30.699429304 +0200
-@@ -5,16 +5,16 @@
+@@ -5,14 +5,14 @@
  #  the Free Software Foundation; either version 2.1 of the License, or
  #  (at your option) any later version.
  
 -g systemd-journal   - -
 +g systemd-journal   288 -
- m4_ifdef(`ENABLE_KDBUS',
 -u systemd-bus-proxy - "systemd Bus Proxy"
 +u systemd-bus-proxy 315 "systemd Bus Proxy"
- )m4_dnl
  m4_ifdef(`ENABLE_NETWORKD',
 -u systemd-network   - "systemd Network Management"
 +u systemd-network   316 "systemd Network Management"

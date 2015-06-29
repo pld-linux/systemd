@@ -5,8 +5,8 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator
                  return EXIT_SUCCESS;
          }
  
--        r = path_is_mount_point("/boot", true);
-+        r = path_is_mount_point("/boot/efi", true);
+-        r = path_is_mount_point("/boot", AT_SYMLINK_FOLLOW);
++        r = path_is_mount_point("/boot/efi", AT_SYMLINK_FOLLOW);
          if (r > 0) {
 -                log_debug("/boot is already a mount point, exiting.");
 +                log_debug("/boot/efi is already a mount point, exiting.");
