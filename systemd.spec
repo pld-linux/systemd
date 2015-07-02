@@ -14,6 +14,7 @@
 %bcond_without	pam		# PAM authentication support
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
+%bcond_without	python3		# Python 3.x support
 %bcond_with	tests		# "make check" (requires systemd already installed)
 
 Summary:	A System and Service Manager
@@ -105,6 +106,11 @@ BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python-devel
 BuildRequires:	python-lxml
 BuildRequires:	python-modules
+%if %{with python3}
+BuildRequires:	python3-devel
+BuildRequires:	python3-lxml
+BuildRequires:	python3-modules
+%endif
 %{?with_qrencode:BuildRequires:	qrencode-devel}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.628
@@ -451,17 +457,30 @@ Header files for systemd libraries.
 Pliki nagłówkowe bibliotek systemd.
 
 %package -n python-systemd
-Summary:	Systemd Python bindings
-Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona
+Summary:	Systemd Python 2.x bindings
+Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona 2.x
 Group:		Development/Languages/Python
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	python
 
 %description -n python-systemd
-Systemd Python bindings.
+Systemd Python 2.x bindings.
 
 %description -n python-systemd -l pl.UTF-8
-Wiązania do Systemd dla Pythona.
+Wiązania do Systemd dla Pythona 2.x.
+
+%package -n python3-systemd
+Summary:	Systemd Python 3.x bindings
+Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona 3.x
+Group:		Development/Languages/Python
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	python3
+
+%description -n python3-systemd
+Systemd Python 3.x bindings.
+
+%description -n python-systemd -l pl.UTF-8
+Wiązania do Systemd dla Pythona 3.x.
 
 %package -n bash-completion-systemd
 Summary:	bash-completion for systemd
@@ -686,6 +705,9 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__autoconf}
 %{__autoheader}
 %{__automake}
+
+for PYTHON in "%{__python}" %{?with_python3:"%{__python3}"} ; do
+
 %configure \
 	QUOTAON=/sbin/quotaon \
 	QUOTACHECK=/sbin/quotacheck \
@@ -693,6 +715,8 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	KILL=/bin/kill \
 	KMOD=/sbin/kmod \
 	KEXEC=/sbin/kexec \
+	PYTHON="$PYTHON" \
+	PYTHON_BINARY="$PYTHON" \
 	%{?debug:--enable-debug} \
 	%{__enable_disable audit} \
 	%{__enable_disable cryptsetup libcryptsetup} \
@@ -718,7 +742,15 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib}
 
+%{__make} clean-python
+
 %{__make}
+
+python_libs=.libs/$(basename $PYTHON)
+mkdir -p $python_libs
+cp -a .libs/{_daemon,_journal,_reader,id128,login}.so $python_libs
+done
+
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
 
 %{?with_tests:%{__make} check}
@@ -861,8 +893,21 @@ install -d $RPM_BUILD_ROOT/var/log
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/libnss_myhostname.la
 %{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
+
+%if %{with python3}
+%{__rm} $RPM_BUILD_ROOT%{py3_sitedir}/systemd/*.la
+
+# install Python2 files, binaries built and saved earlier
+install -d $RPM_BUILD_ROOT%{py_sitedir}/systemd
+cp -a $RPM_BUILD_ROOT%{py3_sitedir}/systemd/*.py $RPM_BUILD_ROOT%{py_sitedir}/systemd
+install .libs/python/*.so $RPM_BUILD_ROOT%{py_sitedir}/systemd
+%py_comp $RPM_BUILD_ROOT%{py_sitedir}
+%py_ocomp $RPM_BUILD_ROOT%{py_sitedir}
+%else
 %{__rm} $RPM_BUILD_ROOT%{py_sitedir}/systemd/*.la
+%endif
 %py_postclean
+
 
 %find_lang %{name}
 
@@ -1829,6 +1874,18 @@ fi
 %attr(755,root,root) %{py_sitedir}/systemd/_reader.so
 %attr(755,root,root) %{py_sitedir}/systemd/id128.so
 %attr(755,root,root) %{py_sitedir}/systemd/login.so
+
+%files -n python3-systemd
+%defattr(644,root,root,755)
+%dir %{py3_sitedir}/systemd
+%{py3_sitedir}/systemd/*.py
+%dir %{py3_sitedir}/systemd/__pycache__
+%{py3_sitedir}/systemd/__pycache__/*.py[co]
+%attr(755,root,root) %{py3_sitedir}/systemd/_daemon.so
+%attr(755,root,root) %{py3_sitedir}/systemd/_journal.so
+%attr(755,root,root) %{py3_sitedir}/systemd/_reader.so
+%attr(755,root,root) %{py3_sitedir}/systemd/id128.so
+%attr(755,root,root) %{py3_sitedir}/systemd/login.so
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
