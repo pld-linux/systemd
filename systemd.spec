@@ -14,7 +14,6 @@
 %bcond_without	pam		# PAM authentication support
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# without SELinux support
-%bcond_without	tcpd		# libwrap (tcp_wrappers) support
 %bcond_with	tests		# "make check" (requires systemd already installed)
 
 Summary:	A System and Service Manager
@@ -98,7 +97,6 @@ BuildRequires:	libmount-devel
 BuildRequires:	libseccomp-devel >= 1.0.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
 BuildRequires:	libtool >= 2:2.2
-%{?with_tcpd:BuildRequires:	libwrap-devel}
 BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel
 BuildRequires:	m4
@@ -703,7 +701,6 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	%{__enable_disable cryptsetup libcryptsetup} \
 	%{__enable_disable pam} \
 	%{__enable_disable selinux} \
-	%{__enable_disable tcpd tcpwrap} \
 	%{__enable_disable microhttpd} \
 	%{__enable_disable qrencode} \
 	--disable-silent-rules \
