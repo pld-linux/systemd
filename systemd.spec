@@ -1875,6 +1875,7 @@ fi
 %attr(755,root,root) %{py_sitedir}/systemd/id128.so
 %attr(755,root,root) %{py_sitedir}/systemd/login.so
 
+%if %{with python3}
 %files -n python3-systemd
 %defattr(644,root,root,755)
 %dir %{py3_sitedir}/systemd
@@ -1886,6 +1887,7 @@ fi
 %attr(755,root,root) %{py3_sitedir}/systemd/_reader.so
 %attr(755,root,root) %{py3_sitedir}/systemd/id128.so
 %attr(755,root,root) %{py3_sitedir}/systemd/login.so
+%endif
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
