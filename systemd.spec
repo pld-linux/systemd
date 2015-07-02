@@ -410,9 +410,6 @@ Summary:	Tool for processing systemd profiling information
 Summary(pl.UTF-8):	Narzędzie do przetwarzania informacji profilujących systemd
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	python-dbus
-Requires:	python-modules
-Suggests:	python-pycairo
 Conflicts:	systemd < 44-3
 
 %description analyze
