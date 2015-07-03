@@ -23,7 +23,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	0.1
+Release:	0.2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1239,6 +1239,8 @@ fi
 %attr(755,root,root) /lib/systemd/system-generators/systemd-hibernate-resume-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-system-update-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-sysv-generator
+%dir /lib/systemd/network
+/lib/systemd/network/99-default.link
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
@@ -1794,10 +1796,8 @@ fi
 %dir %{_sysconfdir}/systemd/network
 %dir %{_sysconfdir}/systemd/system/network-online.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
-%dir /lib/systemd/network
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
-/lib/systemd/network/99-default.link
 %{systemdunitdir}/dbus-org.freedesktop.network1.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
