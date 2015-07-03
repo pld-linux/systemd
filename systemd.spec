@@ -1244,6 +1244,8 @@ fi
 %attr(755,root,root) /lib/systemd/system-generators/systemd-hibernate-resume-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-system-update-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-sysv-generator
+%dir /lib/systemd/network
+/lib/systemd/network/99-default.link
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
@@ -1792,10 +1794,8 @@ fi
 %dir %{_sysconfdir}/systemd/network
 %dir %{_sysconfdir}/systemd/system/network-online.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
-%dir /lib/systemd/network
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
-/lib/systemd/network/99-default.link
 %{systemdunitdir}/dbus-org.freedesktop.network1.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
