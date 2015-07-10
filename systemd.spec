@@ -580,6 +580,7 @@ Summary:	Header file for libudev library
 Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libudev
 Group:		Development/Libraries
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
+Obsoletes:	udev-apidocs
 Obsoletes:	udev-static
 
 %description -n udev-devel
@@ -587,20 +588,6 @@ Header file for libudev library.
 
 %description -n udev-devel -l pl.UTF-8
 Plik nagłówkowy biblioteki libudev.
-
-%package -n udev-apidocs
-Summary:	libudev API documentation
-Summary(pl.UTF-8):	Dokumentacja API libudev
-Group:		Documentation
-%if "%{_rpmversion}" >= "5"
-BuildArch:	noarch
-%endif
-
-%description -n udev-apidocs
-libudev API documentation.
-
-%description -n udev-apidocs -l pl.UTF-8
-Dokumentacja API libudev.
 
 %package -n bash-completion-udev
 Summary:	bash-completion for udev
@@ -1084,6 +1071,7 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.machine1.conf
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
+%{_sysconfdir}/X11/xinit/xinitrc.d/50-systemd-user.sh
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/locale.conf
@@ -1189,6 +1177,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
 %attr(755,root,root) /lib/systemd/systemd
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
+%attr(755,root,root) /lib/systemd/system-generators/systemd-dbus1-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-efi-boot-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-fstab-generator
@@ -1209,11 +1198,14 @@ fi
 %{_libexecdir}/kernel/install.d/90-loaderentry.install
 %dir %{_libexecdir}/systemd/catalog
 %{_libexecdir}/systemd/catalog/systemd.catalog
+%lang(be) %{_libexecdir}/systemd/catalog/systemd.be.catalog
+%lang(be) %{_libexecdir}/systemd/catalog/systemd.be@latin.catalog
 %lang(fr) %{_libexecdir}/systemd/catalog/systemd.fr.catalog
 %lang(it) %{_libexecdir}/systemd/catalog/systemd.it.catalog
 %lang(pl) %{_libexecdir}/systemd/catalog/systemd.pl.catalog
 %lang(pt_BR) %{_libexecdir}/systemd/catalog/systemd.pt_BR.catalog
 %lang(ru) %{_libexecdir}/systemd/catalog/systemd.ru.catalog
+%lang(zh_TW) %{_libexecdir}/systemd/catalog/systemd.zh_TW.catalog
 %dir %{_libexecdir}/sysusers.d
 %{_libexecdir}/sysusers.d/basic.conf
 %{_libexecdir}/sysusers.d/systemd.conf
@@ -1225,6 +1217,7 @@ fi
 %{_libexecdir}/tmpfiles.d/legacy.conf
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/systemd-nologin.conf
+%{_libexecdir}/tmpfiles.d/systemd-nspawn.conf
 %if %{with microhttpd}
 %{_libexecdir}/tmpfiles.d/systemd-remote.conf
 %endif
@@ -1430,6 +1423,7 @@ fi
 %dir %{_libexecdir}/systemd/user
 %{_libexecdir}/systemd/user/basic.target
 %{_libexecdir}/systemd/user/bluetooth.target
+%{_libexecdir}/systemd/user/busnames.target
 %{_libexecdir}/systemd/user/default.target
 %{_libexecdir}/systemd/user/exit.target
 %{_libexecdir}/systemd/user/paths.target
@@ -1439,8 +1433,11 @@ fi
 %{_libexecdir}/systemd/user/sockets.target
 %{_libexecdir}/systemd/user/sound.target
 %{_libexecdir}/systemd/user/timers.target
+%{_libexecdir}/systemd/user/systemd-bus-proxyd.service
+%{_libexecdir}/systemd/user/systemd-bus-proxyd.socket
 %{_libexecdir}/systemd/user/systemd-exit.service
 %dir %{_libexecdir}/systemd/user-generators
+%{_libexecdir}/systemd/user-generators/systemd-dbus1-generator
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
@@ -1455,6 +1452,15 @@ fi
 %{_mandir}/man8/systemd-tmpfiles.8*
 %{_npkgconfigdir}/systemd.pc
 
+%{systemdunitdir}/org.freedesktop.hostname1.busname
+%{systemdunitdir}/org.freedesktop.import1.busname
+%{systemdunitdir}/org.freedesktop.locale1.busname
+%{systemdunitdir}/org.freedesktop.login1.busname
+%{systemdunitdir}/org.freedesktop.machine1.busname
+%{systemdunitdir}/org.freedesktop.network1.busname
+%{systemdunitdir}/org.freedesktop.resolve1.busname
+%{systemdunitdir}/org.freedesktop.systemd1.busname
+%{systemdunitdir}/org.freedesktop.timedate1.busname
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/dev-hugepages.mount
 %{systemdunitdir}/dev-mqueue.mount
@@ -1511,6 +1517,7 @@ fi
 %{systemdunitdir}/systemd-backlight@.service
 %{systemdunitdir}/systemd-binfmt.service
 %{systemdunitdir}/systemd-bootchart.service
+%{systemdunitdir}/systemd-bus-proxyd.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
 %{systemdunitdir}/systemd-fsck@.service
@@ -1564,6 +1571,7 @@ fi
 %{systemdunitdir}/user.slice
 %exclude %{systemdunitdir}/rc-inetd.service
 %{systemdunitdir}/syslog.socket
+%{systemdunitdir}/systemd-bus-proxyd.socket
 %{systemdunitdir}/systemd-initctl.socket
 %{systemdunitdir}/systemd-journal-remote.socket
 %{systemdunitdir}/systemd-journald-audit.socket
@@ -1573,6 +1581,7 @@ fi
 %{systemdunitdir}/systemd-udevd-kernel.socket
 %{systemdunitdir}/basic.target
 %{systemdunitdir}/bluetooth.target
+%{systemdunitdir}/busnames.target
 %{?with_cryptsetup:%{systemdunitdir}/cryptsetup-pre.target}
 %{?with_cryptsetup:%{systemdunitdir}/cryptsetup.target}
 %{systemdunitdir}/ctrl-alt-del.target
@@ -1629,7 +1638,9 @@ fi
 %{systemdunitdir}/umount.target
 %{systemdunitdir}/systemd-tmpfiles-clean.timer
 %dir %{systemdunitdir}/basic.target.wants
+%dir %{systemdunitdir}/busnames.target.wants
 %dir %{systemdunitdir}/dbus.target.wants
+%dir %{systemdunitdir}/final.target.wants
 %dir %{systemdunitdir}/graphical.target.wants
 %dir %{systemdunitdir}/halt.target.wants
 %dir %{systemdunitdir}/initrd.target.wants
@@ -1645,6 +1656,16 @@ fi
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
 %dir %{systemdunitdir}/timers.target.wants
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.hostname1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.import1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.locale1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.login1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.machine1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.network1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.resolve1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.systemd1.busname
+%{systemdunitdir}/busnames.target.wants/org.freedesktop.timedate1.busname
+%{systemdunitdir}/final.target.wants/halt-local.service
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
@@ -1701,6 +1722,9 @@ fi
 %{_mandir}/man8/systemd-ask-password-wall.service.8*
 %{_mandir}/man8/systemd-backlight@.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
+%{_mandir}/man8/systemd-bus-proxyd.8.gz
+%{_mandir}/man8/systemd-bus-proxyd.socket.8
+%{_mandir}/man8/systemd-bus-proxyd@.service.8.gz
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup@.service.8*}
 %{_mandir}/man8/systemd-fsck-root.service.8*
@@ -1999,10 +2023,8 @@ fi
 %{_includedir}/libudev.h
 %{_pkgconfigdir}/libudev.pc
 %{_npkgconfigdir}/udev.pc
-
-%files -n udev-apidocs
-%defattr(644,root,root,755)
-#%{_gtkdocdir}/libudev
+%{_mandir}/man3/libudev.3*
+%{_mandir}/man3/udev_*.3*
 
 %files -n bash-completion-udev
 %defattr(644,root,root,755)
