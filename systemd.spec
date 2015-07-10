@@ -602,48 +602,6 @@ libudev API documentation.
 %description -n udev-apidocs -l pl.UTF-8
 Dokumentacja API libudev.
 
-%package -n udev-glib
-Summary:	Shared libgudev library - GObject bindings for libudev
-Summary(pl.UTF-8):	Biblioteka współdzielona libgudev - wiązania GObject do libudev
-Group:		Libraries
-Requires:	glib2 >= 1:2.22.0
-Requires:	udev-libs = %{epoch}:%{version}-%{release}
-
-%description -n udev-glib
-Shared libgudev library - GObject bindings for libudev.
-
-%description -n udev-glib -l pl.UTF-8
-Biblioteka współdzielona libgudev - wiązania GObject do libudev.
-
-%package -n udev-glib-devel
-Summary:	Header file for libgudev library
-Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libgudev
-Group:		Development/Libraries
-Requires:	glib2-devel >= 1:2.22.0
-Requires:	udev-devel = %{epoch}:%{version}-%{release}
-Requires:	udev-glib = %{epoch}:%{version}-%{release}
-Obsoletes:	udev-glib-static
-
-%description -n udev-glib-devel
-Header file for libgudev library.
-
-%description -n udev-glib-devel -l pl.UTF-8
-Plik nagłówkowy biblioteki libgudev.
-
-%package -n udev-glib-apidocs
-Summary:	libgudev API documentation
-Summary(pl.UTF-8):	Dokumentacja API libgudev
-Group:		Documentation
-%if "%{_rpmversion}" >= "5"
-BuildArch:	noarch
-%endif
-
-%description -n udev-glib-apidocs
-libgudev API documentation.
-
-%description -n udev-glib-apidocs -l pl.UTF-8
-Dokumentacja API libgudev.
-
 %package -n bash-completion-udev
 Summary:	bash-completion for udev
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
@@ -1115,9 +1073,6 @@ fi
 
 %post	-n udev-libs -p /sbin/ldconfig
 %postun	-n udev-libs -p /sbin/ldconfig
-
-%post	-n udev-glib -p /sbin/ldconfig
-%postun	-n udev-glib -p /sbin/ldconfig
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
@@ -2048,23 +2003,6 @@ fi
 %files -n udev-apidocs
 %defattr(644,root,root,755)
 #%{_gtkdocdir}/libudev
-
-#%files -n udev-glib
-#%defattr(644,root,root,755)
-#%attr(755,root,root) %{_libdir}/libgudev-1.0.so.*.*.*
-#%attr(755,root,root) %ghost %{_libdir}/libgudev-1.0.so.0
-#%{_libdir}/girepository-1.0/GUdev-1.0.typelib
-#
-#%files -n udev-glib-devel
-#%defattr(644,root,root,755)
-#%attr(755,root,root) %{_libdir}/libgudev-1.0.so
-#%{_includedir}/gudev-1.0
-#%{_pkgconfigdir}/gudev-1.0.pc
-#%{_datadir}/gir-1.0/GUdev-1.0.gir
-#
-#%files -n udev-glib-apidocs
-#%defattr(644,root,root,755)
-#%{_gtkdocdir}/gudev
 
 %files -n bash-completion-udev
 %defattr(644,root,root,755)
