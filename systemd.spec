@@ -1071,7 +1071,7 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.machine1.conf
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
-%{_sysconfdir}/X11/xinit/xinitrc.d/50-systemd-user.sh
+%attr(755,root,root) %{_sysconfdir}/X11/xinit/xinitrc.d/50-systemd-user.sh
 %ghost %config(noreplace) %{_sysconfdir}/machine-id
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/locale.conf
