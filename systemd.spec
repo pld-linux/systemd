@@ -63,7 +63,7 @@ Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
 Patch7:		nss-in-rootlib.patch
 Patch8:		proc-hidepid.patch
-Patch9:		systemd-configfs.patch
+Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
 Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
@@ -147,19 +147,19 @@ Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Provides:	group(systemd-bus-proxy)
-Provides:	group(systemd-network)
-Provides:	group(systemd-resolve)
-Provides:	group(systemd-timesync)
 Provides:	group(systemd-journal)
 Provides:	group(systemd-journal-remote)
 Provides:	group(systemd-journal-upload)
+Provides:	group(systemd-network)
+Provides:	group(systemd-resolve)
+Provides:	group(systemd-timesync)
+Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Provides:	user(systemd-bus-proxy)
+Provides:	user(systemd-journal-remote)
+Provides:	user(systemd-journal-upload)
 Provides:	user(systemd-network)
 Provides:	user(systemd-resolve)
 Provides:	user(systemd-timesync)
-Provides:	user(systemd-journal-remote)
-Provides:	user(systemd-journal-upload)
-Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
 # sytemd wants pam with pam_systemd.so in system-auth...
@@ -358,8 +358,8 @@ and configures network devices as they appear, as well as creating
 virtual network devices.
 
 %description networkd -l pl.UTF-8
-systemd-networkd to usługa systemowa zarządzająca siecią. Wykrywa
-i konfiguruje interfejsy sieciowe gdy się pojawiają, a także tworzy
+systemd-networkd to usługa systemowa zarządzająca siecią. Wykrywa i
+konfiguruje interfejsy sieciowe gdy się pojawiają, a także tworzy
 wirtualne urządzenia sieciowe.
 
 %package resolved
@@ -838,7 +838,7 @@ install -d $RPM_BUILD_ROOT/var/log
 # install Python2 files, binaries built and saved earlier
 install -d $RPM_BUILD_ROOT%{py_sitedir}/systemd
 cp -a $RPM_BUILD_ROOT%{py3_sitedir}/systemd/*.py $RPM_BUILD_ROOT%{py_sitedir}/systemd
-install .libs/python/*.so $RPM_BUILD_ROOT%{py_sitedir}/systemd
+install -p .libs/python/*.so $RPM_BUILD_ROOT%{py_sitedir}/systemd
 %py_comp $RPM_BUILD_ROOT%{py_sitedir}
 %py_ocomp $RPM_BUILD_ROOT%{py_sitedir}
 %else
@@ -1722,9 +1722,9 @@ fi
 %{_mandir}/man8/systemd-ask-password-wall.service.8*
 %{_mandir}/man8/systemd-backlight@.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
-%{_mandir}/man8/systemd-bus-proxyd.8.gz
+%{_mandir}/man8/systemd-bus-proxyd.8*
 %{_mandir}/man8/systemd-bus-proxyd.socket.8
-%{_mandir}/man8/systemd-bus-proxyd@.service.8.gz
+%{_mandir}/man8/systemd-bus-proxyd@.service.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup@.service.8*}
 %{_mandir}/man8/systemd-fsck-root.service.8*
