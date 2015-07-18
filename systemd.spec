@@ -19,7 +19,8 @@
 %bcond_without	python3		# Python 3.x support
 %bcond_with	tests		# "make check" (requires systemd already installed)
 
-%ifnarch %{ix86} %{x8664} x32 aarch64
+%ifnarch %{ix86} %{x8664} aarch64
+# x32 disabled - maybe it's possible to build x64 EFI, but it requires some hacking (add -m64 to EFI gcc command line?)
 %undefine	with_efi
 %endif
 Summary:	A System and Service Manager
