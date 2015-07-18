@@ -8,16 +8,20 @@
 #   - /dev/urandom remains missing, not created with start_udev anymore
 #
 # Conditional build:
-%bcond_without	audit		# without audit support
-%bcond_without	cryptsetup	# without cryptsetup support
+%bcond_without	audit		# audit support
+%bcond_without	consoled	# systemd-consoled (embedded terminal)
+%bcond_without	cryptsetup	# cryptsetup support
 %bcond_without	microhttpd	# use microhttpd for network journal access
 %bcond_without	pam		# PAM authentication support
 %bcond_without	qrencode	# QRencode support
-%bcond_without	selinux		# without SELinux support
-%bcond_with	efi		# EFI boot support [missing files in 220]
+%bcond_without	selinux		# SELinux support
+%bcond_without	efi		# EFI boot support
 %bcond_without	python3		# Python 3.x support
 %bcond_with	tests		# "make check" (requires systemd already installed)
 
+%ifnarch %{ix86} %{x8664} x32 aarch64
+%undefine	with_efi
+%endif
 Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
@@ -80,7 +84,6 @@ BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl
 BuildRequires:	elfutils-devel
 BuildRequires:	gettext-tools
-BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
 %{?with_efi:BuildRequires:	gnu-efi}
 BuildRequires:	gnutls-devel >= 3.1.4
@@ -91,6 +94,8 @@ BuildRequires:	kmod-devel >= 14
 BuildRequires:	libapparmor-devel
 BuildRequires:	libblkid-devel >= 2.20
 BuildRequires:	libcap-devel
+%{?with_consoled:BuildRequires:	libdrm-devel >= 2.4}
+%{?with_consoled:BuildRequires:	libevdev-devel >= 1.2}
 BuildRequires:	libgcrypt-devel >= 1.4.5
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
 BuildRequires:	libmount-devel
@@ -115,7 +120,9 @@ BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
+%{?with_consoled:BuildRequires:	unifont-source}
 BuildRequires:	usbutils >= 0.82
+%{?with_consoled:BuildRequires:	xorg-lib-libxkbcommon-devel >= 0.5}
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
@@ -320,6 +327,18 @@ zarządcy systemu i usług systemd.
 
 Ten pakiet zawiera ogólną konfigurację, ustawienia można nadpisać
 poprzez katalog %{_sysconfdir}/systemd/system.
+
+%package consoled
+Summary:	Terminal support for systemd
+Summary(pl.UTF-8):	Obsługa terminala dla systemd
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description consoled
+Terminal support for systemd.
+
+%description consoled -l pl.UTF-8
+Obsługa terminala dla systemd.
 
 %package journal-gateway
 Summary:	Gateway for serving journal events over the network using HTTP
@@ -666,16 +685,17 @@ for PYTHON in "%{__python}" %{?with_python3:"%{__python3}"} ; do
 	%{__enable_disable qrencode} \
 	--disable-silent-rules \
 	--enable-compat-libs \
-	--enable-split-usr \
 	--enable-lz4 \
+	--enable-split-usr \
+	%{?with_consoled:--enable-terminal} \
 	--with-kbd-loadkeys=/usr/bin/loadkeys \
 	--with-kbd-setfont=/bin/setfont \
-	--with-sysvinit-path=/etc/rc.d/init.d \
-	--with-sysvrcnd-path=/etc/rc.d \
 	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
 	--with-rc-local-script-path-stop=/sbin/halt.local \
 	--with-rootprefix="" \
-	--with-rootlibdir=/%{_lib}
+	--with-rootlibdir=/%{_lib} \
+	--with-sysvinit-path=/etc/rc.d/init.d \
+	--with-sysvrcnd-path=/etc/rc.d
 
 %{__make} clean-python
 
@@ -1196,6 +1216,22 @@ fi
 %dir %{_libexecdir}/kernel/install.d
 %{_libexecdir}/kernel/install.d/50-depmod.install
 %{_libexecdir}/kernel/install.d/90-loaderentry.install
+%if %{with efi}
+%dir %{_libexecdir}/systemd/boot
+%dir %{_libexecdir}/systemd/boot/efi
+%ifarch %{ix86}
+%{_libexecdir}/systemd/boot/efi/linuxia32.efi.stub
+%{_libexecdir}/systemd/boot/efi/systemd-bootia32.efi
+%endif
+%ifarch %{x8664} x32
+%{_libexecdir}/systemd/boot/efi/linuxx64.efi.stub
+%{_libexecdir}/systemd/boot/efi/systemd-bootx64.efi
+%endif
+%ifarch aarch64
+%{_libexecdir}/systemd/boot/efi/linuxaa64.efi.stub
+%{_libexecdir}/systemd/boot/efi/systemd-bootaa64.efi
+%endif
+%endif
 %dir %{_libexecdir}/systemd/catalog
 %{_libexecdir}/systemd/catalog/systemd.catalog
 %lang(be) %{_libexecdir}/systemd/catalog/systemd.be.catalog
@@ -1761,6 +1797,16 @@ fi
 %{_mandir}/man8/systemd-update-utmp.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
 %{_mandir}/man8/systemd-vconsole-setup.service.8*
+
+%if %{with consoled}
+%files consoled
+%defattr(644,root,root,755)
+%attr(755,root,root) /lib/systemd/systemd-consoled
+%{_libexecdir}/systemd/user/systemd-consoled.service
+%dir %{_libexecdir}/systemd/user/default.target.wants
+%{_libexecdir}/systemd/user/default.target.wants/systemd-consoled.service
+%{_datadir}/systemd/unifont-glyph-array.bin
+%endif
 
 %if %{with microhttpd}
 %files journal-gateway
