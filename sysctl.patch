@@ -1,0 +1,21 @@
+kernel.sysrq is defined in /etc/sysctl.conf owned by rc-scripts.
+having it here as well, will print notice:
+
+# /lib/systemd/systemd-sysctl
+Overwriting earlier assignment of kernel/sysrq in file '/etc/sysctl.d/99-sysctl.conf'.
+
+--- systemd-221/sysctl.d/50-default.conf~	2015-02-28 18:38:38.000000000 +0200
++++ systemd-221/sysctl.d/50-default.conf	2015-08-01 22:43:16.307974188 +0300
+@@ -11,12 +11,6 @@
+ # (e.g. /etc/sysctl.d/90-override.conf), and put any assignments
+ # there.
+ 
+-# System Request functionality of the kernel (SYNC)
+-#
+-# Use kernel.sysrq = 1 to allow all keys.
+-# See http://fedoraproject.org/wiki/QA/Sysrq for a list of values and keys.
+-kernel.sysrq = 16
+-
+ # Append the PID to the core filename
+ kernel.core_uses_pid = 1
+ 
