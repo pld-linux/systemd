@@ -28,7 +28,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -151,7 +151,6 @@ Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.7
-Suggests:	ConsoleKit
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
@@ -169,6 +168,8 @@ Provides:	user(systemd-journal-upload)
 Provides:	user(systemd-network)
 Provides:	user(systemd-resolve)
 Provides:	user(systemd-timesync)
+Obsoletes:	ConsoleKit
+Obsoletes:	ConsoleKit-x11
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
 # sytemd wants pam with pam_systemd.so in system-auth...
