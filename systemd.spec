@@ -719,11 +719,13 @@ done
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/var/lib/{%{name}/coredump,machines} \
+install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_sbindir}}
 
 %{__make} -j1 install \
 	DESTDIR=$RPM_BUILD_ROOT
+
+touch $RPM_BUILD_ROOT/var/lib/%{name}/random-seed
 
 ./libtool --mode=install install -p -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
 
@@ -1417,6 +1419,8 @@ fi
 %dir /var/lib/machines
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
+%dir /var/lib/%{name}/catalog
+%attr(640,root,root) %ghost /var/lib/%{name}/random-seed
 %attr(640,root,root) %ghost /var/log/btmp
 %attr(664,root,utmp) %ghost /var/log/wtmp
 %attr(2755,root,systemd-journal) %dir /var/log/journal
