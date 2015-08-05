@@ -668,7 +668,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__autoheader}
 %{__automake}
 
-for PYTHON in "%{__python}" %{?with_python3:"%{__python3}"} ; do
+for PYTHON in %{__python} %{?with_python3:%{__python3}}; do
 
 %configure \
 	QUOTAON=/sbin/quotaon \
@@ -679,6 +679,9 @@ for PYTHON in "%{__python}" %{?with_python3:"%{__python3}"} ; do
 	KEXEC=/sbin/kexec \
 	PYTHON="$PYTHON" \
 	PYTHON_BINARY="$PYTHON" \
+%if "%{?configure_cache}" == "1"
+	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}-$(basename $PYTHON).cache \
+%endif
 	%{?debug:--enable-debug} \
 	%{__enable_disable audit} \
 	%{__enable_disable cryptsetup libcryptsetup} \
