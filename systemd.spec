@@ -69,6 +69,7 @@ Patch19:	uids_gids.patch
 Patch20:	sysv-symlinks-warning.patch
 Patch21:	no-configurable-runlevels.patch
 Patch22:	timesync_in_vm.patch
+Patch23:	python-systemd-py3.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -698,6 +699,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch20 -p1
 %patch21 -p1
 %patch22 -p1
+%patch23 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
