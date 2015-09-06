@@ -842,7 +842,7 @@ install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,initrd,kexec,powero
 install -d $RPM_BUILD_ROOT%{_libexecdir}/systemd/system-{shutdown,sleep}
 
 # Create new-style configuration files so that we can ghost-own them
-touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,timezone,vconsole.conf}
+touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,vconsole.conf}
 
 # Install SysV conversion tool for systemd
 install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
@@ -851,18 +851,18 @@ install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
 install -d $RPM_BUILD_ROOT/lib/systemd/pld-helpers.d
 
 # to be enabled only when the packages are installed
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-networkd.service
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-networkd.socket
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-resolved.service
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-networkd.service \
+	$RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-networkd.socket \
+	$RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-resolved.service
 
 install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/btmp
 :> $RPM_BUILD_ROOT/var/log/wtmp
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
-%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la
-%{__rm} $RPM_BUILD_ROOT/%{_lib}/libnss_myhostname.la
-%{__rm} $RPM_BUILD_ROOT%{_libdir}/*.la
+%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la \
+	$RPM_BUILD_ROOT/%{_lib}/libnss_myhostname.la \
+	$RPM_BUILD_ROOT%{_libdir}/*.la
 
 %if %{with python3}
 %{__rm} $RPM_BUILD_ROOT%{py3_sitedir}/systemd/*.la
@@ -1104,11 +1104,10 @@ fi
 /etc/dbus-1/system.d/org.freedesktop.systemd1.conf
 /etc/dbus-1/system.d/org.freedesktop.timedate1.conf
 %attr(755,root,root) %{_sysconfdir}/X11/xinit/xinitrc.d/50-systemd-user.sh
-%ghost %config(noreplace) %{_sysconfdir}/machine-id
+%attr(444,root,root) %ghost %config(noreplace) %{_sysconfdir}/machine-id
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/locale.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/machine-info
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/timezone
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/bootchart.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/coredump.conf
@@ -1127,8 +1126,8 @@ fi
 %dir %{_sysconfdir}/systemd/system/sockets.target.wants
 %dir %{_sysconfdir}/systemd/system/sysinit.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/getty.target.wants/getty@tty1.service
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/sysinit.target.wants/systemd-timesyncd.service
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/remote-fs.target
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/sysinit.target.wants/systemd-timesyncd.service
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/systemd-user
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
@@ -1419,12 +1418,12 @@ fi
 %{_mandir}/man8/systemd-update-utmp.8*
 %{_mandir}/man8/systemd-user-sessions.8*
 %{_mandir}/man8/systemd-vconsole-setup.8*
-%dir /var/lib/machines
+%attr(600,root,root) %dir /var/lib/machines
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
 %dir /var/lib/%{name}/catalog
 %attr(640,root,root) %ghost /var/lib/%{name}/random-seed
-%attr(640,root,root) %ghost /var/log/btmp
+%attr(600,root,utmp) %ghost /var/log/btmp
 %attr(664,root,utmp) %ghost /var/log/wtmp
 %attr(2755,root,systemd-journal) %dir /var/log/journal
 
