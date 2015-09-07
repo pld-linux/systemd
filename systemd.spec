@@ -1418,7 +1418,7 @@ fi
 %{_mandir}/man8/systemd-update-utmp.8*
 %{_mandir}/man8/systemd-user-sessions.8*
 %{_mandir}/man8/systemd-vconsole-setup.8*
-%attr(600,root,root) %dir /var/lib/machines
+%attr(700,root,root) %dir /var/lib/machines
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
 %dir /var/lib/%{name}/catalog
