@@ -472,6 +472,7 @@ Summary:	Header files for systemd libraries
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-static
 
 %description devel
@@ -740,7 +741,7 @@ ln -s /lib/udev/udevd $RPM_BUILD_ROOT%{_sbindir}/udevd
 # compat symlinks for "/ merged into /usr" programs
 mv $RPM_BUILD_ROOT/{,s}bin/udevadm
 ln -s %{_sbindir}/udevadm $RPM_BUILD_ROOT/bin
-ln -s /lib/udev $RPM_BUILD_ROOT/usr/lib/
+ln -s /lib/udev $RPM_BUILD_ROOT%{_prefix}/lib
 
 # install custom udev rules from pld package
 cp -a %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
@@ -1987,7 +1988,7 @@ fi
 %files -n udev-core
 %defattr(644,root,root,755)
 
-/usr/lib/udev
+%{_prefix}/lib/udev
 
 %attr(755,root,root) /lib/udev/collect
 
