@@ -73,6 +73,7 @@ Patch10:	pld-boot_efi_mount.patch
 Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
+Patch14:	journal-gatewayd-fdopen.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
@@ -663,6 +664,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
