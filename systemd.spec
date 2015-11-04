@@ -1209,7 +1209,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
 %attr(755,root,root) /lib/systemd/systemd
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
-%attr(755,root,root) /lib/systemd/system-generators/systemd-dbus1-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-efi-boot-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-fstab-generator
@@ -1490,6 +1489,7 @@ fi
 %{_libexecdir}/systemd/user-generators/systemd-dbus1-generator
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
+%attr(755,root,root) /lib/systemd/system-generators/systemd-dbus1-generator
 %dir /lib/systemd/system-preset
 /lib/systemd/system-preset/90-systemd.preset
 %dir /lib/systemd/system-sleep
