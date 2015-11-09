@@ -53,6 +53,7 @@ Source19:	prefdm.service
 Source101:	udev-alsa.rules
 Source102:	udev.rules
 Source103:	udev-links.conf
+Source104:	udev-uinput.rules
 # scripts / helpers
 Source110:	udev-net.helper
 Source111:	start_udev
@@ -748,6 +749,7 @@ ln -s /lib/udev $RPM_BUILD_ROOT%{_prefix}/lib
 # install custom udev rules from pld package
 cp -a %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
 cp -a %{SOURCE102} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-udev-pld.rules
+cp -a %{SOURCE104} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-uinput.rules
 
 # http://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
 ln -s /dev/null $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/80-net-setup-link.rules
@@ -2038,6 +2040,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/links.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-udev-pld.rules
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-uinput.rules
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/80-net-setup-link.rules
 
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/udev.conf

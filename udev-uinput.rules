@@ -1,0 +1,2 @@
+# Allow current console users to add virtual input devices
+KERNEL=="uinput", TAG+="uaccess", OPTIONS+="static_node=uinput"
