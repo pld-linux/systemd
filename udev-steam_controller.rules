@@ -1,0 +1,5 @@
+# Steam Controller device node write access
+SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1002", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1042", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1102", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1142", TAG+="uaccess"
