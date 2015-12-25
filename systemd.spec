@@ -28,7 +28,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	10
+Release:	11
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -119,6 +119,7 @@ BuildRequires:	python-modules
 BuildRequires:	python3-devel
 BuildRequires:	python3-lxml
 BuildRequires:	python3-modules
+BuildRequires:	rpm-build >= 5.4.15-28
 %endif
 %{?with_qrencode:BuildRequires:	qrencode-devel}
 BuildRequires:	rpm-pythonprov
@@ -877,7 +878,7 @@ install -d $RPM_BUILD_ROOT/var/log
 # install Python2 files, binaries built and saved earlier
 install -d $RPM_BUILD_ROOT%{py_sitedir}/systemd
 cp -a $RPM_BUILD_ROOT%{py3_sitedir}/systemd/*.py $RPM_BUILD_ROOT%{py_sitedir}/systemd
-install -p .libs/python/*.so $RPM_BUILD_ROOT%{py_sitedir}/systemd
+install -p .libs/python2/*.so $RPM_BUILD_ROOT%{py_sitedir}/systemd
 %py_comp $RPM_BUILD_ROOT%{py_sitedir}
 %py_ocomp $RPM_BUILD_ROOT%{py_sitedir}
 %else
