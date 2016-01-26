@@ -31,7 +31,9 @@ fi
 
 if ! is_no "$LVM2" && [ -x /sbin/lvm ]; then
 	modprobe -s dm-mod >/dev/null 2>&1
-	run_cmd "Scanning for LVM volume groups" /sbin/lvm vgscan --ignorelockingfailure
+	# --cache to initiate direct device scan and update lvmetad appropriately (if running).
+	# See http://lists.pld-linux.org/mailman/pipermail/pld-devel-pl/2016-January/157230.html
+	run_cmd "Scanning for LVM volume groups" /sbin/lvm vgscan --ignorelockingfailure --cache
 	run_cmd "Activating LVM volume groups" /sbin/lvm vgchange -a y --sysinit
 	/sbin/lvm vgmknodes --ignorelockingfailure
 fi

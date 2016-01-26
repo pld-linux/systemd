@@ -28,7 +28,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	11
+Release:	12
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -223,6 +223,8 @@ Conflicts:	libgpod < 0.8.0-6
 Conflicts:	libvirt-utils < 0.9.9-4
 Conflicts:	lighttpd < 1.4.30-5
 Conflicts:	lirc < 0.9.0-20
+# Needed for vgscan --cache  ( perhaps < 2.02.96 would be enough, but not tested)
+Conflicts:	lvm2 < 2.02.132
 Conflicts:	mailman < 5:2.1.14-4
 Conflicts:	memcached < 1.4.11-2
 Conflicts:	mpd < 0.16.5-4
