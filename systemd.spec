@@ -28,7 +28,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	12
+Release:	12.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -49,6 +49,8 @@ Source16:	pld-rc-inetd-generator.sh
 Source17:	rc-inetd.service
 Source18:	default.preset
 Source19:	prefdm.service
+Source20:	sigpwr-container-shutdown.service
+
 # rules
 Source101:	udev-alsa.rules
 Source102:	udev.rules
@@ -824,6 +826,11 @@ ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs
 ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 
+# Add inside container only SIGPWR handler which is used by lxc-stop
+install -p %{SOURCE20} $RPM_BUILD_ROOT%{systemdunitdir}/sigpwr-container-shutdown.service
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/sigpwr.target.wants
+ln -s  ../sigpwr-container-shutdown.service  $RPM_BUILD_ROOT%{systemdunitdir}/sigpwr.target.wants
+
 # As of 207 the systemd-sysctl tool no longer natively reads the file /etc/sysctl.conf.
 # If desired, the file should be symlinked from /etc/sysctl.d/99-sysctl.conf.
 ln -s /etc/sysctl.conf $RPM_BUILD_ROOT/etc/sysctl.d/99-sysctl.conf
@@ -1570,6 +1577,7 @@ fi
 %{systemdunitdir}/rescue.service
 %{systemdunitdir}/serial-getty@.service
 %{systemdunitdir}/single.service
+%{systemdunitdir}/sigpwr-container-shutdown.service
 %{systemdunitdir}/sys-kernel-config.service
 %{systemdunitdir}/systemd-ask-password-console.service
 %{systemdunitdir}/systemd-ask-password-wall.service
@@ -1711,6 +1719,7 @@ fi
 %dir %{systemdunitdir}/rescue.target.wants
 %dir %{systemdunitdir}/runlevel[12345].target.wants
 %dir %{systemdunitdir}/shutdown.target.wants
+%dir %{systemdunitdir}/sigpwr.target.wants
 %dir %{systemdunitdir}/sockets.target.wants
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
@@ -1741,6 +1750,7 @@ fi
 %{systemdunitdir}/multi-user.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
 %{systemdunitdir}/rescue.target.wants/systemd-update-utmp-runlevel.service
+%{systemdunitdir}/sigpwr.target.wants/sigpwr-container-shutdown.service
 %{systemdunitdir}/sockets.target.wants/systemd-initctl.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald-audit.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald-dev-log.socket
