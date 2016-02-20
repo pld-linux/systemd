@@ -5,6 +5,7 @@ Conflicts=shutdown.target
 After=cryptsetup.target pld-storage-init.service
 Before=local-fs.target shutdown.target
 Wants=pld-wait-storage.service
+ConditionVirtualization=!container
 
 [Service]
 ExecStart=/lib/systemd/pld-storage-init
