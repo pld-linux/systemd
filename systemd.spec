@@ -80,39 +80,39 @@ Patch13:	sysctl.patch
 Patch14:	journal-gatewayd-fdopen.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
-BuildRequires:	attr-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
-BuildRequires:	dbus-devel >= 1.3.2
+BuildRequires:	dbus-devel >= 1.4.0
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl
-BuildRequires:	elfutils-devel
+BuildRequires:	elfutils-devel >= 158
 BuildRequires:	gettext-tools
 BuildRequires:	glibc-misc
 %{?with_efi:BuildRequires:	gnu-efi}
 BuildRequires:	gnutls-devel >= 3.1.4
-BuildRequires:	gobject-introspection-devel >= 1.31.1
 BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
-BuildRequires:	kmod-devel >= 14
+BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel
-BuildRequires:	libblkid-devel >= 2.20
+BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
 %{?with_consoled:BuildRequires:	libdrm-devel >= 2.4}
 %{?with_consoled:BuildRequires:	libevdev-devel >= 1.2}
 BuildRequires:	libgcrypt-devel >= 1.4.5
+#BuildRequires:	libidn-devel
+#BuildRequires:	liblzma-devel
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
-BuildRequires:	libmount-devel
+BuildRequires:	libmount-devel >= 2.20
 BuildRequires:	libseccomp-devel >= 1.0.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
-BuildRequires:	lz4-devel
+BuildRequires:	lz4-devel >= 119
 BuildRequires:	m4
-%{?with_pam:BuildRequires:	pam-devel}
+%{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python-devel
 BuildRequires:	python-lxml
@@ -148,7 +148,8 @@ Requires:	agetty
 %{?with_cryptsetup:Requires:	cryptsetup >= 1.6.0}
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-39
-Requires:	kmod >= 14
+Requires:	glibc >= 2.16
+Requires:	kmod >= 15
 %{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
 Requires:	libutempter
 Requires:	polkit
@@ -156,7 +157,9 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 3.7
+Requires:	util-linux >= 2.26
+Requires:	uname(release) >= 3.0
+Suggests:	uname(release) >= 3.8
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
@@ -225,7 +228,7 @@ Conflicts:	libgpod < 0.8.0-6
 Conflicts:	libvirt-utils < 0.9.9-4
 Conflicts:	lighttpd < 1.4.30-5
 Conflicts:	lirc < 0.9.0-20
-# Needed for vgscan --cache  ( perhaps < 2.02.96 would be enough, but not tested)
+# Needed for vgscan --cache ( perhaps < 2.02.96 would be enough, but not tested)
 Conflicts:	lvm2 < 2.02.132
 Conflicts:	mailman < 5:2.1.14-4
 Conflicts:	memcached < 1.4.11-2
@@ -577,13 +580,12 @@ Summary(pl.UTF-8):	Implementacja devfs w przestrzeni użytkownika - główna cz�
 Group:		Base
 Requires:	coreutils
 Requires:	filesystem >= 3.0-45
-Requires:	kmod >= 14
-Requires:	libblkid >= 2.20
+Requires:	kmod >= 15
+Requires:	libblkid >= 2.24
 %{?with_selinux:Requires:	libselinux >= 2.1.9}
 Requires:	setup >= 2.9.0-3
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 2.6.32
-#Suggests:	uname(release) >= 3.7
+Requires:	uname(release) >= 3.7
 Obsoletes:	udev-compat
 Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 Conflicts:	geninitrd < 12639
@@ -829,7 +831,7 @@ ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.
 # Add inside container only SIGPWR handler which is used by lxc-stop
 install -p %{SOURCE20} $RPM_BUILD_ROOT%{systemdunitdir}/sigpwr-container-shutdown.service
 install -d $RPM_BUILD_ROOT%{systemdunitdir}/sigpwr.target.wants
-ln -s  ../sigpwr-container-shutdown.service  $RPM_BUILD_ROOT%{systemdunitdir}/sigpwr.target.wants
+ln -s ../sigpwr-container-shutdown.service $RPM_BUILD_ROOT%{systemdunitdir}/sigpwr.target.wants
 
 # As of 207 the systemd-sysctl tool no longer natively reads the file /etc/sysctl.conf.
 # If desired, the file should be symlinked from /etc/sysctl.d/99-sysctl.conf.
