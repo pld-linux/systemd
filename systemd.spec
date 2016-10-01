@@ -88,7 +88,7 @@ BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	dbus-devel >= 1.4.0
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl
-BuildRequires:	elfutils-devel >= 158
+BuildRequires:	elfutils-devel >= 0.158
 BuildRequires:	gettext-tools
 BuildRequires:	glibc-misc
 %{?with_efi:BuildRequires:	gnu-efi}
