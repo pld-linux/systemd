@@ -112,7 +112,7 @@ BuildRequires:	libseccomp-devel >= 1.0.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
-BuildRequires:	lz4-devel >= 119
+BuildRequires:	lz4-devel >= r119
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pkgconfig >= 0.9.0
