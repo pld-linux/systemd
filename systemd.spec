@@ -28,7 +28,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	15
+Release:	16
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1485,7 +1485,6 @@ fi
 %dir %{_sysconfdir}/systemd/system-preset
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system-preset/default.preset
 %dir %{_sysconfdir}/tmpfiles.d
-%dir %{_libexecdir}/binfmt.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
 %{_libexecdir}/sysctl.d/50-default.conf
