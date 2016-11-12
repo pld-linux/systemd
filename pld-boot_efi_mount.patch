@@ -1,82 +1,11 @@
-diff -dur -x '*~' -x '*.orig' -x '*.rej' systemd-218.orig/src/efi-boot-generator/efi-boot-generator.c systemd-218/src/efi-boot-generator/efi-boot-generator.c
---- systemd-218.orig/src/efi-boot-generator/efi-boot-generator.c	2014-12-05 01:26:51.000000000 +0100
-+++ systemd-218/src/efi-boot-generator/efi-boot-generator.c	2015-04-02 15:45:18.000000000 +0200
-@@ -69,15 +69,15 @@
-                 return EXIT_SUCCESS;
+--- a/src/gpt-auto-generator/gpt-auto-generator.c~	2016-11-03 18:16:42.000000000 +0100
++++ b/src/gpt-auto-generator/gpt-auto-generator.c	2016-11-12 20:01:04.784509883 +0100
+@@ -466,7 +466,7 @@ static int add_boot(const char *what) {
          }
  
--        r = path_is_mount_point("/boot", AT_SYMLINK_FOLLOW);
-+        r = path_is_mount_point("/boot/efi", AT_SYMLINK_FOLLOW);
-         if (r > 0) {
--                log_debug("/boot is already a mount point, exiting.");
-+                log_debug("/boot/efi is already a mount point, exiting.");
-                 return EXIT_SUCCESS;
-         }
-         if (r == -ENOENT)
--                log_debug("/boot does not exist, continuing.");
--        else if (dir_is_empty("/boot") <= 0) {
--                log_debug("/boot already populated, exiting.");
-+                log_debug("/boot/efi does not exist, continuing.");
-+        else if (dir_is_empty("/boot/efi") <= 0) {
-+                log_debug("/boot/efi already populated, exiting.");
-                 return EXIT_SUCCESS;
-         }
+         /* If /efi exists we'll use that. Otherwise we'll use /boot, as that's usually the better choice */
+-        esp = access("/efi/", F_OK) >= 0 ? "/efi" : "/boot";
++        esp = access("/efi/", F_OK) >= 0 ? "/efi" : "/boot/efi";
  
-@@ -84,7 +84,7 @@
-                 return EXIT_FAILURE;
-         }
- 
--        name = strjoina(arg_dest, "/boot.mount");
-+        name = strjoina(arg_dest, "/boot-efi.mount");
-         f = fopen(name, "wxe");
-         if (!f) {
-                 log_error_errno(errno, "Failed to create mount unit file %s: %m", name);
-@@ -105,7 +105,7 @@
-                 "Description=EFI System Partition\n"
-                 "Documentation=man:systemd-efi-boot-generator(8)\n");
- 
--        r = generator_write_fsck_deps(f, arg_dest, what, "/boot", "vfat");
-+        r = generator_write_fsck_deps(f, arg_dest, what, "/boot/efi", "vfat");
-         if (r < 0)
-                 return EXIT_FAILURE;
- 
-@@ -113,7 +113,7 @@
-                 "\n"
-                 "[Mount]\n"
-                 "What=%s\n"
--                "Where=/boot\n"
-+                "Where=/boot/efi\n"
-                 "Type=vfat\n"
-                 "Options=umask=0077,noauto\n",
-                 what);
-@@ -124,7 +124,7 @@
-                 return EXIT_FAILURE;
-         }
- 
--        name = strjoina(arg_dest, "/boot.automount");
-+        name = strjoina(arg_dest, "/boot-efi.automount");
-         fclose(f);
-         f = fopen(name, "wxe");
-         if (!f) {
-@@ -136,7 +136,7 @@
-               "[Unit]\n"
-               "Description=EFI System Partition Automount\n\n"
-               "[Automount]\n"
--              "Where=/boot\n"
-+              "Where=/boot/efi\n"
-               "TimeoutIdleSec=120\n", f);
- 
-         fflush(f);
-@@ -144,10 +144,10 @@
-                 return EXIT_FAILURE;
-         }
- 
--        name = strjoina(arg_dest, "/" SPECIAL_LOCAL_FS_TARGET ".wants/boot.automount");
-+        name = strjoina(arg_dest, "/" SPECIAL_LOCAL_FS_TARGET ".wants/boot-efi.automount");
-         mkdir_parents(name, 0755);
- 
--        if (symlink("../boot.automount", name) < 0) {
-+        if (symlink("../boot-efi.automount", name) < 0) {
-                 log_error_errno(errno, "Failed to create symlink %s: %m", name);
-                 return EXIT_FAILURE;
-         }
+         /* We create an .automount which is not overridden by the .mount from the fstab generator. */
+         if (fstab_is_mount_point(esp)) {

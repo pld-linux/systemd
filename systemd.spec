@@ -9,14 +9,12 @@
 #
 # Conditional build:
 %bcond_without	audit		# audit support
-%bcond_without	consoled	# systemd-consoled (embedded terminal)
 %bcond_without	cryptsetup	# cryptsetup support
 %bcond_without	microhttpd	# use microhttpd for network journal access
 %bcond_without	pam		# PAM authentication support
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# SELinux support
 %bcond_without	efi		# EFI boot support
-%bcond_without	python3		# Python 3.x support
 %bcond_with	tests		# "make check" (requires systemd already installed)
 
 %ifnarch %{ix86} %{x8664} aarch64
@@ -27,13 +25,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	221
-Release:	16
+Version:	232
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	https://github.com/systemd/systemd/archive/v%{version}.tar.gz
-# Source0-md5:	729ff21073e20dfb211e2155769bf33c
+# Source0-md5:	3e3a0b14050eff62e68be72142181730
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -70,16 +68,13 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
-Patch7:		nss-in-rootlib.patch
+
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
 Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
-Patch14:	journal-gatewayd-fdopen.patch
-Patch15:	empty_notify_dos.patch
-Patch16:	cryptsetup_generator_cmdline_parsing.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -101,13 +96,11 @@ BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel
 BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
-%{?with_consoled:BuildRequires:	libdrm-devel >= 2.4}
-%{?with_consoled:BuildRequires:	libevdev-devel >= 1.2}
 BuildRequires:	libgcrypt-devel >= 1.4.5
 #BuildRequires:	libidn-devel
 #BuildRequires:	liblzma-devel
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
-BuildRequires:	libmount-devel >= 2.20
+BuildRequires:	libmount-devel >= 2.28.2-2
 BuildRequires:	libseccomp-devel >= 1.0.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
 BuildRequires:	libtool >= 2:2.2
@@ -119,20 +112,12 @@ BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python-devel
 BuildRequires:	python-lxml
 BuildRequires:	python-modules
-%if %{with python3}
-BuildRequires:	python3-devel
-BuildRequires:	python3-lxml
-BuildRequires:	python3-modules
-BuildRequires:	rpm-build >= 5.4.15-28
-%endif
 %{?with_qrencode:BuildRequires:	qrencode-devel}
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
-%{?with_consoled:BuildRequires:	unifont-source}
 BuildRequires:	usbutils >= 0.82
-%{?with_consoled:BuildRequires:	xorg-lib-libxkbcommon-devel >= 0.5}
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
@@ -159,13 +144,13 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	util-linux >= 2.26
+Requires:	util-linux >= 2.28.2-2
 Requires:	uname(release) >= 3.0
 Suggests:	uname(release) >= 3.8
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
-Provides:	group(systemd-bus-proxy)
+Provides:	group(systemd-coredump)
 Provides:	group(systemd-journal)
 Provides:	group(systemd-journal-remote)
 Provides:	group(systemd-journal-upload)
@@ -173,7 +158,6 @@ Provides:	group(systemd-network)
 Provides:	group(systemd-resolve)
 Provides:	group(systemd-timesync)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
-Provides:	user(systemd-bus-proxy)
 Provides:	user(systemd-journal-remote)
 Provides:	user(systemd-journal-upload)
 Provides:	user(systemd-network)
@@ -347,18 +331,6 @@ zarządcy systemu i usług systemd.
 Ten pakiet zawiera ogólną konfigurację, ustawienia można nadpisać
 poprzez katalog %{_sysconfdir}/systemd/system.
 
-%package consoled
-Summary:	Terminal support for systemd
-Summary(pl.UTF-8):	Obsługa terminala dla systemd
-Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
-
-%description consoled
-Terminal support for systemd.
-
-%description consoled -l pl.UTF-8
-Obsługa terminala dla systemd.
-
 %package journal-gateway
 Summary:	Gateway for serving journal events over the network using HTTP
 Summary(pl.UTF-8):	Bramka do serwowania zdarzeń dziennika po sieci poprzez HTTP
@@ -493,32 +465,6 @@ Header files for systemd libraries.
 
 %description devel -l pl.UTF-8
 Pliki nagłówkowe bibliotek systemd.
-
-%package -n python-systemd
-Summary:	Systemd Python 2.x bindings
-Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona 2.x
-Group:		Development/Languages/Python
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
-Requires:	python
-
-%description -n python-systemd
-Systemd Python 2.x bindings.
-
-%description -n python-systemd -l pl.UTF-8
-Wiązania do Systemd dla Pythona 2.x.
-
-%package -n python3-systemd
-Summary:	Systemd Python 3.x bindings
-Summary(pl.UTF-8):	Wiązania do Systemd dla Pythona 3.x
-Group:		Development/Languages/Python
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
-Requires:	python3
-
-%description -n python3-systemd
-Systemd Python 3.x bindings.
-
-%description -n python-systemd -l pl.UTF-8
-Wiązania do Systemd dla Pythona 3.x.
 
 %package -n bash-completion-systemd
 Summary:	bash-completion for systemd
@@ -668,16 +614,13 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
-%patch7 -p1
+
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -689,8 +632,6 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__autoheader}
 %{__automake}
 
-for PYTHON in %{__python} %{?with_python3:%{__python3}}; do
-
 %configure \
 	QUOTAON=/sbin/quotaon \
 	QUOTACHECK=/sbin/quotacheck \
@@ -699,9 +640,9 @@ for PYTHON in %{__python} %{?with_python3:%{__python3}}; do
 	KMOD=/sbin/kmod \
 	KEXEC=/sbin/kexec \
 	PYTHON="$PYTHON" \
-	PYTHON_BINARY="$PYTHON" \
+	PYTHON_BINARY="%{__python}" \
 %if "%{?configure_cache}" == "1"
-	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}-$(basename $PYTHON).cache \
+	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}.cache \
 %endif
 	%{?debug:--enable-debug} \
 	%{__enable_disable audit} \
@@ -712,12 +653,11 @@ for PYTHON in %{__python} %{?with_python3:%{__python3}}; do
 	%{__enable_disable microhttpd} \
 	%{__enable_disable qrencode} \
 	--disable-silent-rules \
-	--enable-compat-libs \
 	--enable-lz4 \
 	--enable-split-usr \
-	%{?with_consoled:--enable-terminal} \
 	--with-kbd-loadkeys=/usr/bin/loadkeys \
 	--with-kbd-setfont=/bin/setfont \
+	--with-ntp-servers='0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org' \
 	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
 	--with-rc-local-script-path-stop=/sbin/halt.local \
 	--with-rootprefix="" \
@@ -725,14 +665,7 @@ for PYTHON in %{__python} %{?with_python3:%{__python3}}; do
 	--with-sysvinit-path=/etc/rc.d/init.d \
 	--with-sysvrcnd-path=/etc/rc.d
 
-%{__make} clean-python
-
 %{__make}
-
-python_libs=.libs/$(basename $PYTHON)
-mkdir -p $python_libs
-cp -a .libs/{_daemon,_journal,_reader,id128,login}.so $python_libs
-done
 
 ./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
 
@@ -886,23 +819,7 @@ install -d $RPM_BUILD_ROOT/var/log
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la \
-	$RPM_BUILD_ROOT/%{_lib}/libnss_myhostname.la \
-	$RPM_BUILD_ROOT%{_libdir}/*.la
-
-%if %{with python3}
-%{__rm} $RPM_BUILD_ROOT%{py3_sitedir}/systemd/*.la
-
-# install Python2 files, binaries built and saved earlier
-install -d $RPM_BUILD_ROOT%{py_sitedir}/systemd
-cp -a $RPM_BUILD_ROOT%{py3_sitedir}/systemd/*.py $RPM_BUILD_ROOT%{py_sitedir}/systemd
-install -p .libs/python2/*.so $RPM_BUILD_ROOT%{py_sitedir}/systemd
-%py_comp $RPM_BUILD_ROOT%{py_sitedir}
-%py_ocomp $RPM_BUILD_ROOT%{py_sitedir}
-%else
-%{__rm} $RPM_BUILD_ROOT%{py_sitedir}/systemd/*.la
-%endif
-%py_postclean
-
+	$RPM_BUILD_ROOT/%{_lib}/*.la
 
 %find_lang %{name}
 
@@ -911,8 +828,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 %groupadd -g 288 systemd-journal
-%groupadd -g 315 systemd-bus-proxy
-%useradd -u 315 -g 315 -d /var/log/journal -s /bin/false -c "Systemd Bus Proxy" systemd-bus-proxy
 %groupadd -g 316 systemd-network
 %useradd -u 316 -g 316 -d /var/log/journal -s /bin/false -c "Systemd Network Management" systemd-network
 %groupadd -g 317 systemd-resolve
@@ -923,6 +838,7 @@ rm -rf $RPM_BUILD_ROOT
 %useradd -u 319 -g 319 -d /var/log/journal -s /bin/false -c "Systemd Journal Remote" systemd-journal-remote
 %groupadd -g 320 systemd-journal-upload
 %useradd -u 320 -g 320 -d /var/log/journal -s /bin/false -c "Systemd Journal Upload" systemd-journal-upload
+%groupadd -g 333 systemd-coredump
 
 %post
 /bin/systemd-machine-id-setup || :
@@ -1134,7 +1050,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/locale.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/machine-info
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/bootchart.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/coredump.conf
 %if %{with microhttpd}
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-remote.conf
@@ -1178,9 +1093,12 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-cgtop
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
+%attr(755,root,root) %{_bindir}/systemd-mount
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-path
+%attr(755,root,root) %{_bindir}/systemd-resolve
 %attr(755,root,root) %{_bindir}/systemd-run
+%attr(755,root,root) %{_bindir}/systemd-socket-activate
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/timedatectl
@@ -1188,11 +1106,8 @@ fi
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-ac-power
-%attr(755,root,root) /lib/systemd/systemd-activate
 %attr(755,root,root) /lib/systemd/systemd-backlight
 %attr(755,root,root) /lib/systemd/systemd-binfmt
-%attr(755,root,root) /lib/systemd/systemd-bootchart
-%attr(755,root,root) /lib/systemd/systemd-bus-proxyd
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
@@ -1211,14 +1126,12 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-machined
-%attr(755,root,root) /lib/systemd/systemd-machine-id-commit
 %attr(755,root,root) /lib/systemd/systemd-modules-load
 %attr(755,root,root) /lib/systemd/systemd-pull
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
 %attr(755,root,root) /lib/systemd/systemd-remount-fs
 %attr(755,root,root) /lib/systemd/systemd-reply-password
-%attr(755,root,root) /lib/systemd/systemd-resolve-host
 %attr(755,root,root) /lib/systemd/systemd-rfkill
 %attr(755,root,root) /lib/systemd/systemd-shutdown
 %attr(755,root,root) /lib/systemd/systemd-sleep
@@ -1234,7 +1147,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
-%attr(755,root,root) /lib/systemd/system-generators/systemd-efi-boot-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-fstab-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-getty-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-gpt-auto-generator
@@ -1271,11 +1183,13 @@ fi
 %{_libexecdir}/systemd/catalog/systemd.catalog
 %lang(be) %{_libexecdir}/systemd/catalog/systemd.be.catalog
 %lang(be) %{_libexecdir}/systemd/catalog/systemd.be@latin.catalog
+%lang(bg) %{_libexecdir}/systemd/catalog/systemd.bg.catalog
 %lang(fr) %{_libexecdir}/systemd/catalog/systemd.fr.catalog
 %lang(it) %{_libexecdir}/systemd/catalog/systemd.it.catalog
 %lang(pl) %{_libexecdir}/systemd/catalog/systemd.pl.catalog
 %lang(pt_BR) %{_libexecdir}/systemd/catalog/systemd.pt_BR.catalog
 %lang(ru) %{_libexecdir}/systemd/catalog/systemd.ru.catalog
+%lang(zh_CN) %{_libexecdir}/systemd/catalog/systemd.zh_CN.catalog
 %lang(zh_TW) %{_libexecdir}/systemd/catalog/systemd.zh_TW.catalog
 %dir %{_libexecdir}/sysusers.d
 %{_libexecdir}/sysusers.d/basic.conf
@@ -1285,6 +1199,7 @@ fi
 %endif
 %{_libexecdir}/tmpfiles.d/etc.conf
 %{_libexecdir}/tmpfiles.d/home.conf
+%{_libexecdir}/tmpfiles.d/journal-nocow.conf
 %{_libexecdir}/tmpfiles.d/legacy.conf
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/systemd-nologin.conf
@@ -1328,7 +1243,6 @@ fi
 %{_mandir}/man1/machinectl.1*
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
-%{_mandir}/man1/systemd-bootchart.1*
 %{_mandir}/man1/systemd-cat.1*
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-cgtop.1*
@@ -1338,23 +1252,25 @@ fi
 %{_mandir}/man1/systemd-firstboot.1*
 %{_mandir}/man1/systemd-firstboot.service.1*
 %{_mandir}/man1/systemd-inhibit.1*
-%{_mandir}/man1/systemd-machine-id-commit.1*
 %{_mandir}/man1/systemd-machine-id-setup.1*
+%{_mandir}/man1/systemd-mount.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
 %{_mandir}/man1/systemd-path.1*
+%{_mandir}/man1/systemd-resolve.1*
 %{_mandir}/man1/systemd-run.1*
+%{_mandir}/man1/systemd-socket-activate.1*
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man1/timedatectl.1*
 %{_mandir}/man5/binfmt.d.5*
-%{_mandir}/man5/bootchart.conf.5*
-%{_mandir}/man5/bootchart.conf.d.5*
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/hostname.5*
 %if %{with microhttpd}
 %{_mandir}/man5/journal-remote.conf.5*
 %{_mandir}/man5/journal-remote.conf.d.5*
+%{_mandir}/man5/journal-upload.conf.5.*
+%{_mandir}/man5/journal-upload.conf.d.5*
 %endif
 %{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/journald.conf.d.5*
@@ -1393,14 +1309,12 @@ fi
 %{_mandir}/man8/libnss_mymachines.so.2.8*
 %{_mandir}/man8/nss-myhostname.8*
 %{_mandir}/man8/nss-mymachines.8*
-%{_mandir}/man8/systemd-activate.8*
 %{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-binfmt.8*
 %{_mandir}/man8/systemd-coredump.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-debug-generator.8*
 %{_mandir}/man8/systemd-fsck.8*
-%{_mandir}/man8/systemd-efi-boot-generator.8*
 %{_mandir}/man8/systemd-gpt-auto-generator.8*
 %{_mandir}/man8/systemd-fstab-generator.8*
 %{_mandir}/man8/systemd-getty-generator.8*
@@ -1408,6 +1322,7 @@ fi
 %{_mandir}/man8/systemd-hibernate-resume.8*
 %{_mandir}/man8/systemd-hibernate-resume@.service.8*
 %{_mandir}/man8/systemd-hostnamed.8*
+%{_mandir}/man8/systemd-importd.8*
 %{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8*
 %{_mandir}/man8/systemd-journald.8*
@@ -1424,7 +1339,7 @@ fi
 %{_mandir}/man8/systemd-random-seed.8*
 %{_mandir}/man8/systemd-remount-fs.8*
 %{_mandir}/man8/systemd-rfkill.8*
-%{_mandir}/man8/systemd-rfkill@.service.8*
+%{_mandir}/man8/systemd-rfkill.service.8*
 %{_mandir}/man8/systemd-shutdown.8*
 %{_mandir}/man8/systemd-sleep.8*
 %{_mandir}/man8/systemd-socket-proxyd.8*
@@ -1505,14 +1420,10 @@ fi
 %{_libexecdir}/systemd/user/sockets.target
 %{_libexecdir}/systemd/user/sound.target
 %{_libexecdir}/systemd/user/timers.target
-%{_libexecdir}/systemd/user/systemd-bus-proxyd.service
-%{_libexecdir}/systemd/user/systemd-bus-proxyd.socket
 %{_libexecdir}/systemd/user/systemd-exit.service
 %dir %{_libexecdir}/systemd/user-generators
-%{_libexecdir}/systemd/user-generators/systemd-dbus1-generator
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
-%attr(755,root,root) /lib/systemd/system-generators/systemd-dbus1-generator
 %dir /lib/systemd/system-preset
 /lib/systemd/system-preset/90-systemd.preset
 %dir /lib/systemd/system-sleep
@@ -1525,6 +1436,9 @@ fi
 %{_mandir}/man8/systemd-tmpfiles.8*
 %{_npkgconfigdir}/systemd.pc
 
+%{systemdunitdir}/dev-hugepages.mount
+%{systemdunitdir}/dev-mqueue.mount
+%{systemdunitdir}/initrd-root-device.target
 %{systemdunitdir}/org.freedesktop.hostname1.busname
 %{systemdunitdir}/org.freedesktop.import1.busname
 %{systemdunitdir}/org.freedesktop.locale1.busname
@@ -1535,12 +1449,15 @@ fi
 %{systemdunitdir}/org.freedesktop.systemd1.busname
 %{systemdunitdir}/org.freedesktop.timedate1.busname
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.automount
-%{systemdunitdir}/dev-hugepages.mount
-%{systemdunitdir}/dev-mqueue.mount
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.mount
+%{systemdunitdir}/sockets.target.wants/systemd-coredump.socket
 %{systemdunitdir}/sys-fs-fuse-connections.mount
 %{systemdunitdir}/sys-kernel-config.mount
 %{systemdunitdir}/sys-kernel-debug.mount
+%{systemdunitdir}/systemd-coredump@.service
+%{systemdunitdir}/systemd-coredump.socket
+%{systemdunitdir}/systemd-exit.service
+%{systemdunitdir}/systemd-rfkill.socket
 %{systemdunitdir}/tmp.mount
 %{systemdunitdir}/var-lib-machines.mount
 %{systemdunitdir}/var-lock.mount
@@ -1550,7 +1467,6 @@ fi
 %{systemdunitdir}/allowlogin.service
 %{systemdunitdir}/autovt@.service
 %{systemdunitdir}/console-getty.service
-%{systemdunitdir}/console-shell.service
 %{systemdunitdir}/console.service
 %{systemdunitdir}/container-getty@.service
 %{systemdunitdir}/cpusets.service
@@ -1590,8 +1506,6 @@ fi
 %{systemdunitdir}/systemd-ask-password-wall.service
 %{systemdunitdir}/systemd-backlight@.service
 %{systemdunitdir}/systemd-binfmt.service
-%{systemdunitdir}/systemd-bootchart.service
-%{systemdunitdir}/systemd-bus-proxyd.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
 %{systemdunitdir}/systemd-fsck@.service
@@ -1621,7 +1535,7 @@ fi
 %{systemdunitdir}/systemd-random-seed.service
 %{systemdunitdir}/systemd-reboot.service
 %{systemdunitdir}/systemd-remount-fs.service
-%{systemdunitdir}/systemd-rfkill@.service
+%{systemdunitdir}/systemd-rfkill.service
 %{systemdunitdir}/systemd-suspend.service
 %{systemdunitdir}/systemd-sysctl.service
 %{systemdunitdir}/systemd-sysusers.service
@@ -1639,13 +1553,11 @@ fi
 %{systemdunitdir}/systemd-user-sessions.service
 %{systemdunitdir}/systemd-vconsole-setup.service
 %{systemdunitdir}/user@.service
-%{systemdunitdir}/-.slice
 %{systemdunitdir}/machine.slice
 %{systemdunitdir}/system.slice
 %{systemdunitdir}/user.slice
 %exclude %{systemdunitdir}/rc-inetd.service
 %{systemdunitdir}/syslog.socket
-%{systemdunitdir}/systemd-bus-proxyd.socket
 %{systemdunitdir}/systemd-initctl.socket
 %{systemdunitdir}/systemd-journal-remote.socket
 %{systemdunitdir}/systemd-journald-audit.socket
@@ -1661,6 +1573,7 @@ fi
 %{systemdunitdir}/ctrl-alt-del.target
 %{systemdunitdir}/default.target
 %{systemdunitdir}/emergency.target
+%{systemdunitdir}/exit.target
 %{systemdunitdir}/final.target
 %{systemdunitdir}/getty.target
 %{systemdunitdir}/graphical.target
@@ -1790,17 +1703,17 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-udev-trigger.service
 %{systemdunitdir}/sysinit.target.wants/systemd-update-done.service
 %{systemdunitdir}/sysinit.target.wants/systemd-update-utmp.service
-%{systemdunitdir}/sysinit.target.wants/systemd-vconsole-setup.service
 %{systemdunitdir}/timers.target.wants/systemd-tmpfiles-clean.timer
+%{systemduserunitdir}/graphical-session-pre.target
+%{systemduserunitdir}/graphical-session.target
 %{_mandir}/man8/systemd-ask-password-console.path.8*
 %{_mandir}/man8/systemd-ask-password-console.service.8*
 %{_mandir}/man8/systemd-ask-password-wall.path.8*
 %{_mandir}/man8/systemd-ask-password-wall.service.8*
 %{_mandir}/man8/systemd-backlight@.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
-%{_mandir}/man8/systemd-bus-proxyd.8*
-%{_mandir}/man8/systemd-bus-proxyd.socket.8
-%{_mandir}/man8/systemd-bus-proxyd@.service.8*
+%{_mandir}/man8/systemd-coredump.socket.8*
+%{_mandir}/man8/systemd-coredump@.service.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup@.service.8*}
 %{_mandir}/man8/systemd-fsck-root.service.8*
@@ -1813,6 +1726,8 @@ fi
 %{_mandir}/man8/systemd-initctl.socket.8*
 %{_mandir}/man8/systemd-journald.service.8*
 %{_mandir}/man8/systemd-journald.socket.8*
+%{_mandir}/man8/systemd-importd.service.8*
+%{_mandir}/man8/systemd-journald-audit.socket.8*
 %{_mandir}/man8/systemd-kexec.service.8*
 %{_mandir}/man8/systemd-localed.service.8*
 %{_mandir}/man8/systemd-logind.service.8*
@@ -1823,6 +1738,7 @@ fi
 %{_mandir}/man8/systemd-random-seed.service.8*
 %{_mandir}/man8/systemd-reboot.service.8*
 %{_mandir}/man8/systemd-remount-fs.service.8*
+%{_mandir}/man8/systemd-rfkill.socket.8*
 %{_mandir}/man8/systemd-suspend.service.8*
 %{_mandir}/man8/systemd-sysctl.service.8*
 %{_mandir}/man8/systemd-timedated.service.8*
@@ -1837,16 +1753,6 @@ fi
 %{_mandir}/man8/systemd-update-utmp.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
 %{_mandir}/man8/systemd-vconsole-setup.service.8*
-
-%if %{with consoled}
-%files consoled
-%defattr(644,root,root,755)
-%attr(755,root,root) /lib/systemd/systemd-consoled
-%{_libexecdir}/systemd/user/systemd-consoled.service
-%dir %{_libexecdir}/systemd/user/default.target.wants
-%{_libexecdir}/systemd/user/default.target.wants/systemd-consoled.service
-%{_datadir}/systemd/unifont-glyph-array.bin
-%endif
 
 %if %{with microhttpd}
 %files journal-gateway
@@ -1866,6 +1772,7 @@ fi
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
+/lib/systemd/network/80-container-vz.network
 %{systemdunitdir}/dbus-org.freedesktop.network1.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
@@ -1875,6 +1782,8 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-networkd
 %attr(755,root,root) /lib/systemd/systemd-networkd-wait-online
 %{_mandir}/man1/networkctl.1*
+%{_mandir}/man5/networkd.conf.5*
+%{_mandir}/man5/networkd.conf.d.5*
 %{_mandir}/man8/systemd-networkd-wait-online.8*
 %{_mandir}/man8/systemd-networkd-wait-online.service.8*
 %{_mandir}/man8/systemd-networkd.8*
@@ -1905,59 +1814,24 @@ fi
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libnss_mymachines.so.2
-%attr(755,root,root) %{_libdir}/libnss_resolve.so.2
 %attr(755,root,root) /%{_lib}/libnss_myhostname.so.2
+%attr(755,root,root) /%{_lib}/libnss_mymachines.so.2
+%attr(755,root,root) /%{_lib}/libnss_resolve.so.2
+%attr(755,root,root) /%{_lib}/libnss_systemd.so.2
 %attr(755,root,root) /%{_lib}/libsystemd.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-daemon.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-daemon.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-id128.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-id128.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-journal.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-journal.so.0
-%attr(755,root,root) /%{_lib}/libsystemd-login.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd-login.so.0
+%{_mandir}/man8/libnss_resolve.so.2.8*
+%{_mandir}/man8/libnss_systemd.so.2.8*
+%{_mandir}/man8/nss-resolve.8*
+%{_mandir}/man8/nss-systemd.8.gz
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libsystemd.so
-%attr(755,root,root) %{_libdir}/libsystemd-daemon.so
-%attr(755,root,root) %{_libdir}/libsystemd-id128.so
-%attr(755,root,root) %{_libdir}/libsystemd-journal.so
-%attr(755,root,root) %{_libdir}/libsystemd-login.so
+%attr(755,root,root) /%{_lib}/libsystemd.so
 %{_includedir}/%{name}
 %{_pkgconfigdir}/libsystemd.pc
-%{_pkgconfigdir}/libsystemd-daemon.pc
-%{_pkgconfigdir}/libsystemd-id128.pc
-%{_pkgconfigdir}/libsystemd-journal.pc
-%{_pkgconfigdir}/libsystemd-login.pc
 %{_mandir}/man3/SD_*.3*
 %{_mandir}/man3/sd*.3*
-
-%files -n python-systemd
-%defattr(644,root,root,755)
-%dir %{py_sitedir}/systemd
-%{py_sitedir}/systemd/*.py[co]
-%attr(755,root,root) %{py_sitedir}/systemd/_daemon.so
-%attr(755,root,root) %{py_sitedir}/systemd/_journal.so
-%attr(755,root,root) %{py_sitedir}/systemd/_reader.so
-%attr(755,root,root) %{py_sitedir}/systemd/id128.so
-%attr(755,root,root) %{py_sitedir}/systemd/login.so
-
-%if %{with python3}
-%files -n python3-systemd
-%defattr(644,root,root,755)
-%dir %{py3_sitedir}/systemd
-%{py3_sitedir}/systemd/*.py
-%dir %{py3_sitedir}/systemd/__pycache__
-%{py3_sitedir}/systemd/__pycache__/*.py[co]
-%attr(755,root,root) %{py3_sitedir}/systemd/_daemon.so
-%attr(755,root,root) %{py3_sitedir}/systemd/_journal.so
-%attr(755,root,root) %{py3_sitedir}/systemd/_reader.so
-%attr(755,root,root) %{py3_sitedir}/systemd/id128.so
-%attr(755,root,root) %{py3_sitedir}/systemd/login.so
-%endif
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
@@ -1970,6 +1844,7 @@ fi
 %{_datadir}/bash-completion/completions/localectl
 %{_datadir}/bash-completion/completions/loginctl
 %{_datadir}/bash-completion/completions/machinectl
+%{_datadir}/bash-completion/completions/networkctl
 %{_datadir}/bash-completion/completions/systemctl
 %{_datadir}/bash-completion/completions/systemd-analyze
 %{_datadir}/bash-completion/completions/systemd-cat
@@ -1978,12 +1853,15 @@ fi
 %{_datadir}/bash-completion/completions/systemd-delta
 %{_datadir}/bash-completion/completions/systemd-detect-virt
 %{_datadir}/bash-completion/completions/systemd-nspawn
+%{_datadir}/bash-completion/completions/systemd-path
+%{_datadir}/bash-completion/completions/systemd-resolve
 %{_datadir}/bash-completion/completions/systemd-run
 %{_datadir}/bash-completion/completions/timedatectl
 
 %files -n zsh-completion-systemd
 %defattr(644,root,root,755)
 %{_datadir}/zsh/site-functions/_bootctl
+%{_datadir}/zsh/site-functions/_busctl
 %{_datadir}/zsh/site-functions/_coredumpctl
 %{_datadir}/zsh/site-functions/_hostnamectl
 %{_datadir}/zsh/site-functions/_journalctl
@@ -2001,6 +1879,7 @@ fi
 %{_datadir}/zsh/site-functions/_systemd-delta
 %{_datadir}/zsh/site-functions/_systemd-inhibit
 %{_datadir}/zsh/site-functions/_systemd-nspawn
+%{_datadir}/zsh/site-functions/_systemd-resolve
 %{_datadir}/zsh/site-functions/_systemd-run
 %{_datadir}/zsh/site-functions/_systemd-tmpfiles
 %{_datadir}/zsh/site-functions/_timedatectl
@@ -2027,8 +1906,6 @@ fi
 %attr(755,root,root) /lib/udev/v4l_id
 
 %attr(755,root,root) /lib/udev/udevd
-
-%attr(755,root,root) /lib/udev/accelerometer
 
 /lib/udev/hwdb.d/20-acpi-vendor.hwdb
 /lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb
@@ -2069,7 +1946,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/udev.conf
 
 # rules below are NOT supposed to be changed by users
-/lib/udev/rules.d/42-usb-hid-pm.rules
 /lib/udev/rules.d/50-udev-default.rules
 /lib/udev/rules.d/60-block.rules
 /lib/udev/rules.d/60-cdrom_id.rules
@@ -2081,7 +1957,6 @@ fi
 /lib/udev/rules.d/60-persistent-storage-tape.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/60-serial.rules
-/lib/udev/rules.d/61-accelerometer.rules
 /lib/udev/rules.d/64-btrfs.rules
 /lib/udev/rules.d/70-mouse.rules
 /lib/udev/rules.d/70-power-switch.rules
@@ -2107,7 +1982,7 @@ fi
 
 %files -n udev-devel
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libudev.so
+%attr(755,root,root) /%{_lib}/libudev.so
 %{_includedir}/libudev.h
 %{_pkgconfigdir}/libudev.pc
 %{_npkgconfigdir}/udev.pc

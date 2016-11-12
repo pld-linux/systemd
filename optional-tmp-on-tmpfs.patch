@@ -1,9 +1,9 @@
---- systemd-208/units/tmp.mount~	2013-08-13 22:02:52.833756462 +0200
-+++ systemd-208/units/tmp.mount	2014-02-27 18:48:29.799737745 +0100
-@@ -18,3 +18,6 @@
+--- a/units/tmp.mount.m4~	2016-11-03 18:16:42.000000000 +0100
++++ b/units/tmp.mount.m4	2016-11-12 20:03:29.998410581 +0100
+@@ -20,3 +20,6 @@ What=tmpfs
  Where=/tmp
  Type=tmpfs
- Options=mode=1777,strictatime
+ Options=mode=1777,strictatime,nosuid,nodev
 +
 +[Install]
 +WantedBy=local-fs.target

@@ -1,7 +1,6 @@
-diff -dur systemd-218.orig/sysusers.d/basic.conf.in systemd-218/sysusers.d/basic.conf.in
---- systemd-218.orig/sysusers.d/basic.conf.in	2014-12-05 01:26:51.000000000 +0100
-+++ systemd-218/sysusers.d/basic.conf.in	2015-04-20 08:47:12.000000000 +0200
-@@ -12,26 +12,26 @@
+--- a/sysusers.d/basic.conf.in~	2016-11-03 18:16:42.000000000 +0100
++++ b/sysusers.d/basic.conf.in	2016-11-12 20:05:11.934482095 +0100
+@@ -12,25 +12,25 @@ u root    0     "Super User" /root
  u nobody  65534 "Nobody"     -
  
  # Administrator group: can *see* more than normal users
@@ -10,16 +9,14 @@ diff -dur systemd-218.orig/sysusers.d/basic.conf.in systemd-218/sysusers.d/basic
  
  # Administrator group: can *do* more than normal users
 -g wheel   -     -            -
-+g wheel   10     -            -
++g wheel   10    -            -
  
  # Access to certain kernel and userspace facilities
 -g kmem    -     -            -
--g lock    -     -            -
 +g kmem    9     -            -
-+#g lock    -     -            -
  g tty     @TTY_GID@     -            -
 -g utmp    -     -            -
-+g utmp    22     -            -
++g utmp    22    -            -
  
  # Hardware access groups
 -g audio   -     -            -
@@ -30,41 +27,41 @@ diff -dur systemd-218.orig/sysusers.d/basic.conf.in systemd-218/sysusers.d/basic
 -g lp      -     -            -
 -g tape    -     -            -
 -g video   -     -            -
-+g audio   23     -            -
-+g cdrom   27     -            -
-+g dialout 16     -            -
++g audio   23    -            -
++g cdrom   27    -            -
++g dialout 16    -            -
 +g disk    6     -            -
-+g input   182     -            -
++g input   182   -            -
 +g lp      7     -            -
-+g tape    68     -            -
-+g video   24     -            -
++g tape    68    -            -
++g video   24    -            -
  
  # Default group for normal users
 -g users   -     -            -
-+g users   1000     -            -
-diff -dur systemd-218.orig/sysusers.d/systemd-remote.conf systemd-218/sysusers.d/systemd-remote.conf
---- systemd-218.orig/sysusers.d/systemd-remote.conf	2014-12-05 01:26:51.000000000 +0100
-+++ systemd-218/sysusers.d/systemd-remote.conf	2015-04-20 08:48:22.000000000 +0200
-@@ -5,6 +5,6 @@
- #  the Free Software Foundation; either version 2.1 of the License, or
++g users   1000  -            -
+--- a/sysusers.d/systemd-remote.conf.m4~	2016-11-03 18:16:42.000000000 +0100
++++ b/sysusers.d/systemd-remote.conf.m4	2016-11-12 20:07:22.838061991 +0100
+@@ -6,9 +6,9 @@
  #  (at your option) any later version.
  
+ m4_ifdef(`HAVE_MICROHTTPD',
 -u systemd-journal-gateway - "systemd Journal Gateway"
 -u systemd-journal-remote  - "systemd Journal Remote"
--u systemd-journal-upload  - "systemd Journal Upload"
 +u systemd-journal-gateway 287 "systemd Journal Gateway"
 +u systemd-journal-remote  319 "systemd Journal Remote"
+ )m4_dnl
+ m4_ifdef(`HAVE_LIBCURL',
+-u systemd-journal-upload  - "systemd Journal Upload"
 +u systemd-journal-upload  320 "systemd Journal Upload"
---- systemd-220/sysusers.d/systemd.conf.m4~	2014-12-05 01:26:51.000000000 +0100
-+++ systemd-220/sysusers.d/systemd.conf.m4	2015-05-25 17:34:30.699429304 +0200
-@@ -5,14 +5,14 @@
+ )m4_dnl
+--- a/sysusers.d/systemd.conf.m4~	2016-11-03 18:16:42.000000000 +0100
++++ b/sysusers.d/systemd.conf.m4	2016-11-12 20:08:23.103080854 +0100
+@@ -5,16 +5,16 @@
  #  the Free Software Foundation; either version 2.1 of the License, or
  #  (at your option) any later version.
  
 -g systemd-journal   - -
 +g systemd-journal   288 -
--u systemd-bus-proxy - "systemd Bus Proxy"
-+u systemd-bus-proxy 315 "systemd Bus Proxy"
  m4_ifdef(`ENABLE_NETWORKD',
 -u systemd-network   - "systemd Network Management"
 +u systemd-network   316 "systemd Network Management"
@@ -77,3 +74,8 @@ diff -dur systemd-218.orig/sysusers.d/systemd-remote.conf systemd-218/sysusers.d
 -u systemd-timesync  - "systemd Time Synchronization"
 +u systemd-timesync  318 "systemd Time Synchronization"
  )m4_dnl
+ m4_ifdef(`ENABLE_COREDUMP',
+-u systemd-coredump  - "systemd Core Dumper"
++u systemd-coredump  333 "systemd Core Dumper"
+ )m4_dnl
+

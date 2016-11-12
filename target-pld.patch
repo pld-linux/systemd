@@ -49,6 +49,14 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/Makefile.am systemd-208/Makefile.
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/hostname-setup.c systemd-208/src/core/hostname-setup.c
 --- systemd-208.orig/src/core/hostname-setup.c	2013-08-13 22:02:46.000000000 +0200
 +++ systemd-208/src/core/hostname-setup.c	2014-01-09 15:15:41.000000000 +0100
+@@ -23,6 +23,7 @@
+ 
+ #include "alloc-util.h"
+ #include "fileio.h"
++#include "fd-util.h"
+ #include "hostname-setup.h"
+ #include "hostname-util.h"
+ #include "log.h"
 @@ -53,13 +53,84 @@
          return 0;
  }
@@ -86,7 +94,7 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/hostname-setup.c systemd
 +                        goto finish;
 +                }
 +
-+                hostname_cleanup(k, false);
++                hostname_cleanup(k);
 +
 +                if (isempty(k)) {
 +                        free(k);
@@ -162,29 +170,27 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
          add = NULL;
          for (i = 0; i < _VARIABLE_MAX; i++) {
                  char *s;
-diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/timedate/timedated.c systemd-208/src/timedate/timedated.c
---- systemd-208.orig/src/timedate/timedated.c	2013-08-13 22:02:47.000000000 +0200
-+++ systemd-208/src/timedate/timedated.c	2014-01-09 15:15:41.000000000 +0100
-@@ -183,9 +183,19 @@
-                         c->zone = strdup(e);
-                         if (!c->zone)
-                                 return log_oom();
-+                        goto have_timezone;
-                 }
-         }
+--- a/src/basic/time-util.c~	2016-11-03 18:16:42.000000000 +0100
++++ b/src/basic/time-util.c	2016-11-12 19:54:28.457197174 +0100
+@@ -1290,8 +1290,16 @@ int get_timezone(char **tz) {
+         e = path_startswith(t, "/usr/share/zoneinfo/");
+         if (!e)
+                 e = path_startswith(t, "../usr/share/zoneinfo/");
+-        if (!e)
+-                return -EINVAL;
++        if (!e) {
++                r = parse_env_file("/etc/sysconfig/timezone", NEWLINE,
++                        "TIMEZONE", &e,
++                        NULL);
++                if (r < 0) {
++                        if (r != -ENOENT)
++                                log_warning("Failed to read /etc/sysconfig/timezone: %s", strerror(-r));
++                        return -EINVAL;
++                }
++        }
  
-+	r = parse_env_file("/etc/sysconfig/timezone", NEWLINE,
-+			   "TIMEZONE", &c->zone,
-+			   NULL);
-+	if (r < 0) {
-+		if (r != -ENOENT)
-+			log_warning("Failed to read /etc/sysconfig/timezone: %s", strerror(-r));
-+	}
-+ 
-+have_timezone:
-         if (isempty(c->zone)) {
-                 free(c->zone);
-                 c->zone = NULL;
+         if (!timezone_is_valid(e))
+                 return -EINVAL;
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c systemd-208/src/vconsole/vconsole-setup.c
 --- systemd-208.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
 +++ systemd-208/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100
