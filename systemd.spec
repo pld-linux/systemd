@@ -32,8 +32,8 @@ Release:	16
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
-Source0:	http://www.freedesktop.org/software/systemd/%{name}-%{version}.tar.xz
-# Source0-md5:	b4d5a253841cf28a98b7ec99c45e3716
+Source0:	https://github.com/systemd/systemd/archive/v%{version}.tar.gz
+# Source0-md5:	729ff21073e20dfb211e2155769bf33c
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -682,6 +682,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
+%{__intltoolize}
 %{__libtoolize}
 %{__aclocal} -I m4
 %{__autoconf}
