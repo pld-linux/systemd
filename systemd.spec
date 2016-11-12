@@ -28,7 +28,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	16
+Release:	17
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -742,6 +742,7 @@ done
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_sbindir}}
+install -d $RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants
 
 %{__make} -j1 install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -1792,6 +1793,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-update-utmp.service
 %{systemdunitdir}/sysinit.target.wants/systemd-vconsole-setup.service
 %{systemdunitdir}/timers.target.wants/systemd-tmpfiles-clean.timer
+%dir %{systemduserunitdir}/sockets.target.wants
 %{_mandir}/man8/systemd-ask-password-console.path.8*
 %{_mandir}/man8/systemd-ask-password-console.service.8*
 %{_mandir}/man8/systemd-ask-password-wall.path.8*
