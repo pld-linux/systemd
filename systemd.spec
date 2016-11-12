@@ -675,6 +675,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_sbindir}}
+install -d $RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants
 
 %{__make} -j1 install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -1704,6 +1705,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-update-done.service
 %{systemdunitdir}/sysinit.target.wants/systemd-update-utmp.service
 %{systemdunitdir}/timers.target.wants/systemd-tmpfiles-clean.timer
+%dir %{systemduserunitdir}/sockets.target.wants
 %{systemduserunitdir}/graphical-session-pre.target
 %{systemduserunitdir}/graphical-session.target
 %{_mandir}/man8/systemd-ask-password-console.path.8*
