@@ -3,3 +3,5 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1002", TAG+="uacce
 SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1042", TAG+="uaccess"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1102", TAG+="uaccess"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", ATTRS{idProduct}=="1142", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="28de", TAG+="uaccess"
+KERNEL=="hidraw*", KERNELS=="*28DE:*", TAG+="uaccess"
