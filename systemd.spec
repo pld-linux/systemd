@@ -28,7 +28,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	221
-Release:	17
+Release:	18
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1268,7 +1268,6 @@ fi
 %{_libexecdir}/systemd/boot/efi/systemd-bootaa64.efi
 %endif
 %endif
-%dir %{_libexecdir}/systemd/catalog
 %{_libexecdir}/systemd/catalog/systemd.catalog
 %lang(be) %{_libexecdir}/systemd/catalog/systemd.be.catalog
 %lang(be) %{_libexecdir}/systemd/catalog/systemd.be@latin.catalog
@@ -1491,6 +1490,7 @@ fi
 %dir %{_libexecdir}/sysctl.d
 %{_libexecdir}/sysctl.d/50-default.conf
 %dir %{_libexecdir}/systemd
+%dir %{_libexecdir}/systemd/catalog
 %dir %{_libexecdir}/systemd/system-shutdown
 %dir %{_libexecdir}/systemd/system-sleep
 %dir %{_libexecdir}/systemd/user
