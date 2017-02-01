@@ -68,7 +68,7 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
-
+Patch7:		%{name}-lz4.patch
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -613,7 +613,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
-
+%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
@@ -632,6 +632,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__automake}
 
 %configure \
+	CPPFLAGS="%{rpmcppflags} -I/usr/include/lz4" \
 	QUOTAON=/sbin/quotaon \
 	QUOTACHECK=/sbin/quotacheck \
 	SETCAP=/sbin/setcap \
@@ -1065,7 +1066,9 @@ fi
 %dir %{_sysconfdir}/systemd/system/multi-user.target.wants
 %dir %{_sysconfdir}/systemd/system/sockets.target.wants
 %dir %{_sysconfdir}/systemd/system/sysinit.target.wants
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/ctrl-alt-del.target
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/getty.target.wants/getty@tty1.service
+%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/machines.target
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/remote-fs.target
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/sysinit.target.wants/systemd-timesyncd.service
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/systemd-user
@@ -1103,6 +1106,8 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/timedatectl
 /lib/systemd/import-pubring.gpg
+/lib/systemd/resolv.conf
+%attr(755,root,root) /lib/systemd/libsystemd-shared*.so
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-ac-power
@@ -1265,6 +1270,7 @@ fi
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
+%{_mandir}/man5/dnssec-trust-anchors.d.5*
 %{_mandir}/man5/hostname.5*
 %if %{with microhttpd}
 %{_mandir}/man5/journal-remote.conf.5*
@@ -1302,6 +1308,7 @@ fi
 %{_mandir}/man7/systemd.generator.7*
 %{_mandir}/man7/systemd.index.7*
 %{_mandir}/man7/systemd.journal-fields.7*
+%{_mandir}/man7/systemd.offline-updates.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man7/systemd.time.7*
 %{_mandir}/man8/kernel-install.8*
