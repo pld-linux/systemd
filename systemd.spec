@@ -667,7 +667,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 
 %{__make}
 
-./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd-daemon
+./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd
 
 %{?with_tests:%{__make} check}
 
