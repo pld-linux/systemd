@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	232
-Release:	0.1
+Release:	0.3
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -119,6 +119,7 @@ BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	%{name}-units = %{epoch}:%{version}-%{release}
+Requires(post,postun):	%{name}-units = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
 Requires(post):	/bin/setfacl
@@ -860,7 +861,7 @@ chmod g+s /var/log/journal
 # https://bugs.freedesktop.org/show_bug.cgi?id=89202
 /bin/getfacl -p /var/log/journal/$(cat /etc/machine-id) | grep -v '^#' | sort -u | /bin/setfacl -R --set-file=- /var/log/journal/$(cat /etc/machine-id) || :
 
-%post   libs -p /sbin/ldconfig
+%post libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
 %post units
