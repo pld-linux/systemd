@@ -815,6 +815,7 @@ install -d $RPM_BUILD_ROOT/var/log
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 %{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la \
+	$RPM_BUILD_ROOT/lib/systemd/*.la \
 	$RPM_BUILD_ROOT/%{_lib}/*.la
 
 %find_lang %{name}
