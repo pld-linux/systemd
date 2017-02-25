@@ -30,7 +30,7 @@ Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
-Source0:	https://github.com/systemd/systemd/archive/v%{version}.tar.gz
+Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
 # Source0-md5:	3e3a0b14050eff62e68be72142181730
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
@@ -663,7 +663,8 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	--with-rootprefix="" \
 	--with-rootlibdir=/%{_lib} \
 	--with-sysvinit-path=/etc/rc.d/init.d \
-	--with-sysvrcnd-path=/etc/rc.d
+	--with-sysvrcnd-path=/etc/rc.d \
+	--without-kill-user-processes
 
 %{__make}
 
