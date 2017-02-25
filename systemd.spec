@@ -37,10 +37,6 @@ Source2:	%{name}_booted.c
 Source3:	network.service
 Source4:	var-lock.mount
 Source5:	var-run.mount
-Source10:	pld-storage-init-late.service
-Source11:	pld-storage-init.service
-Source12:	pld-wait-storage.service
-Source13:	pld-storage-init.sh
 Source14:	pld-clean-tmp.service
 Source15:	pld-clean-tmp.sh
 Source16:	pld-rc-inetd-generator.sh
@@ -168,6 +164,9 @@ Provides:	user(systemd-timesync)
 #Obsoletes:	ConsoleKit-x11
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
+# for storage detection / activation services
+Conflicts:	dmraid < 1.0.0-0.rc16.3.3
+Conflicts:	mdadm < 4.0-2
 # sytemd wants pam with pam_systemd.so in system-auth...
 Conflicts:	pam < 1:1.1.5-5
 # ...and sudo hates it
@@ -175,8 +174,8 @@ Conflicts:	sudo < 1:1.7.8p2-4
 # for prefdm script
 Conflicts:	xinitrc-ng < 1.0
 # systemd scripts use options not present in older versions
-Conflicts:	kpartx < 0.4.9-7
-Conflicts:	multipath-tools < 0.4.9-7
+Conflicts:	kpartx < 0.6.1-1
+Conflicts:	multipath-tools < 0.6.1-1
 # no tmpfs on /media, use /run/media/$USER for mounting
 Conflicts:	udisks2 < 1.92.0
 # packages that have dirs under /var/run and/or /var/lock must provide tmpfiles configs
@@ -759,16 +758,9 @@ ln -s ../var-run.mount $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 # and remove mounting tmp on tmpfs by default
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants/tmp.mount
 
-# Install and enable storage subsystems support services (RAID, LVM, etc.)
-cp -p %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init-late.service
-cp -p %{SOURCE11} $RPM_BUILD_ROOT%{systemdunitdir}/pld-storage-init.service
-cp -p %{SOURCE12} $RPM_BUILD_ROOT%{systemdunitdir}/pld-wait-storage.service
+# add /tmp cleanup service
 cp -p %{SOURCE14} $RPM_BUILD_ROOT%{systemdunitdir}/pld-clean-tmp.service
-install -p %{SOURCE13} $RPM_BUILD_ROOT/lib/systemd/pld-storage-init
 install -p %{SOURCE15} $RPM_BUILD_ROOT/lib/systemd/pld-clean-tmp
-
-ln -s ../pld-storage-init-late.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
-ln -s ../pld-storage-init.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 ln -s ../pld-clean-tmp.service $RPM_BUILD_ROOT%{systemdunitdir}/local-fs.target.wants
 
 # Add inside container only SIGPWR handler which is used by lxc-stop
@@ -1112,7 +1104,6 @@ fi
 /lib/systemd/resolv.conf
 %attr(755,root,root) /lib/systemd/libsystemd-shared*.so
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
-%attr(755,root,root) /lib/systemd/pld-storage-init
 %attr(755,root,root) /lib/systemd/systemd-ac-power
 %attr(755,root,root) /lib/systemd/systemd-backlight
 %attr(755,root,root) /lib/systemd/systemd-binfmt
@@ -1501,9 +1492,6 @@ fi
 %{systemdunitdir}/netfs.service
 %{systemdunitdir}/network.service
 %{systemdunitdir}/pld-clean-tmp.service
-%{systemdunitdir}/pld-storage-init-late.service
-%{systemdunitdir}/pld-storage-init.service
-%{systemdunitdir}/pld-wait-storage.service
 %{systemdunitdir}/prefdm.service
 %{systemdunitdir}/quotaon.service
 %{systemdunitdir}/random.service
@@ -1667,8 +1655,6 @@ fi
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
-%{systemdunitdir}/local-fs.target.wants/pld-storage-init-late.service
-%{systemdunitdir}/local-fs.target.wants/pld-storage-init.service
 %{systemdunitdir}/local-fs.target.wants/systemd-remount-fs.service
 %{systemdunitdir}/local-fs.target.wants/var-lib-machines.mount
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
