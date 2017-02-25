@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	232
-Release:	0.3
+Release:	0.4
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -99,7 +99,7 @@ BuildRequires:	libgcrypt-devel >= 1.4.5
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
 BuildRequires:	libmount-devel >= 2.28.2-2
 BuildRequires:	libseccomp-devel >= 1.0.0
-%{?with_selinux:BuildRequires:	libselinux-devel >= 2.1.9}
+%{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel >= r119
@@ -443,7 +443,7 @@ Summary:	Shared systemd libraries
 Summary(pl.UTF-8):	Biblioteki współdzielone systemd
 Group:		Libraries
 Requires:	libgcrypt >= 1.4.5
-%{?with_selinux:Requires:	libselinux >= 2.1.9}
+%{?with_selinux:Requires:	libselinux >= 2.6}
 Obsoletes:	nss_myhostname
 
 %description libs
@@ -530,7 +530,7 @@ Requires:	coreutils
 Requires:	filesystem >= 3.0-45
 Requires:	kmod >= 15
 Requires:	libblkid >= 2.24
-%{?with_selinux:Requires:	libselinux >= 2.1.9}
+%{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	setup >= 2.9.0-3
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.12
