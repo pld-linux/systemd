@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	232
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1104,7 +1104,6 @@ fi
 %attr(755,root,root) %{_bindir}/timedatectl
 /lib/systemd/import-pubring.gpg
 /lib/systemd/resolv.conf
-%attr(755,root,root) /lib/systemd/libsystemd-shared*.so
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/systemd-ac-power
 %attr(755,root,root) /lib/systemd/systemd-backlight
@@ -1819,6 +1818,7 @@ fi
 %attr(755,root,root) /%{_lib}/libnss_systemd.so.2
 %attr(755,root,root) /%{_lib}/libsystemd.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd.so.0
+%attr(755,root,root) /lib/systemd/libsystemd-shared*.so
 %{_mandir}/man8/libnss_resolve.so.2.8*
 %{_mandir}/man8/libnss_systemd.so.2.8*
 %{_mandir}/man8/nss-resolve.8*
