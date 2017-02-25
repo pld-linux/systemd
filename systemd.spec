@@ -106,11 +106,7 @@ BuildRequires:	lz4-devel >= r119
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pkgconfig >= 0.9.0
-BuildRequires:	python-devel
-BuildRequires:	python-lxml
-BuildRequires:	python-modules
 %{?with_qrencode:BuildRequires:	qrencode-devel}
-BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
@@ -641,8 +637,6 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	KILL=/bin/kill \
 	KMOD=/sbin/kmod \
 	KEXEC=/sbin/kexec \
-	PYTHON="$PYTHON" \
-	PYTHON_BINARY="%{__python}" \
 %if "%{?configure_cache}" == "1"
 	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}.cache \
 %endif
