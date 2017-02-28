@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	232
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -854,6 +854,12 @@ chmod g+s /var/log/journal
 %triggerpostun -- systemd < 1:220-1
 # https://bugs.freedesktop.org/show_bug.cgi?id=89202
 /bin/getfacl -p /var/log/journal/$(cat /etc/machine-id) | grep -v '^#' | sort -u | /bin/setfacl -R --set-file=- /var/log/journal/$(cat /etc/machine-id) || :
+
+%triggerpostun -- systemd-consoled < 1:232-1
+if [ -f %{_sysconfdir}/vconsole.conf.rpmsave ]; then
+	%{__mv} -f %{_sysconfdir}/vconsole.conf %{_sysconfdir}/vconsole.conf.rpmnew
+	%{__mv} -f %{_sysconfdir}/vconsole.conf.rpmsave %{_sysconfdir}/vconsole.conf
+fi
 
 %post libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
