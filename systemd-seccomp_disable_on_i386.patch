@@ -1,0 +1,25 @@
+commit e798dcbc24681f9516be4e18dfbe916cf9fa44bf
+Author: Dave Reisner <dreisner@archlinux.org>
+Date:   Wed Nov 9 08:00:26 2016 -0500
+
+    disable RestrictAddressFamilies on i686
+    
+    Shit's broke, yo.
+    
+    https://github.com/systemd/systemd/issues/4575
+
+diff --git a/src/core/execute.c b/src/core/execute.c
+index 8f06abf81..fb03b1b36 100644
+--- a/src/core/execute.c
++++ b/src/core/execute.c
+@@ -1329,6 +1329,10 @@ static int apply_address_families(const Unit* u, const ExecContext *c) {
+         Iterator i;
+         int r;
+ 
++#if defined(__i386__)
++        return 0;
++#endif
++
+         assert(c);
+ 
+         if (skip_seccomp_unavailable(u, "RestrictAddressFamilies="))
