@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	232
-Release:	4
+Release:	5
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -73,6 +73,7 @@ Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-systemd-user.patch
 Patch15:	gperf-3.1.patch
+Patch16:	%{name}-seccomp_disable_on_i386.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -620,6 +621,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
