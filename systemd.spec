@@ -80,7 +80,11 @@ BuildRequires:	acl-devel
 BuildRequires:	autoconf >= 2.64
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
+BuildRequires:	bzip2-devel
+# ln --relative
+BuildRequires:	coreutils >= 8.16
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
+BuildRequires:	curl-devel >= 7.32.0
 BuildRequires:	dbus-devel >= 1.4.0
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl
@@ -91,28 +95,33 @@ BuildRequires:	glibc-misc
 BuildRequires:	gnutls-devel >= 3.1.4
 BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
+# pkgconfig(libiptc)
+BuildRequires:	iptables-devel
 BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel
 BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
 BuildRequires:	libgcrypt-devel >= 1.4.5
-#BuildRequires:	libidn-devel
-#BuildRequires:	liblzma-devel
+BuildRequires:	libgpg-error-devel >= 1.12
+BuildRequires:	libidn-devel
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
 BuildRequires:	libmount-devel >= 2.28.2-2
-BuildRequires:	libseccomp-devel >= 1.0.0
+BuildRequires:	libseccomp-devel >= 2.3.1
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
-BuildRequires:	lz4-devel >= r119
+BuildRequires:	lz4-devel >= r125
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pkgconfig >= 0.9.0
+BuildRequires:	python >= 2
+BuildRequires:	python-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 BuildRequires:	usbutils >= 0.82
+BuildRequires:	xorg-lib-libxkbcommon-devel >= 0.5.0
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
 Requires(post,postun):	%{name}-units = %{epoch}:%{version}-%{release}
@@ -129,10 +138,13 @@ Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
 %{?with_cryptsetup:Requires:	cryptsetup >= 1.6.0}
+Requires:	curl-libs >= 7.32.0
 Requires:	dbus >= 1.4.16-6
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
+Requires:	gnutls-libs >= 3.1.4
 Requires:	kmod >= 15
+Requires:	libgpg-error >= 1.12
 %{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
 Requires:	libutempter
 Requires:	polkit
@@ -145,6 +157,7 @@ Requires:	uname(release) >= 3.12
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
+Suggests:	xorg-lib-libxkbcommon >= 0.5.0
 Provides:	group(systemd-coredump)
 Provides:	group(systemd-journal)
 Provides:	group(systemd-journal-remote)
@@ -442,6 +455,7 @@ Summary:	Shared systemd libraries
 Summary(pl.UTF-8):	Biblioteki współdzielone systemd
 Group:		Libraries
 Requires:	libgcrypt >= 1.4.5
+Requires:	libseccomp >= 2.3.1
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Obsoletes:	nss_myhostname
 
@@ -635,13 +649,15 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %{__automake}
 
 %configure \
-	CPPFLAGS="%{rpmcppflags} -I/usr/include/lz4" \
 	QUOTAON=/sbin/quotaon \
 	QUOTACHECK=/sbin/quotacheck \
 	SETCAP=/sbin/setcap \
 	KILL=/bin/kill \
 	KMOD=/sbin/kmod \
 	KEXEC=/sbin/kexec \
+	MOUNT=/bin/mount \
+	UMOUNT=/bin/umount \
+	SULOGIN=/sbin/sulogin \
 %if "%{?configure_cache}" == "1"
 	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}.cache \
 %endif

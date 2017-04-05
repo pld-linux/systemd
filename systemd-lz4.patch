@@ -19,3 +19,26 @@ index 0b10fc7de7..1928e65bde 100644
          AS_IF([test "x$have_lz4" = xno -a "x$enable_lz4" = xyes],
                [AC_MSG_ERROR([*** LZ4 support requested but libraries not found])])
  ])
+--- systemd-232/Makefile.am.orig	2017-04-05 19:08:21.126447292 +0200
++++ systemd-232/Makefile.am	2017-04-05 19:17:46.589774170 +0200
+@@ -4255,6 +4255,10 @@
+ 	libsystemd-shared.la
+ 
++test_compress_CFLAGS =
+ if HAVE_LZ4
++test_compress_CFLAGS += \
++	$(LZ4_CFLAGS)
++
+ test_compress_LDADD += \
+ 	-llz4
+ endif
+@@ -4402,6 +4405,9 @@
+ endif
+ 
+ if HAVE_LZ4
++libsystemd_journal_internal_la_CFLAGS += \
++	$(LZ4_CFLAGS)
++
+ libsystemd_journal_internal_la_LIBADD += \
+ 	-llz4
+ endif
