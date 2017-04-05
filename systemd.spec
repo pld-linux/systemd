@@ -115,8 +115,6 @@ BuildRequires:	sed >= 4.0
 BuildRequires:	usbutils >= 0.82
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
-Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Requires(post,postun):	%{name}-units = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -125,6 +123,8 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
@@ -153,6 +153,7 @@ Provides:	group(systemd-network)
 Provides:	group(systemd-resolve)
 Provides:	group(systemd-timesync)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
+Provides:	user(systemd-coredump)
 Provides:	user(systemd-journal-remote)
 Provides:	user(systemd-journal-upload)
 Provides:	user(systemd-network)
@@ -835,6 +836,7 @@ rm -rf $RPM_BUILD_ROOT
 %groupadd -g 320 systemd-journal-upload
 %useradd -u 320 -g 320 -d /var/log/journal -s /bin/false -c "Systemd Journal Upload" systemd-journal-upload
 %groupadd -g 333 systemd-coredump
+%useradd -u 333 -g 333 -d /var/log/journal -s /bin/false -c "Systemd Core Dumper" systemd-coredump
 
 %post
 /bin/systemd-machine-id-setup || :
@@ -848,6 +850,18 @@ if [ $1 -ge 1 ]; then
 	/bin/systemctl try-restart systemd-logind.service || :
 fi
 if [ "$1" = "0" ]; then
+	%userremove systemd-coredump
+	%groupremove systemd-coredump
+	%userremove systemd-network
+	%groupremove systemd-network
+	%userremove systemd-resolve
+	%groupremove systemd-resolve
+	%userremove systemd-timesync
+	%groupremove systemd-timesync
+	%userremove systemd-journal-remote
+	%groupremove systemd-journal-remote
+	%userremove systemd-journal-upload
+	%groupremove systemd-journal-upload
 	%groupremove systemd-journal
 fi
 
@@ -865,8 +879,8 @@ if [ -f %{_sysconfdir}/vconsole.conf.rpmsave ]; then
 	%{__mv} -f %{_sysconfdir}/vconsole.conf.rpmsave %{_sysconfdir}/vconsole.conf
 fi
 
-%post libs -p /sbin/ldconfig
-%postun libs -p /sbin/ldconfig
+%post	libs -p /sbin/ldconfig
+%postun	libs -p /sbin/ldconfig
 
 %post units
 if [ $1 -eq 1 ]; then
