@@ -175,6 +175,7 @@ Provides:	user(systemd-timesync)
 # kde4 still can't live without ConsoleKit
 #Obsoletes:	ConsoleKit
 #Obsoletes:	ConsoleKit-x11
+Obsoletes:	elogind
 Obsoletes:	systemd-no-compat-tmpfiles
 Obsoletes:	udev-systemd
 # for storage detection / activation services
@@ -485,6 +486,7 @@ Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	bash-completion >= 2.0
+Obsoletes:	bash-completion-elogind
 %if "%{_rpmversion}" >= "5"
 BuildArch:	noarch
 %endif
@@ -500,6 +502,7 @@ Summary:	zsh completion for systemd commands
 Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń systemd
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
+Obsoletes:	zsh-completion-elogind
 %if "%{_rpmversion}" >= "5"
 BuildArch:	noarch
 %endif
