@@ -133,10 +133,10 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/hostname-setup.c systemd
 +}
 +
  int hostname_setup(void) {
-         int r;
          _cleanup_free_ char *b = NULL;
-         const char *hn;
          bool enoent = false;
+         const char *hn;
+         int r;
  
 -        r = read_hostname_config("/etc/hostname", &b);
 +        r = read_hostname(&b);

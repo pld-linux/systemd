@@ -25,13 +25,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	232
-Release:	7
+Version:	233
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	3e3a0b14050eff62e68be72142181730
+# Source0-md5:	11d3ff48f3361b8bdcfcdc076a31b537
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -72,7 +72,7 @@ Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-systemd-user.patch
-Patch15:	gperf-3.1.patch
+
 Patch16:	%{name}-seccomp_disable_on_i386.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
@@ -85,7 +85,7 @@ BuildRequires:	bzip2-devel
 BuildRequires:	coreutils >= 8.16
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
 BuildRequires:	curl-devel >= 7.32.0
-BuildRequires:	dbus-devel >= 1.4.0
+BuildRequires:	dbus-devel >= 1.9.18
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl
 BuildRequires:	elfutils-devel >= 0.158
@@ -114,8 +114,8 @@ BuildRequires:	lz4-devel >= r125
 BuildRequires:	m4
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pkgconfig >= 0.9.0
-BuildRequires:	python >= 2
-BuildRequires:	python-lxml
+BuildRequires:	python3
+BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
 BuildRequires:	rpmbuild(macros) >= 1.628
 BuildRequires:	sed >= 4.0
@@ -139,7 +139,7 @@ Requires:	SysVinit-tools
 Requires:	agetty
 %{?with_cryptsetup:Requires:	cryptsetup >= 1.6.0}
 Requires:	curl-libs >= 7.32.0
-Requires:	dbus >= 1.4.16-6
+Requires:	dbus >= 1.9.18
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
 Requires:	gnutls-libs >= 3.1.4
@@ -638,7 +638,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
-%patch15 -p1
+
 %patch16 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
@@ -1072,13 +1072,13 @@ fi
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc DISTRO_PORTING NEWS README TODO
-/etc/dbus-1/system.d/org.freedesktop.hostname1.conf
-/etc/dbus-1/system.d/org.freedesktop.import1.conf
-/etc/dbus-1/system.d/org.freedesktop.locale1.conf
-/etc/dbus-1/system.d/org.freedesktop.login1.conf
-/etc/dbus-1/system.d/org.freedesktop.machine1.conf
-/etc/dbus-1/system.d/org.freedesktop.systemd1.conf
-/etc/dbus-1/system.d/org.freedesktop.timedate1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.login1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.machine1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.systemd1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.timedate1.conf
 %attr(755,root,root) %{_sysconfdir}/X11/xinit/xinitrc.d/50-systemd-user.sh
 %attr(444,root,root) %ghost %config(noreplace) %{_sysconfdir}/machine-id
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
@@ -1100,7 +1100,6 @@ fi
 %dir %{_sysconfdir}/systemd/system/multi-user.target.wants
 %dir %{_sysconfdir}/systemd/system/sockets.target.wants
 %dir %{_sysconfdir}/systemd/system/sysinit.target.wants
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/ctrl-alt-del.target
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/getty.target.wants/getty@tty1.service
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/machines.target
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/remote-fs.target
@@ -1190,6 +1189,7 @@ fi
 %attr(755,root,root) /lib/systemd/system-generators/systemd-hibernate-resume-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-system-update-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-sysv-generator
+%attr(755,root,root) /lib/systemd/system-generators/systemd-veritysetup-generator
 %dir /lib/systemd/network
 /lib/systemd/network/99-default.link
 /lib/udev/rules.d/70-uaccess.rules
@@ -1801,7 +1801,7 @@ fi
 
 %files networkd
 %defattr(644,root,root,755)
-/etc/dbus-1/system.d/org.freedesktop.network1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
 %dir %{_sysconfdir}/systemd/network
 %dir %{_sysconfdir}/systemd/system/network-online.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
@@ -1827,9 +1827,9 @@ fi
 %files resolved
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
-/etc/dbus-1/system.d/org.freedesktop.resolve1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.resolve1.conf
 %{_datadir}/dbus-1/system-services/org.freedesktop.resolve1.service
-%{systemdunitdir}/dbus-org.freedesktop.resolve1.service
+%config(noreplace,missingok) %verify(not md5 mtime size) /etc/systemd/system/dbus-org.freedesktop.resolve1.service
 %{systemdunitdir}/systemd-resolved.service
 %attr(755,root,root) /lib/systemd/systemd-resolved
 %{_mandir}/man5/resolved.conf.5*

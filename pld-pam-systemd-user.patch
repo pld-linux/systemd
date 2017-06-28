@@ -1,19 +1,19 @@
---- systemd-232/src/login/systemd-user.m4.orig	2016-11-03 18:16:42.000000000 +0100
-+++ systemd-232/src/login/systemd-user.m4	2017-02-25 11:22:01.379262223 +0100
-@@ -2,11 +2,11 @@
+--- systemd-233/src/login/systemd-user.m4~	2017-03-01 22:43:06.000000000 +0100
++++ systemd-233/src/login/systemd-user.m4	2017-06-28 14:12:06.729052169 +0200
+@@ -2,11 +2,10 @@
  #
  # Used by systemd --user instances.
  
 -account required pam_unix.so
 +account		include		system-auth
- 
  m4_ifdef(`HAVE_SELINUX',
--session  required pam_selinux.so close
--session  required pam_selinux.so nottys open
-+-session		optional	pam_selinux.so close
-+-session		optional	pam_selinux.so nottys open
+-session required pam_selinux.so close
+-session required pam_selinux.so nottys open
++session		optional	pam_selinux.so close
++session		optional	pam_selinux.so nottys open
  )m4_dnl
--session  required pam_loginuid.so
+-session required pam_loginuid.so
+-session optional pam_keyinit.so force revoke
 -session optional pam_systemd.so
 +session		required	pam_loginuid.so
-+session		include		system-auth
++session		include	system-auth
