@@ -71,9 +71,8 @@ Patch10:	pld-boot_efi_mount.patch
 Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
-Patch14:	pld-pam-systemd-user.patch
-
-Patch16:	%{name}-seccomp_disable_on_i386.patch
+Patch14:	pld-pam-%{name}-user.patch
+Patch15:	%{name}-seccomp_disable_on_i386.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -117,7 +116,7 @@ BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python3
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
-BuildRequires:	rpmbuild(macros) >= 1.628
+BuildRequires:	rpmbuild(macros) >= 1.719
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 BuildRequires:	usbutils >= 0.82
@@ -152,8 +151,8 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	util-linux >= 2.28.2-2
 Requires:	uname(release) >= 3.12
+Requires:	util-linux >= 2.28.2-2
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
@@ -638,8 +637,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
-
-%patch16 -p1
+%patch15 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -1859,7 +1857,7 @@ fi
 %{_mandir}/man8/libnss_resolve.so.2.8*
 %{_mandir}/man8/libnss_systemd.so.2.8*
 %{_mandir}/man8/nss-resolve.8*
-%{_mandir}/man8/nss-systemd.8.gz
+%{_mandir}/man8/nss-systemd.8*
 
 %files devel
 %defattr(644,root,root,755)
@@ -1871,54 +1869,54 @@ fi
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
-%{_datadir}/bash-completion/completions/bootctl
-%{_datadir}/bash-completion/completions/busctl
-%{_datadir}/bash-completion/completions/coredumpctl
-%{_datadir}/bash-completion/completions/hostnamectl
-%{_datadir}/bash-completion/completions/journalctl
-%{_datadir}/bash-completion/completions/kernel-install
-%{_datadir}/bash-completion/completions/localectl
-%{_datadir}/bash-completion/completions/loginctl
-%{_datadir}/bash-completion/completions/machinectl
-%{_datadir}/bash-completion/completions/networkctl
-%{_datadir}/bash-completion/completions/systemctl
-%{_datadir}/bash-completion/completions/systemd-analyze
-%{_datadir}/bash-completion/completions/systemd-cat
-%{_datadir}/bash-completion/completions/systemd-cgls
-%{_datadir}/bash-completion/completions/systemd-cgtop
-%{_datadir}/bash-completion/completions/systemd-delta
-%{_datadir}/bash-completion/completions/systemd-detect-virt
-%{_datadir}/bash-completion/completions/systemd-nspawn
-%{_datadir}/bash-completion/completions/systemd-path
-%{_datadir}/bash-completion/completions/systemd-resolve
-%{_datadir}/bash-completion/completions/systemd-run
-%{_datadir}/bash-completion/completions/timedatectl
+%{bash_compdir}/bootctl
+%{bash_compdir}/busctl
+%{bash_compdir}/coredumpctl
+%{bash_compdir}/hostnamectl
+%{bash_compdir}/journalctl
+%{bash_compdir}/kernel-install
+%{bash_compdir}/localectl
+%{bash_compdir}/loginctl
+%{bash_compdir}/machinectl
+%{bash_compdir}/networkctl
+%{bash_compdir}/systemctl
+%{bash_compdir}/systemd-analyze
+%{bash_compdir}/systemd-cat
+%{bash_compdir}/systemd-cgls
+%{bash_compdir}/systemd-cgtop
+%{bash_compdir}/systemd-delta
+%{bash_compdir}/systemd-detect-virt
+%{bash_compdir}/systemd-nspawn
+%{bash_compdir}/systemd-path
+%{bash_compdir}/systemd-resolve
+%{bash_compdir}/systemd-run
+%{bash_compdir}/timedatectl
 
 %files -n zsh-completion-systemd
 %defattr(644,root,root,755)
-%{_datadir}/zsh/site-functions/_bootctl
-%{_datadir}/zsh/site-functions/_busctl
-%{_datadir}/zsh/site-functions/_coredumpctl
-%{_datadir}/zsh/site-functions/_hostnamectl
-%{_datadir}/zsh/site-functions/_journalctl
-%{_datadir}/zsh/site-functions/_kernel-install
-%{_datadir}/zsh/site-functions/_localectl
-%{_datadir}/zsh/site-functions/_loginctl
-%{_datadir}/zsh/site-functions/_machinectl
-%{_datadir}/zsh/site-functions/_sd_hosts_or_user_at_host
-%{_datadir}/zsh/site-functions/_sd_machines
-%{_datadir}/zsh/site-functions/_sd_outputmodes
-%{_datadir}/zsh/site-functions/_sd_unit_files
-%{_datadir}/zsh/site-functions/_systemctl
-%{_datadir}/zsh/site-functions/_systemd
-%{_datadir}/zsh/site-functions/_systemd-analyze
-%{_datadir}/zsh/site-functions/_systemd-delta
-%{_datadir}/zsh/site-functions/_systemd-inhibit
-%{_datadir}/zsh/site-functions/_systemd-nspawn
-%{_datadir}/zsh/site-functions/_systemd-resolve
-%{_datadir}/zsh/site-functions/_systemd-run
-%{_datadir}/zsh/site-functions/_systemd-tmpfiles
-%{_datadir}/zsh/site-functions/_timedatectl
+%{zsh_compdir}/_bootctl
+%{zsh_compdir}/_busctl
+%{zsh_compdir}/_coredumpctl
+%{zsh_compdir}/_hostnamectl
+%{zsh_compdir}/_journalctl
+%{zsh_compdir}/_kernel-install
+%{zsh_compdir}/_localectl
+%{zsh_compdir}/_loginctl
+%{zsh_compdir}/_machinectl
+%{zsh_compdir}/_sd_hosts_or_user_at_host
+%{zsh_compdir}/_sd_machines
+%{zsh_compdir}/_sd_outputmodes
+%{zsh_compdir}/_sd_unit_files
+%{zsh_compdir}/_systemctl
+%{zsh_compdir}/_systemd
+%{zsh_compdir}/_systemd-analyze
+%{zsh_compdir}/_systemd-delta
+%{zsh_compdir}/_systemd-inhibit
+%{zsh_compdir}/_systemd-nspawn
+%{zsh_compdir}/_systemd-resolve
+%{zsh_compdir}/_systemd-run
+%{zsh_compdir}/_systemd-tmpfiles
+%{zsh_compdir}/_timedatectl
 
 %files -n udev
 %defattr(644,root,root,755)
@@ -2027,8 +2025,8 @@ fi
 
 %files -n bash-completion-udev
 %defattr(644,root,root,755)
-%{_datadir}/bash-completion/completions/udevadm
+%{bash_compdir}/udevadm
 
 %files -n zsh-completion-udev
 %defattr(644,root,root,755)
-%{_datadir}/zsh/site-functions/_udevadm
+%{zsh_compdir}/_udevadm
