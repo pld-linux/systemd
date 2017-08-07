@@ -1,6 +1,6 @@
 --- a/sysusers.d/basic.conf.in~	2016-11-03 18:16:42.000000000 +0100
 +++ b/sysusers.d/basic.conf.in	2016-11-12 20:05:11.934482095 +0100
-@@ -12,25 +12,25 @@ u root    0     "Super User" /root
+@@ -12,26 +12,26 @@ u root    0     "Super User" /root
  u nobody  65534 "Nobody"     -
  
  # Administrator group: can *see* more than normal users
@@ -9,14 +9,14 @@
  
  # Administrator group: can *do* more than normal users
 -g wheel   -     -            -
-+g wheel   10    -            -
++g wheel   10     -            -
  
  # Access to certain kernel and userspace facilities
 -g kmem    -     -            -
 +g kmem    9     -            -
  g tty     @TTY_GID@     -            -
 -g utmp    -     -            -
-+g utmp    22    -            -
++g utmp    22     -            -
  
  # Hardware access groups
 -g audio   -     -            -
@@ -25,6 +25,7 @@
 -g disk    -     -            -
 -g input   -     -            -
 -g lp      -     -            -
+-g kvm     -     -            -
 -g tape    -     -            -
 -g video   -     -            -
 +g audio   23    -            -
@@ -33,6 +34,7 @@
 +g disk    6     -            -
 +g input   182   -            -
 +g lp      7     -            -
++g kvm     160   -            -
 +g tape    68    -            -
 +g video   24    -            -
  

@@ -25,13 +25,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	233
+Version:	234
 Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	11d3ff48f3361b8bdcfcdc076a31b537
+# Source0-md5:	2d8f6ebded3462ac0d1a6275e54db561
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -1135,6 +1135,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-socket-activate
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
+%attr(755,root,root) %{_bindir}/systemd-umount
 %attr(755,root,root) %{_bindir}/timedatectl
 /lib/systemd/import-pubring.gpg
 /lib/systemd/resolv.conf
@@ -1145,6 +1146,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
+%attr(755,root,root) /lib/systemd/systemd-dissect
 %attr(755,root,root) /lib/systemd/systemd-export
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-hibernate-resume
@@ -1170,6 +1172,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-shutdown
 %attr(755,root,root) /lib/systemd/systemd-sleep
 %attr(755,root,root) /lib/systemd/systemd-socket-proxyd
+%attr(755,root,root) /lib/systemd/systemd-sulogin-shell
 %attr(755,root,root) /lib/systemd/systemd-sysctl
 %attr(755,root,root) /lib/systemd/systemd-timedated
 %attr(755,root,root) /lib/systemd/systemd-timesyncd
@@ -1178,6 +1181,8 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-update-done
 %attr(755,root,root) /lib/systemd/systemd-user-sessions
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
+%attr(755,root,root) /lib/systemd/systemd-veritysetup
+%attr(755,root,root) /lib/systemd/systemd-volatile-root
 %attr(755,root,root) /lib/systemd/systemd
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
@@ -1190,10 +1195,14 @@ fi
 %attr(755,root,root) /lib/systemd/system-generators/systemd-veritysetup-generator
 %dir /lib/systemd/network
 /lib/systemd/network/99-default.link
+/lib/udev/rules.d/60-input-id.rules
+/lib/udev/rules.d/60-sensor.rules
+/lib/udev/rules.d/70-joystick.rules
 /lib/udev/rules.d/70-uaccess.rules
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
 /lib/udev/rules.d/99-systemd.rules
+%{_libexecdir}/environment.d/99-environment.conf
 %dir %{_libexecdir}/kernel
 %dir %{_libexecdir}/kernel/install.d
 %{_libexecdir}/kernel/install.d/50-depmod.install
@@ -1260,6 +1269,7 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.machine1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
+%{_datadir}/polkit-1/rules.d/systemd-networkd.rules
 %dir %{_datadir}/systemd
 %{?with_microhttpd:%{_datadir}/systemd/gatewayd}
 %{_datadir}/systemd/kbd-model-map
@@ -1295,6 +1305,7 @@ fi
 %{_mandir}/man1/systemd-run.1*
 %{_mandir}/man1/systemd-socket-activate.1*
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
+%{_mandir}/man1/systemd-umount.1*
 %{_mandir}/man1/timedatectl.1*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/coredump.conf.5*
@@ -1334,6 +1345,7 @@ fi
 %{_mandir}/man7/file-hierarchy.7*
 %{_mandir}/man7/kernel-command-line.7*
 %{_mandir}/man7/systemd.directives.7*
+%{_mandir}/man7/systemd.environment-generator.7*
 %{_mandir}/man7/systemd.generator.7*
 %{_mandir}/man7/systemd.index.7*
 %{_mandir}/man7/systemd.journal-fields.7*
@@ -1381,9 +1393,9 @@ fi
 %{_mandir}/man8/systemd-socket-proxyd.8*
 %{_mandir}/man8/systemd-sysctl.8*
 %{_mandir}/man8/systemd-system-update-generator.8*
-%{_mandir}/man8/systemd-sysv-generator.8*
 %{_mandir}/man8/systemd-sysusers.8*
 %{_mandir}/man8/systemd-sysusers.service.8*
+%{_mandir}/man8/systemd-sysv-generator.8*
 %{_mandir}/man8/systemd-timedated.8*
 %{_mandir}/man8/systemd-timesyncd.8*
 %{_mandir}/man8/systemd-timesyncd.service.8*
@@ -1393,6 +1405,11 @@ fi
 %{_mandir}/man8/systemd-update-utmp.8*
 %{_mandir}/man8/systemd-user-sessions.8*
 %{_mandir}/man8/systemd-vconsole-setup.8*
+%{_mandir}/man8/systemd-veritysetup.8*
+%{_mandir}/man8/systemd-veritysetup-generator.8*
+%{_mandir}/man8/systemd-veritysetup@.service.8*
+%{_mandir}/man8/systemd-volatile-root.8*
+%{_mandir}/man8/systemd-volatile-root.service.8*
 %attr(700,root,root) %dir /var/lib/machines
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
@@ -1437,6 +1454,7 @@ fi
 %dir %{_sysconfdir}/systemd/system-preset
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system-preset/default.preset
 %dir %{_sysconfdir}/tmpfiles.d
+%dir %{_libexecdir}/environment.d
 %dir %{_libexecdir}/modules-load.d
 %dir %{_libexecdir}/sysctl.d
 %{_libexecdir}/sysctl.d/50-default.conf
@@ -1459,6 +1477,8 @@ fi
 %{_libexecdir}/systemd/user/timers.target
 %{_libexecdir}/systemd/user/systemd-exit.service
 %dir %{_libexecdir}/systemd/user-generators
+%dir %{_libexecdir}/systemd/user-environment-generators
+%{_libexecdir}/systemd/user-environment-generators/30-systemd-environment-d-generator
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
@@ -1470,6 +1490,7 @@ fi
 %attr(755,root,root) /bin/systemd_booted
 %{_mandir}/man1/systemctl.1*
 %{_mandir}/man5/tmpfiles.d.5*
+%{_mandir}/man5/environment.d.5*
 %{_mandir}/man8/systemd-tmpfiles.8*
 %{_npkgconfigdir}/systemd.pc
 
@@ -1536,6 +1557,7 @@ fi
 %{systemdunitdir}/single.service
 %{systemdunitdir}/sigpwr-container-shutdown.service
 %{systemdunitdir}/sys-kernel-config.service
+%{systemdunitdir}/system-update-cleanup.service
 %{systemdunitdir}/systemd-ask-password-console.service
 %{systemdunitdir}/systemd-ask-password-wall.service
 %{systemdunitdir}/systemd-backlight@.service
@@ -1586,6 +1608,7 @@ fi
 %{systemdunitdir}/systemd-update-utmp.service
 %{systemdunitdir}/systemd-user-sessions.service
 %{systemdunitdir}/systemd-vconsole-setup.service
+%{systemdunitdir}/systemd-volatile-root.service
 %{systemdunitdir}/user@.service
 %{systemdunitdir}/machine.slice
 %{systemdunitdir}/system.slice
@@ -1667,9 +1690,11 @@ fi
 %dir %{systemdunitdir}/initrd.target.wants
 %dir %{systemdunitdir}/kexec.target.wants
 %dir %{systemdunitdir}/local-fs.target.wants
+%dir %{systemdunitdir}/machines.target.wants
 %dir %{systemdunitdir}/multi-user.target.wants
 %dir %{systemdunitdir}/poweroff.target.wants
 %dir %{systemdunitdir}/reboot.target.wants
+%dir %{systemdunitdir}/remote-fs.target.wants
 %dir %{systemdunitdir}/rescue.target.wants
 %dir %{systemdunitdir}/runlevel[12345].target.wants
 %dir %{systemdunitdir}/shutdown.target.wants
@@ -1692,15 +1717,16 @@ fi
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
 %{systemdunitdir}/local-fs.target.wants/systemd-remount-fs.service
-%{systemdunitdir}/local-fs.target.wants/var-lib-machines.mount
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
 %{systemdunitdir}/local-fs.target.wants/var-run.mount
+%{systemdunitdir}/machines.target.wants/var-lib-machines.mount
 %{systemdunitdir}/multi-user.target.wants/getty.target
 %{systemdunitdir}/multi-user.target.wants/rc-local.service
 %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
 %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
 %{systemdunitdir}/multi-user.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
+%{systemdunitdir}/remote-fs.target.wants/var-lib-machines.mount
 %{systemdunitdir}/rescue.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/sigpwr.target.wants/sigpwr-container-shutdown.service
 %{systemdunitdir}/sockets.target.wants/systemd-initctl.socket
@@ -1739,6 +1765,8 @@ fi
 %dir %{systemduserunitdir}/sockets.target.wants
 %{systemduserunitdir}/graphical-session-pre.target
 %{systemduserunitdir}/graphical-session.target
+%{_mandir}/man8/30-systemd-environment-d-generator.8*
+%{_mandir}/man8/systemd-environment-d-generator.8*
 %{_mandir}/man8/systemd-ask-password-console.path.8*
 %{_mandir}/man8/systemd-ask-password-console.service.8*
 %{_mandir}/man8/systemd-ask-password-wall.path.8*
@@ -1806,7 +1834,7 @@ fi
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
 /lib/systemd/network/80-container-vz.network
-%{systemdunitdir}/dbus-org.freedesktop.network1.service
+/etc/systemd/system/dbus-org.freedesktop.network1.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
 %{systemdunitdir}/systemd-networkd.socket
@@ -1903,6 +1931,7 @@ fi
 %{zsh_compdir}/_localectl
 %{zsh_compdir}/_loginctl
 %{zsh_compdir}/_machinectl
+%{zsh_compdir}/_networkctl
 %{zsh_compdir}/_sd_hosts_or_user_at_host
 %{zsh_compdir}/_sd_machines
 %{zsh_compdir}/_sd_outputmodes
@@ -1953,6 +1982,7 @@ fi
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
 /lib/udev/hwdb.d/60-evdev.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
+/lib/udev/hwdb.d/60-sensor.hwdb
 /lib/udev/hwdb.d/70-mouse.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
