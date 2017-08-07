@@ -151,7 +151,7 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 3.12
+Requires:	uname(release) >= 3.13
 Requires:	util-linux >= 2.28.2-2
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
@@ -548,7 +548,7 @@ Requires:	libblkid >= 2.24
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	setup >= 2.9.0-3
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 3.12
+Requires:	uname(release) >= 3.13
 Obsoletes:	udev-compat
 Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
 Conflicts:	geninitrd < 12639
