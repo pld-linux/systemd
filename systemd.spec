@@ -1484,7 +1484,7 @@ fi
 %{_libexecdir}/systemd/user/systemd-exit.service
 %dir %{_libexecdir}/systemd/user-generators
 %dir %{_libexecdir}/systemd/user-environment-generators
-%{_libexecdir}/systemd/user-environment-generators/30-systemd-environment-d-generator
+%attr(755,root,root) %{_libexecdir}/systemd/user-environment-generators/30-systemd-environment-d-generator
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
