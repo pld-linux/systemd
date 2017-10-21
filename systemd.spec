@@ -25,13 +25,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	234
-Release:	3
+Version:	235
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	2d8f6ebded3462ac0d1a6275e54db561
+# Source0-md5:	d53a925f1ca5b2e124de0a8aa65d0db2
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -64,7 +64,7 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
-Patch7:		%{name}-lz4.patch
+
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -73,14 +73,9 @@ Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-seccomp_disable_on_i386.patch
-Patch16:	%{name}-path.patch
-Patch17:	cryptsetup-fix-infinite-timeout-6486.patch
-Patch18:	initrd-fstab-generator.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
-BuildRequires:	autoconf >= 2.64
-BuildRequires:	automake >= 1:1.11
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	bzip2-devel
 # ln --relative
@@ -114,12 +109,13 @@ BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel >= r125
 BuildRequires:	m4
+BuildRequires:	meson
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python3
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
-BuildRequires:	rpmbuild(macros) >= 1.719
+BuildRequires:	rpmbuild(macros) >= 1.727
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 BuildRequires:	usbutils >= 0.82
@@ -278,7 +274,7 @@ Conflicts:	xl2tpd < 1.3.0-2
 # end of tmpfiles conflicts
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
-%define		_sbindir	/sbin
+%define		_rootsbindir	/sbin
 %define		_libexecdir	%{_prefix}/lib
 
 %description
@@ -632,7 +628,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
-%patch7 -p1
+
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
@@ -641,82 +637,76 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
 %build
-%{__intltoolize}
-%{__libtoolize}
-%{__aclocal} -I m4
-%{__autoconf}
-%{__autoheader}
-%{__automake}
+%meson build \
+	-Daudit=%{__true_false audit} \
+	-Ddefault-kill-user-processes=false \
+	%{?debug:--buildtype=debug} \
+	-Defi=%{__true_false efi} \
+	-Dhalt-local=/sbin/halt.local \
+	-Dkexec-path=/sbin/kexec \
+	-Dkill-path=/bin/kill \
+	-Dkmod-path=/sbin/kmod \
+	-Dlibcryptsetup=%{__true_false cryptsetup} \
+	-Dloadkeys-path=/usr/bin/loadkeys \
+	-Dlz4=true \
+	-Dmicrohttpd=%{__true_false microhttpd} \
+	-Dmount-path=/bin/mount \
+	-Dntp-servers='0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org' \
+	-Dpam=%{__true_false pam} \
+	-Dqrencode=%{__true_false qrencode} \
+	-Dquotacheck=true \
+	-Dquotacheck-path=/sbin/quotacheck \
+	-Dquotaon-path=/sbin/quotaon \
+	-Drc-local=/etc/rc.d/rc.local \
+	-Drootlibdir=/%{_lib} \
+	-Drootprefix="" \
+	-Drootsbindir=%{_rootsbindir} \
+	-Dselinux=%{__true_false selinux} \
+	-Dsetfont-path=/bin/setfont \
+	-Dsplit-usr=true \
+	-Dsulogin-path=/sbin/sulogin \
+	-Dsysvinit-path=/etc/rc.d/init.d \
+	-Dsysvrcnd-path=/etc/rc.d \
+	-Dumount-path=/bin/umount
 
-%configure \
-	QUOTAON=/sbin/quotaon \
-	QUOTACHECK=/sbin/quotacheck \
-	SETCAP=/sbin/setcap \
-	KILL=/bin/kill \
-	KMOD=/sbin/kmod \
-	KEXEC=/sbin/kexec \
-	MOUNT=/bin/mount \
-	UMOUNT=/bin/umount \
-	SULOGIN=/sbin/sulogin \
-%if "%{?configure_cache}" == "1"
-	--cache-file=%{?configure_cache_file}%{!?configure_cache_file:configure}.cache \
-%endif
-	%{?debug:--enable-debug} \
-	%{__enable_disable audit} \
-	%{__enable_disable cryptsetup libcryptsetup} \
-	%{__enable_disable efi gnuefi} \
-	%{__enable_disable pam} \
-	%{__enable_disable selinux} \
-	%{__enable_disable microhttpd} \
-	%{__enable_disable qrencode} \
-	--disable-silent-rules \
-	--enable-lz4 \
-	--enable-split-usr \
-	--with-kbd-loadkeys=/usr/bin/loadkeys \
-	--with-kbd-setfont=/bin/setfont \
-	--with-ntp-servers='0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org' \
-	--with-rc-local-script-path-start=/etc/rc.d/rc.local \
-	--with-rc-local-script-path-stop=/sbin/halt.local \
-	--with-rootprefix="" \
-	--with-rootlibdir=/%{_lib} \
-	--with-sysvinit-path=/etc/rc.d/init.d \
-	--with-sysvrcnd-path=/etc/rc.d \
-	--without-kill-user-processes
+%meson_build -C build
 
-%{__make}
+%{__cc} %{rpmcppflags} %{rpmcflags} -o build/systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd
 
-./libtool --mode=link --tag=CC %{__cc} %{rpmcppflags} %{rpmcflags} -o systemd_booted %{rpmldflags} src/systemd_booted.c -L. -lsystemd
-
-%{?with_tests:%{__make} check}
+%{?with_tests:%meson_test -C build}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
-	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_sbindir}}
+	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_rootsbindir}}
 install -d $RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/final.target.wants
 
-%{__make} -j1 install \
-	DESTDIR=$RPM_BUILD_ROOT
+%meson_install -C build
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/random-seed
 
-./libtool --mode=install install -p -m755 systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
+install -p -m755 build/systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
+
+# target-pld.patch supplements
+rm $RPM_BUILD_ROOT%{systemdunitdir}/sysinit.target.wants/sys-kernel-config.mount
+ln -s %{systemdunitdir}/prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/graphical.target.wants/display-manager.service
+ln -s prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/display-manager.service
+ln -s rescue.service $RPM_BUILD_ROOT%{systemdunitdir}/single.service
+ln -s %{systemdunitdir}/halt-local.service $RPM_BUILD_ROOT%{systemdunitdir}/final.target.wants/halt-local.service
+ln -s %{systemdunitdir}/rc-local.service $RPM_BUILD_ROOT%{systemdunitdir}/multi-user.target.wants/rc-local.service
 
 # compatibility symlinks to udevd binary
 mv $RPM_BUILD_ROOT/lib/{systemd/systemd-,udev/}udevd
 ln -s /lib/udev/udevd $RPM_BUILD_ROOT/lib/systemd/systemd-udevd
-ln -s /lib/udev/udevd $RPM_BUILD_ROOT%{_sbindir}/udevd
+ln -s /lib/udev/udevd $RPM_BUILD_ROOT%{_rootsbindir}/udevd
 
 # compat symlinks for "/ merged into /usr" programs
-mv $RPM_BUILD_ROOT/{,s}bin/udevadm
-ln -s %{_sbindir}/udevadm $RPM_BUILD_ROOT/bin
+ln -s %{_rootsbindir}/udevadm $RPM_BUILD_ROOT/bin
 ln -s /lib/udev $RPM_BUILD_ROOT%{_prefix}/lib
 
 # install custom udev rules from pld package
@@ -733,7 +723,7 @@ cp -a %{SOURCE103} $RPM_BUILD_ROOT%{_sysconfdir}/udev/links.conf
 
 # install udev executables (scripts, helpers, etc.)
 install -p %{SOURCE110} $RPM_BUILD_ROOT/lib/udev/net_helper
-install -p %{SOURCE111} $RPM_BUILD_ROOT%{_sbindir}/start_udev
+install -p %{SOURCE111} $RPM_BUILD_ROOT%{_rootsbindir}/start_udev
 
 # install misc udev stuff
 cp -a %{SOURCE120} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/udev_blacklist.conf
@@ -837,9 +827,6 @@ install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/wtmp
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
-%{__rm} $RPM_BUILD_ROOT/%{_lib}/security/pam_systemd.la \
-	$RPM_BUILD_ROOT/lib/systemd/*.la \
-	$RPM_BUILD_ROOT/%{_lib}/*.la
 
 %find_lang %{name}
 
@@ -1106,7 +1093,9 @@ fi
 %dir %{_sysconfdir}/systemd/system/sysinit.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/getty.target.wants/getty@tty1.service
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/machines.target
+%{?with_cryptsetup:%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/remote-cryptsetup.target}
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/remote-fs.target
+
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/sysinit.target.wants/systemd-timesyncd.service
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/systemd-user
 /etc/xdg/systemd
@@ -1253,9 +1242,6 @@ fi
 %{_libexecdir}/tmpfiles.d/systemd.conf
 %{_libexecdir}/tmpfiles.d/systemd-nologin.conf
 %{_libexecdir}/tmpfiles.d/systemd-nspawn.conf
-%if %{with microhttpd}
-%{_libexecdir}/tmpfiles.d/systemd-remote.conf
-%endif
 %{_libexecdir}/tmpfiles.d/tmp.conf
 %{_libexecdir}/tmpfiles.d/var.conf
 %{_libexecdir}/tmpfiles.d/x11.conf
@@ -1471,7 +1457,6 @@ fi
 %dir %{_libexecdir}/systemd/user
 %{_libexecdir}/systemd/user/basic.target
 %{_libexecdir}/systemd/user/bluetooth.target
-%{_libexecdir}/systemd/user/busnames.target
 %{_libexecdir}/systemd/user/default.target
 %{_libexecdir}/systemd/user/exit.target
 %{_libexecdir}/systemd/user/paths.target
@@ -1503,15 +1488,6 @@ fi
 %{systemdunitdir}/dev-hugepages.mount
 %{systemdunitdir}/dev-mqueue.mount
 %{systemdunitdir}/initrd-root-device.target
-%{systemdunitdir}/org.freedesktop.hostname1.busname
-%{systemdunitdir}/org.freedesktop.import1.busname
-%{systemdunitdir}/org.freedesktop.locale1.busname
-%{systemdunitdir}/org.freedesktop.login1.busname
-%{systemdunitdir}/org.freedesktop.machine1.busname
-%{systemdunitdir}/org.freedesktop.network1.busname
-%{systemdunitdir}/org.freedesktop.resolve1.busname
-%{systemdunitdir}/org.freedesktop.systemd1.busname
-%{systemdunitdir}/org.freedesktop.timedate1.busname
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.mount
 %{systemdunitdir}/sockets.target.wants/systemd-coredump.socket
@@ -1630,7 +1606,6 @@ fi
 %{systemdunitdir}/systemd-udevd-kernel.socket
 %{systemdunitdir}/basic.target
 %{systemdunitdir}/bluetooth.target
-%{systemdunitdir}/busnames.target
 %{?with_cryptsetup:%{systemdunitdir}/cryptsetup-pre.target}
 %{?with_cryptsetup:%{systemdunitdir}/cryptsetup.target}
 %{systemdunitdir}/ctrl-alt-del.target
@@ -1639,6 +1614,7 @@ fi
 %{systemdunitdir}/exit.target
 %{systemdunitdir}/final.target
 %{systemdunitdir}/getty.target
+%{systemdunitdir}/getty-pre.target
 %{systemdunitdir}/graphical.target
 %{systemdunitdir}/halt.target
 %{systemdunitdir}/hibernate.target
@@ -1663,6 +1639,10 @@ fi
 %{systemdunitdir}/reboot.target
 %{systemdunitdir}/remote-fs-pre.target
 %{systemdunitdir}/remote-fs.target
+%if %{with cryptsetup}
+%{systemdunitdir}/remote-cryptsetup-pre.target
+%{systemdunitdir}/remote-cryptsetup.target
+%endif
 %{systemdunitdir}/rescue.target
 %{systemdunitdir}/rpcbind.target
 %{systemdunitdir}/runlevel0.target
@@ -1688,7 +1668,6 @@ fi
 %{systemdunitdir}/umount.target
 %{systemdunitdir}/systemd-tmpfiles-clean.timer
 %dir %{systemdunitdir}/basic.target.wants
-%dir %{systemdunitdir}/busnames.target.wants
 %dir %{systemdunitdir}/dbus.target.wants
 %dir %{systemdunitdir}/final.target.wants
 %dir %{systemdunitdir}/graphical.target.wants
@@ -1709,15 +1688,6 @@ fi
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
 %dir %{systemdunitdir}/timers.target.wants
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.hostname1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.import1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.locale1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.login1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.machine1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.network1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.resolve1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.systemd1.busname
-%{systemdunitdir}/busnames.target.wants/org.freedesktop.timedate1.busname
 %{systemdunitdir}/final.target.wants/halt-local.service
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
@@ -1989,13 +1959,14 @@ fi
 /lib/udev/hwdb.d/60-evdev.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
 /lib/udev/hwdb.d/60-sensor.hwdb
+/lib/udev/hwdb.d/70-joystick.hwdb
 /lib/udev/hwdb.d/70-mouse.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
 
-%attr(755,root,root) %{_sbindir}/start_udev
-%attr(755,root,root) %{_sbindir}/udevd
-%attr(755,root,root) %{_sbindir}/udevadm
+%attr(755,root,root) %{_rootsbindir}/start_udev
+%attr(755,root,root) %{_rootsbindir}/udevd
+%attr(755,root,root) %{_rootsbindir}/udevadm
 %attr(755,root,root) /bin/systemd-hwdb
 %attr(755,root,root) /bin/udevadm
 

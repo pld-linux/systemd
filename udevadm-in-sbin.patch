@@ -1,13 +1,30 @@
---- systemd-183/Makefile.am~	2012-05-30 14:28:53.647009365 +0200
-+++ systemd-183/Makefile.am	2012-05-30 14:35:41.593661644 +0200
-@@ -3817,6 +3817,7 @@
-        '|rootlibexecdir=$(rootlibexecdir)|' \
-        '|rootbindir=$(rootbindir)|' \
-        '|bindir=$(bindir)|' \
-+       '|sbindir=$(sbindir)|' \
-        '|SYSTEMCTL=$(rootbindir)/systemctl|' \
-        '|SYSTEMD_NOTIFY=$(rootbindir)/systemd-notify|' \
-        '|pkgsysconfdir=$(pkgsysconfdir)|' \
+--- systemd-235/meson.build~	2017-10-06 10:18:04.000000000 +0200
++++ systemd-235/meson.build	2017-10-21 15:12:47.202404998 +0200
+@@ -67,6 +67,7 @@ datadir = join_paths(prefixdir, get_opti
+ localstatedir = join_paths('/', get_option('localstatedir'))
+ 
+ rootbindir = join_paths(rootprefixdir, 'bin')
++rootsbindir = join_paths(rootprefixdir, 'sbin')
+ rootlibexecdir = join_paths(rootprefixdir, 'lib/systemd')
+ 
+ rootlibdir = get_option('rootlibdir')
+@@ -200,6 +201,7 @@ substs.set('includedir',
+ substs.set('pkgsysconfdir',                                   pkgsysconfdir)
+ substs.set('bindir',                                          bindir)
+ substs.set('rootbindir',                                      rootbindir)
++substs.set('rootsbindir',                                     rootsbindir)
+ substs.set('rootlibexecdir',                                  rootlibexecdir)
+ substs.set('systemunitdir',                                   systemunitdir)
+ substs.set('userunitdir',                                     userunitdir)
+@@ -2164,7 +2166,7 @@ exe = executable('udevadm',
+                                  libblkid],
+                  install_rpath : udev_rpath,
+                  install : true,
+-                 install_dir : rootbindir)
++                 install_dir : rootsbindir)
+ public_programs += [exe]
+ 
+ executable('systemd-shutdown',
 --- systemd-183/units/systemd-udev-trigger.service.in~	2012-05-21 15:14:51.642981269 +0200
 +++ systemd-183/units/systemd-udev-trigger.service.in	2012-05-30 13:55:20.229509590 +0200
 @@ -17,4 +17,4 @@
@@ -15,7 +32,7 @@
  Type=oneshot
  RemainAfterExit=yes
 -ExecStart=@rootbindir@/udevadm trigger --type=subsystems --action=add ; @rootbindir@/udevadm trigger --type=devices --action=add
-+ExecStart=@sbindir@/udevadm trigger --type=subsystems --action=add ; @sbindir@/udevadm trigger --type=devices --action=add
++ExecStart=@rootsbindir@/udevadm trigger --type=subsystems --action=add ; @rootsbindir@/udevadm trigger --type=devices --action=add
 --- systemd-183/units/systemd-udev-settle.service.in~	2012-05-30 13:43:34.886201138 +0200
 +++ systemd-183/units/systemd-udev-settle.service.in	2012-05-30 13:55:44.546175399 +0200
 @@ -29,4 +29,4 @@
@@ -23,7 +40,7 @@
  TimeoutSec=180
  RemainAfterExit=yes
 -ExecStart=@rootbindir@/udevadm settle
-+ExecStart=@sbindir@/udevadm settle
++ExecStart=@rootsbindir@/udevadm settle
 --- systemd-199/units/initrd-udevadm-cleanup-db.service.in~	2013-03-11 18:01:33.616138706 +0100
 +++ systemd-199/units/initrd-udevadm-cleanup-db.service.in	2013-03-26 19:09:54.525625477 +0100
 @@ -15,4 +15,4 @@
@@ -31,4 +48,4 @@
  [Service]
  Type=oneshot
 -ExecStart=-@rootbindir@/udevadm info --cleanup-db
-+ExecStart=-@sbindir@/udevadm info --cleanup-db
++ExecStart=-@rootsbindir@/udevadm info --cleanup-db

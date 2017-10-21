@@ -41,23 +41,21 @@
  # Default group for normal users
 -g users   -     -            -
 +g users   1000  -            -
---- a/sysusers.d/systemd-remote.conf.m4~	2016-11-03 18:16:42.000000000 +0100
-+++ b/sysusers.d/systemd-remote.conf.m4	2016-11-12 20:07:22.838061991 +0100
-@@ -6,9 +6,9 @@
+--- systemd-235/sysusers.d/systemd-remote.conf.m4~	2017-10-06 10:18:04.000000000 +0200
++++ systemd-235/sysusers.d/systemd-remote.conf.m4	2017-10-21 15:26:33.951199376 +0200
+@@ -6,8 +6,8 @@
  #  (at your option) any later version.
  
  m4_ifdef(`HAVE_MICROHTTPD',
--u systemd-journal-gateway - "systemd Journal Gateway"
 -u systemd-journal-remote  - "systemd Journal Remote"
-+u systemd-journal-gateway 287 "systemd Journal Gateway"
 +u systemd-journal-remote  319 "systemd Journal Remote"
  )m4_dnl
  m4_ifdef(`HAVE_LIBCURL',
 -u systemd-journal-upload  - "systemd Journal Upload"
 +u systemd-journal-upload  320 "systemd Journal Upload"
  )m4_dnl
---- a/sysusers.d/systemd.conf.m4~	2016-11-03 18:16:42.000000000 +0100
-+++ b/sysusers.d/systemd.conf.m4	2016-11-12 20:08:23.103080854 +0100
+--- systemd-235/sysusers.d/systemd.conf.m4~	2017-10-06 10:18:04.000000000 +0200
++++ systemd-235/sysusers.d/systemd.conf.m4	2017-10-21 15:27:49.116545700 +0200
 @@ -5,16 +5,16 @@
  #  the Free Software Foundation; either version 2.1 of the License, or
  #  (at your option) any later version.
@@ -68,7 +66,7 @@
 -u systemd-network   - "systemd Network Management"
 +u systemd-network   316 "systemd Network Management"
  )m4_dnl
- m4_ifdef(`ENABLE_RESOLVED',
+ m4_ifdef(`ENABLE_RESOLVE',
 -u systemd-resolve   - "systemd Resolver"
 +u systemd-resolve   317 "systemd Resolver"
  )m4_dnl

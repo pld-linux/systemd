@@ -1,22 +1,15 @@
-diff -durN -x '*.orig' systemd-208.orig/Makefile.am systemd-208/Makefile.am
---- systemd-208.orig/Makefile.am	2014-01-10 10:21:40.000000000 +0100
-+++ systemd-208/Makefile.am	2014-01-10 10:22:33.000000000 +0100
-@@ -411,6 +411,7 @@
- 	units/syslog.socket \
- 	units/dev-hugepages.mount \
- 	units/dev-mqueue.mount \
-+	units/sys-kernel-config.service \
- 	units/sys-kernel-config.mount \
- 	units/sys-kernel-debug.mount \
- 	units/sys-fs-fuse-connections.mount \
-@@ -4435,7 +4436,6 @@
- SYSINIT_TARGET_WANTS += \
- 	dev-hugepages.mount \
- 	dev-mqueue.mount \
--	sys-kernel-config.mount \
- 	sys-kernel-debug.mount \
- 	sys-fs-fuse-connections.mount \
- 	systemd-sysctl.service \
+--- systemd-235/units/meson.build.org	2017-10-21 15:20:03.280741248 +0200
++++ systemd-235/units/meson.build	2017-10-21 15:20:23.741288778 +0200
+@@ -68,8 +68,9 @@ units = [
+         ['swap.target',                         ''],
+         ['sys-fs-fuse-connections.mount',       '',
+          'sysinit.target.wants/'],
+         ['sys-kernel-config.mount',             '',
+          'sysinit.target.wants/'],
++        ['sys-kernel-config.service',           ''],
+         ['sys-kernel-debug.mount',              '',
+          'sysinit.target.wants/'],
+         ['sysinit.target',                      ''],
 diff -durN -x '*.orig' systemd-208.orig/units/sys-kernel-config.mount systemd-208/units/sys-kernel-config.mount
 --- systemd-208.orig/units/sys-kernel-config.mount	2013-08-13 22:02:52.000000000 +0200
 +++ systemd-208/units/sys-kernel-config.mount	2014-01-10 10:22:04.000000000 +0100
