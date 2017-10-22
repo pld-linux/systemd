@@ -115,7 +115,7 @@ BuildRequires:	pkgconfig >= 0.9.0
 BuildRequires:	python3
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
-BuildRequires:	rpmbuild(macros) >= 1.727
+BuildRequires:	rpmbuild(macros) >= 1.728
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 BuildRequires:	usbutils >= 0.82
