@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	235
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1111,7 +1111,7 @@ fi
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-sysusers
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
-%attr(755,root,root) %{_bindir}/bootctl
+%{?with_efi:%attr(755,root,root) %{_bindir}/bootctl}
 %attr(755,root,root) %{_bindir}/busctl
 %attr(755,root,root) %{_bindir}/coredumpctl
 %attr(755,root,root) %{_bindir}/hostnamectl
@@ -1269,7 +1269,7 @@ fi
 %{_datadir}/factory/etc/nsswitch.conf
 %{_datadir}/factory/etc/pam.d/other
 %{_datadir}/factory/etc/pam.d/system-auth
-%{_mandir}/man1/bootctl.1*
+%{?with_efi:%{_mandir}/man1/bootctl.1*}
 %{_mandir}/man1/busctl.1*
 %{_mandir}/man1/coredumpctl.1*
 %{_mandir}/man1/hostnamectl.1*
