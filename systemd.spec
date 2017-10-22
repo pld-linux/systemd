@@ -1873,7 +1873,7 @@ fi
 
 %files -n bash-completion-systemd
 %defattr(644,root,root,755)
-%{bash_compdir}/bootctl
+%{?with_efi:%{bash_compdir}/bootctl}
 %{bash_compdir}/busctl
 %{bash_compdir}/coredumpctl
 %{bash_compdir}/hostnamectl
