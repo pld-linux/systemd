@@ -1898,7 +1898,7 @@ fi
 
 %files -n zsh-completion-systemd
 %defattr(644,root,root,755)
-%{zsh_compdir}/_bootctl
+%{?with_efi:%{zsh_compdir}/_bootctl}
 %{zsh_compdir}/_busctl
 %{zsh_compdir}/_coredumpctl
 %{zsh_compdir}/_hostnamectl
