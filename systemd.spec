@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	235
-Release:	3
+Release:	4
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -684,7 +684,7 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_rootsbindir}}
 install -d $RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants
-install -d $RPM_BUILD_ROOT%{systemdunitdir}/{final,system-update}.target.wants
+install -d $RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants
 
 %meson_install -C build
 
@@ -1683,6 +1683,7 @@ fi
 %dir %{systemdunitdir}/rescue.target.wants
 %dir %{systemdunitdir}/runlevel[12345].target.wants
 %dir %{systemdunitdir}/shutdown.target.wants
+%dir %{systemdunitdir}/sound.target.wants
 %dir %{systemdunitdir}/system-update.target.wants
 %dir %{systemdunitdir}/sigpwr.target.wants
 %dir %{systemdunitdir}/sockets.target.wants
