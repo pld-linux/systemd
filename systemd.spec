@@ -1222,6 +1222,7 @@ fi
 %lang(be) %{_libexecdir}/systemd/catalog/systemd.be.catalog
 %lang(be) %{_libexecdir}/systemd/catalog/systemd.be@latin.catalog
 %lang(bg) %{_libexecdir}/systemd/catalog/systemd.bg.catalog
+%lang(de) %{_libexecdir}/systemd/catalog/systemd.de.catalog
 %lang(fr) %{_libexecdir}/systemd/catalog/systemd.fr.catalog
 %lang(it) %{_libexecdir}/systemd/catalog/systemd.it.catalog
 %lang(pl) %{_libexecdir}/systemd/catalog/systemd.pl.catalog
