@@ -26,7 +26,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	235
-Release:	6
+Release:	7
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -64,7 +64,7 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
-
+Patch7:		%{name}-glibc.patch
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -628,7 +628,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
-
+%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
