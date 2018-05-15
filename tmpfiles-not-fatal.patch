@@ -1,17 +1,19 @@
---- systemd-39/units/systemd-tmpfiles-setup.service.in~	2011-12-30 22:27:36.623529054 +0100
-+++ systemd-39/units/systemd-tmpfiles-setup.service.in	2012-01-29 22:55:46.116130563 +0100
-@@ -19,4 +19,4 @@
+--- systemd-238/units/systemd-tmpfiles-setup.service.in~	2018-03-05 23:16:37.000000000 +0100
++++ systemd-238/units/systemd-tmpfiles-setup.service.in	2018-05-15 13:23:51.990328057 +0200
+@@ -19,5 +19,5 @@ RefuseManualStop=yes
  [Service]
  Type=oneshot
  RemainAfterExit=yes
 -ExecStart=@rootbindir@/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
 +ExecStart=-@rootbindir@/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
---- systemd-39/units/systemd-tmpfiles-clean.service.in~	2011-12-30 22:27:36.520529020 +0100
-+++ systemd-39/units/systemd-tmpfiles-clean.service.in	2012-01-29 22:56:15.626015474 +0100
-@@ -18,5 +18,5 @@
+ SuccessExitStatus=65
+--- systemd-238/units/systemd-tmpfiles-clean.service.in~	2018-03-05 23:16:37.000000000 +0100
++++ systemd-238/units/systemd-tmpfiles-clean.service.in	2018-05-15 13:24:19.297825542 +0200
+@@ -17,6 +17,6 @@ Before=shutdown.target
  
  [Service]
  Type=oneshot
 -ExecStart=@rootbindir@/systemd-tmpfiles --clean
 +ExecStart=-@rootbindir@/systemd-tmpfiles --clean
+ SuccessExitStatus=65
  IOSchedulingClass=idle

@@ -25,13 +25,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	235
-Release:	7
+Version:	238
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	d53a925f1ca5b2e124de0a8aa65d0db2
+# Source0-md5:	76db8004647283b779234364cd637d3c
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -655,6 +655,8 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	-Dlz4=true \
 	-Dmicrohttpd=%{__true_false microhttpd} \
 	-Dmount-path=/bin/mount \
+	-Dnobody-user="nobody" \
+	-Dnobody-group="nogroup" \
 	-Dntp-servers='0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org' \
 	-Dpam=%{__true_false pam} \
 	-Dqrencode=%{__true_false qrencode} \
@@ -667,11 +669,13 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	-Drootsbindir=%{_rootsbindir} \
 	-Dselinux=%{__true_false selinux} \
 	-Dsetfont-path=/bin/setfont \
+	-Dsplit-bin=true \
 	-Dsplit-usr=true \
 	-Dsulogin-path=/sbin/sulogin \
 	-Dsysvinit-path=/etc/rc.d/init.d \
 	-Dsysvrcnd-path=/etc/rc.d \
-	-Dumount-path=/bin/umount
+	-Dumount-path=/bin/umount \
+	-Dusers-gid=1000 \
 
 %meson_build -C build
 
@@ -736,17 +740,6 @@ echo ".so man8/udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/systemd-udevd.8
 
 # Main binary has been moved, but we don't want to break existing installs
 ln -s ../lib/systemd/systemd $RPM_BUILD_ROOT/bin/systemd
-
-# Create SysV compatibility symlinks. systemctl/systemd are smart
-# enough to detect the way they were called
-install -d $RPM_BUILD_ROOT/sbin
-ln -s ../lib/systemd/systemd $RPM_BUILD_ROOT/sbin/init
-ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/halt
-ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/poweroff
-ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/reboot
-ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/runlevel
-ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/shutdown
-ln -s ../bin/systemctl $RPM_BUILD_ROOT/sbin/telinit
 
 ln -s ../modules $RPM_BUILD_ROOT%{_sysconfdir}/modules-load.d/modules.conf
 
@@ -1062,7 +1055,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc DISTRO_PORTING NEWS README TODO
+%doc doc/DISTRO_PORTING NEWS README TODO
 %{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
@@ -1594,7 +1587,7 @@ fi
 %{systemdunitdir}/systemd-volatile-root.service
 %{systemdunitdir}/user@.service
 %{systemdunitdir}/machine.slice
-%{systemdunitdir}/system.slice
+#%{systemdunitdir}/system.slice
 %{systemdunitdir}/user.slice
 %exclude %{systemdunitdir}/rc-inetd.service
 %{systemdunitdir}/syslog.socket
@@ -1641,7 +1634,6 @@ fi
 %{systemdunitdir}/remote-fs-pre.target
 %{systemdunitdir}/remote-fs.target
 %if %{with cryptsetup}
-%{systemdunitdir}/remote-cryptsetup-pre.target
 %{systemdunitdir}/remote-cryptsetup.target
 %endif
 %{systemdunitdir}/rescue.target

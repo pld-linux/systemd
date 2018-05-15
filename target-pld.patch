@@ -1,101 +1,50 @@
 ; rest of target-pld.patch logic in systemd.spec
-diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/hostname-setup.c systemd-208/src/core/hostname-setup.c
---- systemd-208.orig/src/core/hostname-setup.c	2013-08-13 22:02:46.000000000 +0200
-+++ systemd-208/src/core/hostname-setup.c	2014-01-09 15:15:41.000000000 +0100
-@@ -23,6 +23,7 @@
+--- a/src/basic/hostname-util.h~	2018-03-05 23:16:37.000000000 +0100
++++ b/src/basic/hostname-util.h	2018-05-15 13:46:17.924678801 +0200
+@@ -42,5 +42,6 @@ int sethostname_idempotent(const char *s
  
- #include "alloc-util.h"
- #include "fileio.h"
-+#include "fd-util.h"
- #include "hostname-setup.h"
- #include "hostname-util.h"
- #include "log.h"
-@@ -53,13 +53,84 @@
-         return 0;
+ int shorten_overlong(const char *s, char **ret);
+ 
++int read_etc_hostname_distro(const char *path, char **ret);
+ int read_etc_hostname_stream(FILE *f, char **ret);
+ int read_etc_hostname(const char *path, char **ret);
+--- systemd-238/src/basic/hostname-util.c~	2018-03-05 23:16:37.000000000 +0100
++++ systemd-238/src/basic/hostname-util.c	2018-05-15 13:21:08.392017315 +0200
+@@ -290,13 +290,33 @@ int read_etc_hostname_stream(FILE *f, ch
+         }
  }
  
-+static int read_distro_hostname(char **hn) {
++int read_etc_hostname_distro(const char *path, char **ret) {
 +        int r;
-+        _cleanup_fclose_ FILE *f = NULL;
-+
-+        assert(hn);
-+
-+        f = fopen("/etc/sysconfig/network", "re");
-+        if (!f)
-+                return -errno;
-+
-+        for (;;) {
-+                char line[LINE_MAX];
-+                char *s, *k;
-+
-+                if (!fgets(line, sizeof(line), f)) {
-+                        if (feof(f))
-+                                break;
-+
-+                        r = -errno;
-+                        goto finish;
-+                }
-+
-+                s = strstrip(line);
-+
-+                if (!startswith_no_case(s, "HOSTNAME="))
-+                        continue;
-+
-+                k = strdup(s+9);
-+                if (!k) {
-+                        r = -ENOMEM;
-+                        goto finish;
-+                }
-+
-+                hostname_cleanup(k);
-+
-+                if (isempty(k)) {
-+                        free(k);
-+                        r = -ENOENT;
-+                        goto finish;
-+                }
-+
-+                *hn = k;
-+                r = 0;
-+                goto finish;
-+        }
-+
-+        r = -ENOENT;
-+
-+finish:
-+        return r;
-+}
-+
-+static int read_hostname(char **hn) {
-+        int r;
-+
-+        assert(hn);
-+
-+        /* First, try to load the generic hostname configuration file,
-+         * that we support on all distributions */
-+
-+        r = read_hostname_config("/etc/hostname", hn);
-+        if (r < 0) {
-+                if (r == -ENOENT)
-+                        return read_distro_hostname(hn);
-+
++        char *p;
++        r = parse_env_file("/etc/sysconfig/network", NEWLINE, "HOSTNAME", &p, NULL);
++        if (r < 0)
 +                return r;
-+        }
-+
-+        return 0;
++        if (r == 0) /* EOF without any hostname? the file is empty, let's treat that exactly like no file at all: ENOENT */
++                return -ENOENT;
++        hostname_cleanup(p);
++         if (!hostname_is_valid(p, true))
++                 return -EBADMSG;
++         *ret = p;
++         return 0;
 +}
 +
- int hostname_setup(void) {
-         _cleanup_free_ char *b = NULL;
-         bool enoent = false;
-         const char *hn;
-         int r;
+ int read_etc_hostname(const char *path, char **ret) {
+         _cleanup_fclose_ FILE *f = NULL;
  
--        r = read_hostname_config("/etc/hostname", &b);
-+        r = read_hostname(&b);
-         if (r < 0) {
-                 if (r == -ENOENT)
-                         enoent = true;
+         assert(ret);
+ 
+-        if (!path)
++        if (!path) {
++                int r;
+                 path = "/etc/hostname";
++                r = read_etc_hostname_distro(path, ret);
++                if (r > 0)
++                        return r;
++        }
+ 
+         f = fopen(path, "re");
+         if (!f)
 diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-208/src/core/locale-setup.c
 --- systemd-208.orig/src/core/locale-setup.c	2013-10-01 00:17:21.000000000 +0200
 +++ systemd-208/src/core/locale-setup.c	2014-01-09 15:15:41.000000000 +0100

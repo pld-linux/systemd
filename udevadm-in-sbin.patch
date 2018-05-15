@@ -1,13 +1,5 @@
 --- systemd-235/meson.build~	2017-10-06 10:18:04.000000000 +0200
 +++ systemd-235/meson.build	2017-10-21 15:12:47.202404998 +0200
-@@ -67,6 +67,7 @@ datadir = join_paths(prefixdir, get_opti
- localstatedir = join_paths('/', get_option('localstatedir'))
- 
- rootbindir = join_paths(rootprefixdir, 'bin')
-+rootsbindir = join_paths(rootprefixdir, 'sbin')
- rootlibexecdir = join_paths(rootprefixdir, 'lib/systemd')
- 
- rootlibdir = get_option('rootlibdir')
 @@ -200,6 +201,7 @@ substs.set('includedir',
  substs.set('pkgsysconfdir',                                   pkgsysconfdir)
  substs.set('bindir',                                          bindir)
