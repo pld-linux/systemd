@@ -141,7 +141,7 @@ Requires:	dbus >= 1.9.18
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
 Requires:	gnutls-libs >= 3.1.4
-Requires:	kmod >= 15
+Requires:	kmod >= 25-2
 Requires:	libgpg-error >= 1.12
 %{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
 Requires:	libutempter
@@ -275,7 +275,6 @@ Conflicts:	xl2tpd < 1.3.0-2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_rootsbindir	/sbin
-%define		_libexecdir	%{_prefix}/lib
 
 %description
 systemd is a system and service manager for Linux, compatible with
@@ -686,9 +685,10 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
-	$RPM_BUILD_ROOT{%{_sysconfdir}/{modprobe.d,systemd/system-preset},%{_rootsbindir}}
-install -d $RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants
-install -d $RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants
+	$RPM_BUILD_ROOT%{_rootsbindir} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,systemd/system-preset} \
+	$RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants \
+	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants
 
 %meson_install -C build
 
@@ -735,7 +735,7 @@ cp -a %{SOURCE121} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 
 :>$RPM_BUILD_ROOT%{_sysconfdir}/udev/hwdb.bin
 
-mv $RPM_BUILD_ROOT%{_mandir}/man8/{systemd-,}udevd.8
+%{__mv} $RPM_BUILD_ROOT%{_mandir}/man8/{systemd-,}udevd.8
 echo ".so man8/udevd.8" >$RPM_BUILD_ROOT%{_mandir}/man8/systemd-udevd.8
 
 # Main binary has been moved, but we don't want to break existing installs
@@ -787,7 +787,8 @@ cp -p %{SOURCE18} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system-preset/default.pr
 cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 
 # handled by rc-local sysv service, no need for generator
-%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}-generators/systemd-rc-local-generator
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}-generators/systemd-rc-local-generator \
+	$RPM_BUILD_ROOT%{_mandir}/man8/systemd-rc-local-generator.8
 
 # provided by rc-scripts
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/rc-local.service
@@ -799,7 +800,7 @@ cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,initrd,kexec,poweroff,reboot,shutdown,syslog}.target.wants
 
 # Make sure the shutdown/sleep drop-in dirs exist
-install -d $RPM_BUILD_ROOT%{_libexecdir}/systemd/system-{shutdown,sleep}
+install -d $RPM_BUILD_ROOT%{_prefix}/lib/systemd/system-{shutdown,sleep}
 
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,vconsole.conf}
@@ -1069,6 +1070,8 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/locale.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/machine-info
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/vconsole.conf
+%dir %{_sysconfdir}/kernel
+%dir %{_sysconfdir}/kernel/install.d
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/coredump.conf
 %if %{with microhttpd}
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-remote.conf
@@ -1125,6 +1128,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/systemd-umount
 %attr(755,root,root) %{_bindir}/timedatectl
+/lib/modprobe.d/systemd.conf
 /lib/systemd/import-pubring.gpg
 /lib/systemd/resolv.conf
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
@@ -1137,6 +1141,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-dissect
 %attr(755,root,root) /lib/systemd/systemd-export
 %attr(755,root,root) /lib/systemd/systemd-fsck
+%attr(755,root,root) /lib/systemd/systemd-growfs
 %attr(755,root,root) /lib/systemd/systemd-hibernate-resume
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
 %attr(755,root,root) /lib/systemd/systemd-import
@@ -1150,6 +1155,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-machined
+%attr(755,root,root) /lib/systemd/systemd-makefs
 %attr(755,root,root) /lib/systemd/systemd-modules-load
 %attr(755,root,root) /lib/systemd/systemd-pull
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
@@ -1190,56 +1196,56 @@ fi
 /lib/udev/rules.d/71-seat.rules
 /lib/udev/rules.d/73-seat-late.rules
 /lib/udev/rules.d/99-systemd.rules
-%{_libexecdir}/environment.d/99-environment.conf
-%dir %{_libexecdir}/kernel
-%dir %{_libexecdir}/kernel/install.d
-%{_libexecdir}/kernel/install.d/50-depmod.install
-%{_libexecdir}/kernel/install.d/90-loaderentry.install
+%{_prefix}/lib/environment.d/99-environment.conf
+%dir %{_prefix}/lib/kernel
+%dir %{_prefix}/lib/kernel/install.d
+%{_prefix}/lib/kernel/install.d/50-depmod.install
+%{_prefix}/lib/kernel/install.d/90-loaderentry.install
 %if %{with efi}
-%dir %{_libexecdir}/systemd/boot
-%dir %{_libexecdir}/systemd/boot/efi
+%dir %{_prefix}/lib/systemd/boot
+%dir %{_prefix}/lib/systemd/boot/efi
 %ifarch %{ix86}
-%{_libexecdir}/systemd/boot/efi/linuxia32.efi.stub
-%{_libexecdir}/systemd/boot/efi/systemd-bootia32.efi
+%{_prefix}/lib/systemd/boot/efi/linuxia32.efi.stub
+%{_prefix}/lib/systemd/boot/efi/systemd-bootia32.efi
 %endif
 %ifarch %{x8664} x32
-%{_libexecdir}/systemd/boot/efi/linuxx64.efi.stub
-%{_libexecdir}/systemd/boot/efi/systemd-bootx64.efi
+%{_prefix}/lib/systemd/boot/efi/linuxx64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/systemd-bootx64.efi
 %endif
 %ifarch aarch64
-%{_libexecdir}/systemd/boot/efi/linuxaa64.efi.stub
-%{_libexecdir}/systemd/boot/efi/systemd-bootaa64.efi
+%{_prefix}/lib/systemd/boot/efi/linuxaa64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/systemd-bootaa64.efi
 %endif
 %endif
-%{_libexecdir}/systemd/catalog/systemd.catalog
-%lang(be) %{_libexecdir}/systemd/catalog/systemd.be.catalog
-%lang(be) %{_libexecdir}/systemd/catalog/systemd.be@latin.catalog
-%lang(bg) %{_libexecdir}/systemd/catalog/systemd.bg.catalog
-%lang(de) %{_libexecdir}/systemd/catalog/systemd.de.catalog
-%lang(fr) %{_libexecdir}/systemd/catalog/systemd.fr.catalog
-%lang(it) %{_libexecdir}/systemd/catalog/systemd.it.catalog
-%lang(pl) %{_libexecdir}/systemd/catalog/systemd.pl.catalog
-%lang(pt_BR) %{_libexecdir}/systemd/catalog/systemd.pt_BR.catalog
-%lang(ru) %{_libexecdir}/systemd/catalog/systemd.ru.catalog
-%lang(zh_CN) %{_libexecdir}/systemd/catalog/systemd.zh_CN.catalog
-%lang(zh_TW) %{_libexecdir}/systemd/catalog/systemd.zh_TW.catalog
-%dir %{_libexecdir}/sysusers.d
-%{_libexecdir}/sysusers.d/basic.conf
-%{_libexecdir}/sysusers.d/systemd.conf
+%{_prefix}/lib/systemd/catalog/systemd.catalog
+%lang(be) %{_prefix}/lib/systemd/catalog/systemd.be.catalog
+%lang(be) %{_prefix}/lib/systemd/catalog/systemd.be@latin.catalog
+%lang(bg) %{_prefix}/lib/systemd/catalog/systemd.bg.catalog
+%lang(de) %{_prefix}/lib/systemd/catalog/systemd.de.catalog
+%lang(fr) %{_prefix}/lib/systemd/catalog/systemd.fr.catalog
+%lang(it) %{_prefix}/lib/systemd/catalog/systemd.it.catalog
+%lang(pl) %{_prefix}/lib/systemd/catalog/systemd.pl.catalog
+%lang(pt_BR) %{_prefix}/lib/systemd/catalog/systemd.pt_BR.catalog
+%lang(ru) %{_prefix}/lib/systemd/catalog/systemd.ru.catalog
+%lang(zh_CN) %{_prefix}/lib/systemd/catalog/systemd.zh_CN.catalog
+%lang(zh_TW) %{_prefix}/lib/systemd/catalog/systemd.zh_TW.catalog
+%dir %{_prefix}/lib/sysusers.d
+%{_prefix}/lib/sysusers.d/basic.conf
+%{_prefix}/lib/sysusers.d/systemd.conf
 %if %{with microhttpd}
-%{_libexecdir}/sysusers.d/systemd-remote.conf
+%{_prefix}/lib/sysusers.d/systemd-remote.conf
 %endif
-%{_libexecdir}/tmpfiles.d/etc.conf
-%{_libexecdir}/tmpfiles.d/home.conf
-%{_libexecdir}/tmpfiles.d/journal-nocow.conf
-%{_libexecdir}/tmpfiles.d/legacy.conf
-%{_libexecdir}/tmpfiles.d/systemd.conf
-%{_libexecdir}/tmpfiles.d/systemd-nologin.conf
-%{_libexecdir}/tmpfiles.d/systemd-nspawn.conf
-%{_libexecdir}/tmpfiles.d/tmp.conf
-%{_libexecdir}/tmpfiles.d/var.conf
-%{_libexecdir}/tmpfiles.d/x11.conf
-%{_libexecdir}/sysctl.d/50-coredump.conf
+%{_prefix}/lib/tmpfiles.d/etc.conf
+%{_prefix}/lib/tmpfiles.d/home.conf
+%{_prefix}/lib/tmpfiles.d/journal-nocow.conf
+%{_prefix}/lib/tmpfiles.d/legacy.conf
+%{_prefix}/lib/tmpfiles.d/systemd.conf
+%{_prefix}/lib/tmpfiles.d/systemd-nologin.conf
+%{_prefix}/lib/tmpfiles.d/systemd-nspawn.conf
+%{_prefix}/lib/tmpfiles.d/tmp.conf
+%{_prefix}/lib/tmpfiles.d/var.conf
+%{_prefix}/lib/tmpfiles.d/x11.conf
+%{_prefix}/lib/sysctl.d/50-coredump.conf
 %{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
@@ -1349,9 +1355,11 @@ fi
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-debug-generator.8*
 %{_mandir}/man8/systemd-fsck.8*
-%{_mandir}/man8/systemd-gpt-auto-generator.8*
 %{_mandir}/man8/systemd-fstab-generator.8*
 %{_mandir}/man8/systemd-getty-generator.8*
+%{_mandir}/man8/systemd-gpt-auto-generator.8*
+%{_mandir}/man8/systemd-growfs.8*
+%{_mandir}/man8/systemd-growfs@.service.8*
 %{_mandir}/man8/systemd-hibernate-resume-generator.8*
 %{_mandir}/man8/systemd-hibernate-resume.8*
 %{_mandir}/man8/systemd-hibernate-resume@.service.8*
@@ -1368,6 +1376,9 @@ fi
 %{_mandir}/man8/systemd-logind.8*
 %{_mandir}/man8/systemd-machined.8*
 %{_mandir}/man8/systemd-machine-id-commit.service.8*
+%{_mandir}/man8/systemd-makefs.8*
+%{_mandir}/man8/systemd-makefs@.service.8*
+%{_mandir}/man8/systemd-makeswap@.service.8*
 %{_mandir}/man8/systemd-modules-load.8*
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
@@ -1404,6 +1415,7 @@ fi
 %attr(600,root,utmp) %ghost /var/log/btmp
 %attr(664,root,utmp) %ghost /var/log/wtmp
 %attr(2755,root,systemd-journal) %dir /var/log/journal
+%attr(2755,root,systemd-journal) %dir /var/log/journal/remote
 
 %if %{with pam}
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
@@ -1440,30 +1452,35 @@ fi
 %dir %{_sysconfdir}/systemd/system-preset
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system-preset/default.preset
 %dir %{_sysconfdir}/tmpfiles.d
-%dir %{_libexecdir}/environment.d
-%dir %{_libexecdir}/modules-load.d
-%dir %{_libexecdir}/sysctl.d
-%{_libexecdir}/sysctl.d/50-default.conf
-%dir %{_libexecdir}/systemd
-%dir %{_libexecdir}/systemd/catalog
-%dir %{_libexecdir}/systemd/system-shutdown
-%dir %{_libexecdir}/systemd/system-sleep
-%dir %{_libexecdir}/systemd/user
-%{_libexecdir}/systemd/user/basic.target
-%{_libexecdir}/systemd/user/bluetooth.target
-%{_libexecdir}/systemd/user/default.target
-%{_libexecdir}/systemd/user/exit.target
-%{_libexecdir}/systemd/user/paths.target
-%{_libexecdir}/systemd/user/printer.target
-%{_libexecdir}/systemd/user/shutdown.target
-%{_libexecdir}/systemd/user/smartcard.target
-%{_libexecdir}/systemd/user/sockets.target
-%{_libexecdir}/systemd/user/sound.target
-%{_libexecdir}/systemd/user/timers.target
-%{_libexecdir}/systemd/user/systemd-exit.service
-%dir %{_libexecdir}/systemd/user-generators
-%dir %{_libexecdir}/systemd/user-environment-generators
-%attr(755,root,root) %{_libexecdir}/systemd/user-environment-generators/30-systemd-environment-d-generator
+%dir %{_prefix}/lib/environment.d
+%dir %{_prefix}/lib/modules-load.d
+%dir %{_prefix}/lib/sysctl.d
+%{_prefix}/lib/sysctl.d/50-default.conf
+%dir %{_prefix}/lib/systemd
+%dir %{_prefix}/lib/systemd/catalog
+%dir %{_prefix}/lib/systemd/system-shutdown
+%dir %{_prefix}/lib/systemd/system-sleep
+%dir %{_prefix}/lib/systemd/user
+%{_prefix}/lib/systemd/user/basic.target
+%{_prefix}/lib/systemd/user/bluetooth.target
+%{_prefix}/lib/systemd/user/default.target
+%{_prefix}/lib/systemd/user/exit.target
+%{_prefix}/lib/systemd/user/paths.target
+%{_prefix}/lib/systemd/user/printer.target
+%{_prefix}/lib/systemd/user/shutdown.target
+%{_prefix}/lib/systemd/user/smartcard.target
+%{_prefix}/lib/systemd/user/sockets.target
+%{_prefix}/lib/systemd/user/sound.target
+%{_prefix}/lib/systemd/user/systemd-tmpfiles-clean.service
+%{_prefix}/lib/systemd/user/systemd-tmpfiles-clean.timer
+%{_prefix}/lib/systemd/user/systemd-tmpfiles-setup.service
+%{_prefix}/lib/systemd/user/timers.target
+%{_prefix}/lib/systemd/user/systemd-exit.service
+%dir %{_prefix}/lib/systemd/user-generators
+%dir %{_prefix}/lib/systemd/user-environment-generators
+%attr(755,root,root) %{_prefix}/lib/systemd/user-environment-generators/30-systemd-environment-d-generator
+%dir %{_prefix}/lib/systemd/user-preset
+%{_prefix}/lib/systemd/user-preset/90-systemd.preset
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
@@ -1676,12 +1693,12 @@ fi
 %dir %{systemdunitdir}/rescue.target.wants
 %dir %{systemdunitdir}/runlevel[12345].target.wants
 %dir %{systemdunitdir}/shutdown.target.wants
-%dir %{systemdunitdir}/sound.target.wants
-%dir %{systemdunitdir}/system-update.target.wants
 %dir %{systemdunitdir}/sigpwr.target.wants
 %dir %{systemdunitdir}/sockets.target.wants
+%dir %{systemdunitdir}/sound.target.wants
 %dir %{systemdunitdir}/sysinit.target.wants
 %dir %{systemdunitdir}/syslog.target.wants
+%dir %{systemdunitdir}/system-update.target.wants
 %dir %{systemdunitdir}/timers.target.wants
 %{systemdunitdir}/final.target.wants/halt-local.service
 %{systemdunitdir}/graphical.target.wants/display-manager.service
@@ -1824,9 +1841,10 @@ fi
 %files resolved
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
+%config(noreplace,missingok) %verify(not md5 mtime size) /etc/systemd/system/dbus-org.freedesktop.resolve1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.resolve1.conf
 %{_datadir}/dbus-1/system-services/org.freedesktop.resolve1.service
-%config(noreplace,missingok) %verify(not md5 mtime size) /etc/systemd/system/dbus-org.freedesktop.resolve1.service
+%{_datadir}/polkit-1/actions/org.freedesktop.resolve1.policy
 %{systemdunitdir}/systemd-resolved.service
 %attr(755,root,root) /lib/systemd/systemd-resolved
 %{_mandir}/man5/resolved.conf.5*
