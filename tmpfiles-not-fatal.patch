@@ -6,7 +6,7 @@
  RemainAfterExit=yes
 -ExecStart=@rootbindir@/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
 +ExecStart=-@rootbindir@/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
- SuccessExitStatus=65
+ SuccessExitStatus=65 73
 --- systemd-238/units/systemd-tmpfiles-clean.service.in~	2018-03-05 23:16:37.000000000 +0100
 +++ systemd-238/units/systemd-tmpfiles-clean.service.in	2018-05-15 13:24:19.297825542 +0200
 @@ -17,6 +17,6 @@ Before=shutdown.target

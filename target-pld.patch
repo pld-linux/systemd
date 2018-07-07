@@ -17,7 +17,7 @@
 +int read_etc_hostname_distro(const char *path, char **ret) {
 +        int r;
 +        char *p;
-+        r = parse_env_file("/etc/sysconfig/network", NEWLINE, "HOSTNAME", &p, NULL);
++        r = parse_env_file(NULL, "/etc/sysconfig/network", NEWLINE, "HOSTNAME", &p, NULL);
 +        if (r < 0)
 +                return r;
 +        if (r == 0) /* EOF without any hostname? the file is empty, let's treat that exactly like no file at all: ENOENT */
@@ -50,8 +50,8 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
 +++ systemd-208/src/core/locale-setup.c	2014-01-09 15:15:41.000000000 +0100
 @@ -76,6 +76,7 @@
  
-         if (detect_container(NULL) <= 0) {
-                 r = parse_env_file("/proc/cmdline", WHITESPACE,
+         if (detect_container() <= 0) {
+                 r = parse_env_file(NULL, "/proc/cmdline", WHITESPACE,
 +                                   "LANG",                     &variables[VARIABLE_LANG],
                                     "locale.LANG",              &variables[VARIABLE_LANG],
                                     "locale.LANGUAGE",          &variables[VARIABLE_LANGUAGE],
@@ -61,7 +61,7 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
          }
  
 +        if (r <= 0 &&
-+            (r = parse_env_file("/etc/sysconfig/i18n", NEWLINE,
++            (r = parse_env_file(NULL, "/etc/sysconfig/i18n", NEWLINE,
 +                                "LANG", &variables[VARIABLE_LANG],
 +                                NULL)) < 0) {
 +
@@ -81,7 +81,7 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
 -        if (!e)
 -                return -EINVAL;
 +        if (!e) {
-+                r = parse_env_file("/etc/sysconfig/timezone", NEWLINE,
++                r = parse_env_file(NULL, "/etc/sysconfig/timezone", NEWLINE,
 +                        "TIMEZONE", &e,
 +                        NULL);
 +                if (r < 0) {
@@ -101,7 +101,7 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c sys
                  log_warning("Failed to read /etc/vconsole.conf: %s", strerror(-r));
  
 +        if (r <= 0) {
-+                int r1 = parse_env_file("/etc/sysconfig/console", NEWLINE,
++                int r1 = parse_env_file(NULL, "/etc/sysconfig/console", NEWLINE,
 +                                "CONSOLEFONT", &vc_font,
 +                                "CONSOLEMAP", &vc_font_map,
 +                                "CONSOLESCREENFONTMAP", &vc_font_unimap,
@@ -113,4 +113,4 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c sys
 +
          /* Let the kernel command line override /etc/vconsole.conf */
          if (detect_container(NULL) <= 0) {
-                 r = parse_env_file("/proc/cmdline", WHITESPACE,
+                 r = parse_env_file(NULL, "/proc/cmdline", WHITESPACE,

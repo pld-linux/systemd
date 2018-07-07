@@ -19,12 +19,14 @@
  executable('systemd-shutdown',
 --- systemd-183/units/systemd-udev-trigger.service.in~	2012-05-21 15:14:51.642981269 +0200
 +++ systemd-183/units/systemd-udev-trigger.service.in	2012-05-30 13:55:20.229509590 +0200
-@@ -17,4 +17,4 @@
+@@ -17,5 +17,5 @@
  [Service]
  Type=oneshot
  RemainAfterExit=yes
--ExecStart=@rootbindir@/udevadm trigger --type=subsystems --action=add ; @rootbindir@/udevadm trigger --type=devices --action=add
-+ExecStart=@rootsbindir@/udevadm trigger --type=subsystems --action=add ; @rootsbindir@/udevadm trigger --type=devices --action=add
+-ExecStart=@rootbindir@/udevadm trigger --type=subsystems --action=add
+-ExecStart=@rootbindir@/udevadm trigger --type=devices --action=add
++ExecStart=@rootsbindir@/udevadm trigger --type=subsystems --action=add
++ExecStart=@rootsbindir@/udevadm trigger --type=devices --action=add
 --- systemd-183/units/systemd-udev-settle.service.in~	2012-05-30 13:43:34.886201138 +0200
 +++ systemd-183/units/systemd-udev-settle.service.in	2012-05-30 13:55:44.546175399 +0200
 @@ -29,4 +29,4 @@

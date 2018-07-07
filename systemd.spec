@@ -7,6 +7,51 @@
 # - dev->udev upgrade:
 #   - /dev/urandom remains missing, not created with start_udev anymore
 #
+#warning: Installed (but unpackaged) file(s) found:
+#	/lib/systemd/portable/profile/default/service.conf
+#	/lib/systemd/portable/profile/nonetwork/service.conf
+#	/lib/systemd/portable/profile/strict/service.conf
+#	/lib/systemd/portable/profile/trusted/service.conf
+#	/lib/systemd/portablectl
+#	/lib/systemd/system/dbus-org.freedesktop.portable1.service
+#	/lib/systemd/system/suspend-then-hibernate.target
+#	/lib/systemd/system/system-update-pre.target
+#	/lib/systemd/system/systemd-portabled.service
+#	/lib/systemd/system/systemd-suspend-then-hibernate.service
+#	/lib/systemd/system/systemd-time-wait-sync.service
+#	/lib/systemd/system/user-.slice.d/10-defaults.conf
+#	/lib/systemd/system/user-runtime-dir@.service
+#	/lib/systemd/systemd-portabled
+#	/lib/systemd/systemd-time-wait-sync
+#	/lib/systemd/systemd-user-runtime-dir
+#	/lib/udev/hwdb.d/20-vmbus-class.hwdb
+#	/sbin/resolvconf
+#	/usr/bin/resolvectl
+#	/usr/lib/rpm/macros.d/macros.systemd
+#	/usr/lib/tmpfiles.d/portables.conf
+#	/usr/share/bash-completion/completions/portablectl
+#	/usr/share/bash-completion/completions/resolvectl
+#	/usr/share/dbus-1/system-services/org.freedesktop.portable1.service
+#	/usr/share/dbus-1/system-services/org.freedesktop.timesync1.service
+#	/usr/share/dbus-1/system.d/org.freedesktop.portable1.conf
+#	/usr/share/dbus-1/system.d/org.freedesktop.timesync1.conf
+#	/usr/share/man/man1/portablectl.1.gz
+#	/usr/share/man/man1/resolvconf.1
+#	/usr/share/man/man1/resolvectl.1.gz
+#	/usr/share/man/man5/loader.conf.5.gz
+#	/usr/share/man/man7/sd-boot.7
+#	/usr/share/man/man7/systemd-boot.7.gz
+#	/usr/share/man/man7/systemd.syntax.7.gz
+#	/usr/share/man/man8/systemd-journal-remote.service.8.gz
+#	/usr/share/man/man8/systemd-journal-remote.socket.8
+#	/usr/share/man/man8/systemd-journal-upload.service.8.gz
+#	/usr/share/man/man8/systemd-portabled.8
+#	/usr/share/man/man8/systemd-portabled.service.8.gz
+#	/usr/share/man/man8/systemd-suspend-then-hibernate.service.8
+#	/usr/share/man/man8/systemd-time-wait-sync.8
+#	/usr/share/man/man8/systemd-time-wait-sync.service.8.gz
+#	/usr/share/polkit-1/actions/org.freedesktop.portable1.policy
+#
 # Conditional build:
 %bcond_without	audit		# audit support
 %bcond_without	cryptsetup	# cryptsetup support
@@ -25,13 +70,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	238
+Version:	239
 Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	76db8004647283b779234364cd637d3c
+# Source0-md5:	6137e3f50390391cf34521d071a1a078
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -64,7 +109,6 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
-Patch7:		%{name}-glibc.patch
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -627,7 +671,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
-%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
@@ -1293,7 +1336,6 @@ fi
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
 %{_mandir}/man1/systemd-path.1*
-%{_mandir}/man1/systemd-resolve.1*
 %{_mandir}/man1/systemd-run.1*
 %{_mandir}/man1/systemd-socket-activate.1*
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
@@ -1369,8 +1411,8 @@ fi
 %{_mandir}/man8/systemd-journald-dev-log.socket.8*
 %{_mandir}/man8/systemd-journald.8*
 %if %{with microhttpd}
-%{_mandir}/man8/systemd-journal-remote.8.*
-%{_mandir}/man8/systemd-journal-upload.8.*
+%{_mandir}/man8/systemd-journal-remote.8*
+%{_mandir}/man8/systemd-journal-upload.8*
 %endif
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*

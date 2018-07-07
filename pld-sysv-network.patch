@@ -4,7 +4,7 @@ diff -dur -x '*.orig' systemd-218.orig/man/systemd.special.xml systemd-218/man/s
 @@ -910,6 +910,10 @@
            <varname>After=</varname> for this target unit to all SysV
            init script service units with an LSB header referring to
-           the <literal>$network</literal> facility.</para>
+           the <literal>$portmap</literal> facility.</para>
 +
 +          <para>PLD specific: also scripts with
 +          <literal>. /etc/sysconfig/network</literal>
