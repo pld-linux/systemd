@@ -8,48 +8,23 @@
 #   - /dev/urandom remains missing, not created with start_udev anymore
 #
 #warning: Installed (but unpackaged) file(s) found:
+#	/usr/lib/rpm/macros.d/macros.systemd
+# %files portabled?
 #	/lib/systemd/portable/profile/default/service.conf
 #	/lib/systemd/portable/profile/nonetwork/service.conf
 #	/lib/systemd/portable/profile/strict/service.conf
 #	/lib/systemd/portable/profile/trusted/service.conf
 #	/lib/systemd/portablectl
 #	/lib/systemd/system/dbus-org.freedesktop.portable1.service
-#	/lib/systemd/system/suspend-then-hibernate.target
-#	/lib/systemd/system/system-update-pre.target
 #	/lib/systemd/system/systemd-portabled.service
-#	/lib/systemd/system/systemd-suspend-then-hibernate.service
-#	/lib/systemd/system/systemd-time-wait-sync.service
-#	/lib/systemd/system/user-.slice.d/10-defaults.conf
-#	/lib/systemd/system/user-runtime-dir@.service
 #	/lib/systemd/systemd-portabled
-#	/lib/systemd/systemd-time-wait-sync
-#	/lib/systemd/systemd-user-runtime-dir
-#	/lib/udev/hwdb.d/20-vmbus-class.hwdb
-#	/sbin/resolvconf
-#	/usr/bin/resolvectl
-#	/usr/lib/rpm/macros.d/macros.systemd
 #	/usr/lib/tmpfiles.d/portables.conf
 #	/usr/share/bash-completion/completions/portablectl
-#	/usr/share/bash-completion/completions/resolvectl
 #	/usr/share/dbus-1/system-services/org.freedesktop.portable1.service
-#	/usr/share/dbus-1/system-services/org.freedesktop.timesync1.service
 #	/usr/share/dbus-1/system.d/org.freedesktop.portable1.conf
-#	/usr/share/dbus-1/system.d/org.freedesktop.timesync1.conf
 #	/usr/share/man/man1/portablectl.1.gz
-#	/usr/share/man/man1/resolvconf.1
-#	/usr/share/man/man1/resolvectl.1.gz
-#	/usr/share/man/man5/loader.conf.5.gz
-#	/usr/share/man/man7/sd-boot.7
-#	/usr/share/man/man7/systemd-boot.7.gz
-#	/usr/share/man/man7/systemd.syntax.7.gz
-#	/usr/share/man/man8/systemd-journal-remote.service.8.gz
-#	/usr/share/man/man8/systemd-journal-remote.socket.8
-#	/usr/share/man/man8/systemd-journal-upload.service.8.gz
 #	/usr/share/man/man8/systemd-portabled.8
 #	/usr/share/man/man8/systemd-portabled.service.8.gz
-#	/usr/share/man/man8/systemd-suspend-then-hibernate.service.8
-#	/usr/share/man/man8/systemd-time-wait-sync.8
-#	/usr/share/man/man8/systemd-time-wait-sync.service.8.gz
 #	/usr/share/polkit-1/actions/org.freedesktop.portable1.policy
 #
 # Conditional build:
@@ -1113,6 +1088,7 @@ fi
 %{_datadir}/dbus-1/system.d/org.freedesktop.machine1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.systemd1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.timedate1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.timesync1.conf
 %attr(755,root,root) %{_sysconfdir}/X11/xinit/xinitrc.d/50-systemd-user.sh
 %attr(444,root,root) %ghost %config(noreplace) %{_sysconfdir}/machine-id
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
@@ -1217,11 +1193,13 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-socket-proxyd
 %attr(755,root,root) /lib/systemd/systemd-sulogin-shell
 %attr(755,root,root) /lib/systemd/systemd-sysctl
+%attr(755,root,root) /lib/systemd/systemd-time-wait-sync
 %attr(755,root,root) /lib/systemd/systemd-timedated
 %attr(755,root,root) /lib/systemd/systemd-timesyncd
 %attr(755,root,root) /lib/systemd/systemd-udevd
 %attr(755,root,root) /lib/systemd/systemd-update-utmp
 %attr(755,root,root) /lib/systemd/systemd-update-done
+%attr(755,root,root) /lib/systemd/systemd-user-runtime-dir
 %attr(755,root,root) /lib/systemd/systemd-user-sessions
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
 %attr(755,root,root) /lib/systemd/systemd-veritysetup
@@ -1303,6 +1281,7 @@ fi
 %{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.timesync1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.import1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.locale1.policy
@@ -1352,6 +1331,7 @@ fi
 %{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/dnssec-trust-anchors.d.5*
 %{_mandir}/man5/hostname.5*
+%{_mandir}/man5/loader.conf.5*
 %if %{with microhttpd}
 %{_mandir}/man5/journal-remote.conf.5*
 %{_mandir}/man5/journal-remote.conf.d.5*
@@ -1384,6 +1364,8 @@ fi
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/file-hierarchy.7*
 %{_mandir}/man7/kernel-command-line.7*
+%{_mandir}/man7/sd-boot.7*
+%{_mandir}/man7/systemd-boot.7*
 %{_mandir}/man7/systemd.directives.7*
 %{_mandir}/man7/systemd.environment-generator.7*
 %{_mandir}/man7/systemd.generator.7*
@@ -1391,6 +1373,7 @@ fi
 %{_mandir}/man7/systemd.journal-fields.7*
 %{_mandir}/man7/systemd.offline-updates.7*
 %{_mandir}/man7/systemd.special.7*
+%{_mandir}/man7/systemd.syntax.7*
 %{_mandir}/man7/systemd.time.7*
 %{_mandir}/man8/kernel-install.8*
 %{_mandir}/man8/libnss_myhostname.so.2.8*
@@ -1441,6 +1424,7 @@ fi
 %{_mandir}/man8/systemd-sysusers.8*
 %{_mandir}/man8/systemd-sysusers.service.8*
 %{_mandir}/man8/systemd-sysv-generator.8*
+%{_mandir}/man8/systemd-time-wait-sync.8*
 %{_mandir}/man8/systemd-timedated.8*
 %{_mandir}/man8/systemd-timesyncd.8*
 %{_mandir}/man8/systemd-timesyncd.service.8*
@@ -1597,8 +1581,10 @@ fi
 %{systemdunitdir}/serial-getty@.service
 %{systemdunitdir}/single.service
 %{systemdunitdir}/sigpwr-container-shutdown.service
+%{systemdunitdir}/suspend-then-hibernate.target
 %{systemdunitdir}/sys-kernel-config.service
 %{systemdunitdir}/system-update-cleanup.service
+%{systemdunitdir}/system-update-pre.target
 %{systemdunitdir}/systemd-ask-password-console.service
 %{systemdunitdir}/systemd-ask-password-wall.service
 %{systemdunitdir}/systemd-backlight@.service
@@ -1634,8 +1620,10 @@ fi
 %{systemdunitdir}/systemd-remount-fs.service
 %{systemdunitdir}/systemd-rfkill.service
 %{systemdunitdir}/systemd-suspend.service
+%{systemdunitdir}/systemd-suspend-then-hibernate.service
 %{systemdunitdir}/systemd-sysctl.service
 %{systemdunitdir}/systemd-sysusers.service
+%{systemdunitdir}/systemd-time-wait-sync.service
 %{systemdunitdir}/systemd-timedated.service
 %{systemdunitdir}/systemd-timesyncd.service
 %{systemdunitdir}/systemd-tmpfiles-clean.service
@@ -1653,6 +1641,9 @@ fi
 %{systemdunitdir}/user@.service
 %{systemdunitdir}/machine.slice
 #%{systemdunitdir}/system.slice
+%dir %{systemdunitdir}/user-.slice.d
+%{systemdunitdir}/user-.slice.d/10-defaults.conf
+%{systemdunitdir}/user-runtime-dir@.service
 %{systemdunitdir}/user.slice
 %exclude %{systemdunitdir}/rc-inetd.service
 %{systemdunitdir}/syslog.socket
@@ -1819,11 +1810,14 @@ fi
 %{_mandir}/man8/systemd-hibernate.service.8*
 %{_mandir}/man8/systemd-hostnamed.service.8*
 %{_mandir}/man8/systemd-hybrid-sleep.service.8*
+%{_mandir}/man8/systemd-importd.service.8*
 %{_mandir}/man8/systemd-initctl.service.8*
 %{_mandir}/man8/systemd-initctl.socket.8*
+%{_mandir}/man8/systemd-journal-remote.service.8*
+%{_mandir}/man8/systemd-journal-remote.socket.8*
+%{_mandir}/man8/systemd-journal-upload.service.8*
 %{_mandir}/man8/systemd-journald.service.8*
 %{_mandir}/man8/systemd-journald.socket.8*
-%{_mandir}/man8/systemd-importd.service.8*
 %{_mandir}/man8/systemd-journald-audit.socket.8*
 %{_mandir}/man8/systemd-kexec.service.8*
 %{_mandir}/man8/systemd-localed.service.8*
@@ -1837,7 +1831,9 @@ fi
 %{_mandir}/man8/systemd-remount-fs.service.8*
 %{_mandir}/man8/systemd-rfkill.socket.8*
 %{_mandir}/man8/systemd-suspend.service.8*
+%{_mandir}/man8/systemd-suspend-then-hibernate.service.8*
 %{_mandir}/man8/systemd-sysctl.service.8*
+%{_mandir}/man8/systemd-time-wait-sync.service.8*
 %{_mandir}/man8/systemd-timedated.service.8*
 %{_mandir}/man8/systemd-tmpfiles-clean.service.8*
 %{_mandir}/man8/systemd-tmpfiles-clean.timer.8*
@@ -1894,7 +1890,11 @@ fi
 %{_datadir}/dbus-1/system-services/org.freedesktop.resolve1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.resolve1.policy
 %{systemdunitdir}/systemd-resolved.service
+%attr(755,root,root) /sbin/resolvconf
+%attr(755,root,root) %{_bindir}/resolvectl
 %attr(755,root,root) /lib/systemd/systemd-resolved
+%{_mandir}/man1/resolvconf.1*
+%{_mandir}/man1/resolvectl.1*
 %{_mandir}/man5/resolved.conf.5*
 %{_mandir}/man5/resolved.conf.d.5*
 %{_mandir}/man8/systemd-resolved.8*
@@ -1944,6 +1944,7 @@ fi
 %{bash_compdir}/loginctl
 %{bash_compdir}/machinectl
 %{bash_compdir}/networkctl
+%{bash_compdir}/resolvectl
 %{bash_compdir}/systemctl
 %{bash_compdir}/systemd-analyze
 %{bash_compdir}/systemd-cat
@@ -2017,6 +2018,7 @@ fi
 /lib/udev/hwdb.d/20-sdio-vendor-model.hwdb
 /lib/udev/hwdb.d/20-usb-classes.hwdb
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
+/lib/udev/hwdb.d/20-vmbus-class.hwdb
 /lib/udev/hwdb.d/60-evdev.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
 /lib/udev/hwdb.d/60-sensor.hwdb
