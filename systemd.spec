@@ -109,6 +109,7 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
+Patch7:		%{name}-struct-statx-in-glibc.patch
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -131,6 +132,7 @@ BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl
 BuildRequires:	elfutils-devel >= 0.158
 BuildRequires:	gettext-tools
+BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
 %{?with_efi:BuildRequires:	gnu-efi}
 BuildRequires:	gnutls-devel >= 3.1.4
@@ -144,18 +146,20 @@ BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
 BuildRequires:	libgcrypt-devel >= 1.4.5
 BuildRequires:	libgpg-error-devel >= 1.12
-BuildRequires:	libidn-devel
+BuildRequires:	libidn2-devel
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
-BuildRequires:	libmount-devel >= 2.28.2-2
+BuildRequires:	libmount-devel >= 2.30
 BuildRequires:	libseccomp-devel >= 2.3.1
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel >= r125
 BuildRequires:	m4
-BuildRequires:	meson
+BuildRequires:	meson >= 0.44
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
+BuildRequires:	pcre2-8-devel
 BuildRequires:	pkgconfig >= 0.9.0
+BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
@@ -189,13 +193,13 @@ Requires:	kmod >= 25-2
 Requires:	libgpg-error >= 1.12
 %{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
 Requires:	libutempter
-Requires:	polkit
+Requires:	polkit >= 0.106
 Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.8.0-2
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
-Requires:	util-linux >= 2.28.2-2
+Requires:	util-linux >= 2.30
 Suggests:	fsck >= 2.25.0
 Suggests:	service(klogd)
 Suggests:	service(syslog)
@@ -671,6 +675,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
+%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
@@ -693,6 +698,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	-Dkill-path=/bin/kill \
 	-Dkmod-path=/sbin/kmod \
 	-Dlibcryptsetup=%{__true_false cryptsetup} \
+	-Dlibidn2=true \
 	-Dloadkeys-path=/usr/bin/loadkeys \
 	-Dlz4=true \
 	-Dmicrohttpd=%{__true_false microhttpd} \
