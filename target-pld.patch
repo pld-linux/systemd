@@ -39,7 +39,7 @@
 +                int r;
                  path = "/etc/hostname";
 +                r = read_etc_hostname_distro(path, ret);
-+                if (r > 0)
++                if (r == 0)
 +                        return r;
 +        }
  
