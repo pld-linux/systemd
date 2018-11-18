@@ -16,7 +16,7 @@
  
 +int read_etc_hostname_distro(const char *path, char **ret) {
 +        int r;
-+        char *p;
++        char *p = NULL;
 +        r = parse_env_file(NULL, "/etc/sysconfig/network", NEWLINE, "HOSTNAME", &p, NULL);
 +        if (r < 0)
 +                return r;
