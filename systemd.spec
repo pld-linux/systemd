@@ -156,6 +156,7 @@ Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	%{name}-units = %{epoch}:%{version}-%{release}
+Requires:	%{name}-tools = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
@@ -364,6 +365,18 @@ zarządcy systemu i usług systemd.
 
 Ten pakiet zawiera ogólną konfigurację, ustawienia można nadpisać
 poprzez katalog %{_sysconfdir}/systemd/system.
+
+%package tools
+Summary:	Tools that work with and without systemd started
+Summary(pl.UTF-8):	Narzędzia działające przy uruchomionym jak i bez systemd
+Group:		Base
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+
+%description tools
+Tools that work with and without systemd started.
+
+%description tools -l pl.UTF-8
+Narzędzia działające przy uruchomionym jak i bez systemd.
 
 %package journal-gateway
 Summary:	Gateway for serving journal events over the network using HTTP
@@ -1141,8 +1154,6 @@ fi
 %attr(755,root,root) %{_bindir}/kernel-install
 %attr(755,root,root) %{_bindir}/localectl
 %attr(755,root,root) %{_bindir}/systemd-cat
-%attr(755,root,root) %{_bindir}/systemd-cgls
-%attr(755,root,root) %{_bindir}/systemd-cgtop
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
 %attr(755,root,root) %{_bindir}/systemd-mount
@@ -1310,8 +1321,6 @@ fi
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cat.1*
-%{_mandir}/man1/systemd-cgls.1*
-%{_mandir}/man1/systemd-cgtop.1*
 %{_mandir}/man1/systemd-delta.1*
 %{_mandir}/man1/systemd-detect-virt.1*
 %{_mandir}/man1/systemd-escape.1*
@@ -1848,6 +1857,13 @@ fi
 %{_mandir}/man8/systemd-update-utmp.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
 %{_mandir}/man8/systemd-vconsole-setup.service.8*
+
+%files tools
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/systemd-cgls
+%attr(755,root,root) %{_bindir}/systemd-cgtop
+%{_mandir}/man1/systemd-cgls.1*
+%{_mandir}/man1/systemd-cgtop.1*
 
 %if %{with microhttpd}
 %files journal-gateway
