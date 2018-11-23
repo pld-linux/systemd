@@ -1344,7 +1344,7 @@ fi
 %{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/dnssec-trust-anchors.d.5*
 %{_mandir}/man5/hostname.5*
-%{_mandir}/man5/loader.conf.5*
+%{?with_efi:%{_mandir}/man5/loader.conf.5*}
 %if %{with microhttpd}
 %{_mandir}/man5/journal-remote.conf.5*
 %{_mandir}/man5/journal-remote.conf.d.5*
@@ -1377,8 +1377,8 @@ fi
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/file-hierarchy.7*
 %{_mandir}/man7/kernel-command-line.7*
-%{_mandir}/man7/sd-boot.7*
-%{_mandir}/man7/systemd-boot.7*
+%{?with_efi:%{_mandir}/man7/sd-boot.7*}
+%{?with_efi:%{_mandir}/man7/systemd-boot.7*}
 %{_mandir}/man7/systemd.directives.7*
 %{_mandir}/man7/systemd.environment-generator.7*
 %{_mandir}/man7/systemd.generator.7*
