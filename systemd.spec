@@ -94,6 +94,7 @@ Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-seccomp_disable_on_i386.patch
 Patch16:	meson-debug.patch
+Patch17:	%{name}-timesync-changes-type-of-drift_freq-to-int64_t.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -674,6 +675,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
