@@ -9,23 +9,6 @@
 #
 #warning: Installed (but unpackaged) file(s) found:
 #	/usr/lib/rpm/macros.d/macros.systemd
-# %files portabled?
-#	/lib/systemd/portable/profile/default/service.conf
-#	/lib/systemd/portable/profile/nonetwork/service.conf
-#	/lib/systemd/portable/profile/strict/service.conf
-#	/lib/systemd/portable/profile/trusted/service.conf
-#	/lib/systemd/portablectl
-#	/lib/systemd/system/dbus-org.freedesktop.portable1.service
-#	/lib/systemd/system/systemd-portabled.service
-#	/lib/systemd/systemd-portabled
-#	/usr/lib/tmpfiles.d/portables.conf
-#	/usr/share/bash-completion/completions/portablectl
-#	/usr/share/dbus-1/system-services/org.freedesktop.portable1.service
-#	/usr/share/dbus-1/system.d/org.freedesktop.portable1.conf
-#	/usr/share/man/man1/portablectl.1.gz
-#	/usr/share/man/man8/systemd-portabled.8
-#	/usr/share/man/man8/systemd-portabled.service.8.gz
-#	/usr/share/polkit-1/actions/org.freedesktop.portable1.policy
 #
 # Conditional build:
 %bcond_without	audit		# audit support
@@ -419,6 +402,20 @@ virtual network devices.
 systemd-networkd to usługa systemowa zarządzająca siecią. Wykrywa i
 konfiguruje interfejsy sieciowe gdy się pojawiają, a także tworzy
 wirtualne urządzenia sieciowe.
+
+%package portabled
+Summary:	systemd portable service images service
+Summary(pl.UTF-8):	Usługa systemd do obrazów usług przenośnych
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description portabled
+systemd-portabled is a system service that may be used to attach,
+detach and inspect portable service images.
+
+%description portabled -l pl.UTF-8
+systemd-portabled to usługa systemowa służąca do podłączania,
+odłączania i badania obrazów usług przenośnych.
 
 %package resolved
 Summary:	systemd network name resolution manager
@@ -1097,7 +1094,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc doc/DISTRO_PORTING NEWS README TODO
+%doc doc/{BOOT_LOADER_SPECIFICATION.md,DISTRO_PORTING,ENVIRONMENT.md,TRANSIENT-SETTINGS.md,UIDS-GIDS.md} NEWS README TODO
 %{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
@@ -1902,6 +1899,31 @@ fi
 %{_mandir}/man8/systemd-networkd.8*
 %{_mandir}/man8/systemd-networkd.service.8*
 
+%files portabled
+%defattr(644,root,root,755)
+%doc doc/PORTABLE_SERVICES.md
+%attr(755,root,root) /lib/systemd/portablectl
+%attr(755,root,root) /lib/systemd/systemd-portabled
+%{systemdunitdir}/dbus-org.freedesktop.portable1.service
+%{systemdunitdir}/systemd-portabled.service
+%dir /lib/systemd/portable
+%dir /lib/systemd/portable/profile
+%dir /lib/systemd/portable/profile/default
+/lib/systemd/portable/profile/default/service.conf
+%dir /lib/systemd/portable/profile/nonetwork
+/lib/systemd/portable/profile/nonetwork/service.conf
+%dir /lib/systemd/portable/profile/strict
+/lib/systemd/portable/profile/strict/service.conf
+%dir /lib/systemd/portable/profile/trusted
+/lib/systemd/portable/profile/trusted/service.conf
+%{systemdtmpfilesdir}/portables.conf
+%{_datadir}/dbus-1/system-services/org.freedesktop.portable1.service
+%{_datadir}/dbus-1/system.d/org.freedesktop.portable1.conf
+%{_datadir}/polkit-1/actions/org.freedesktop.portable1.policy
+%{_mandir}/man1/portablectl.1*
+%{_mandir}/man8/systemd-portabled.8*
+%{_mandir}/man8/systemd-portabled.service.8*
+
 %files resolved
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
@@ -1964,6 +1986,7 @@ fi
 %{bash_compdir}/loginctl
 %{bash_compdir}/machinectl
 %{bash_compdir}/networkctl
+%{bash_compdir}/portablectl
 %{bash_compdir}/resolvectl
 %{bash_compdir}/systemctl
 %{bash_compdir}/systemd-analyze
