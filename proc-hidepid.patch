@@ -1,9 +1,9 @@
---- systemd-198/units/systemd-logind.service.in~	2012-07-19 12:46:25.831148364 +0200
-+++ systemd-198/units/systemd-logind.service.in	2013-03-24 16:39:38.798689883 +0100
-@@ -21,3 +21,7 @@
- # Increase the default a bit in order to allow many simultaneous
- # logins since we keep one fd open per session.
- LimitNOFILE=16384
+--- systemd-240/units/systemd-logind.service.in.orig	2019-01-13 10:40:04.142278844 +0100
++++ systemd-240/units/systemd-logind.service.in	2019-01-13 10:41:12.495611397 +0100
+@@ -41,3 +41,7 @@
+ # Increase the default a bit in order to allow many simultaneous logins since
+ # we keep one fd open per session.
+ LimitNOFILE=@HIGH_RLIMIT_NOFILE@
 +
 +# Run as group 'proc' to ensure access to /proc when
 +# it is mounted with hidepid=1|2 option

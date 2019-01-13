@@ -1,6 +1,6 @@
---- systemd-235/meson.build~	2017-10-06 10:18:04.000000000 +0200
-+++ systemd-235/meson.build	2017-10-21 15:12:47.202404998 +0200
-@@ -200,6 +201,7 @@ substs.set('includedir',
+--- systemd-240/meson.build.orig	2018-12-21 19:53:33.000000000 +0100
++++ systemd-240/meson.build	2019-01-13 10:00:36.555639211 +0100
+@@ -243,6 +243,7 @@
  substs.set('pkgsysconfdir',                                   pkgsysconfdir)
  substs.set('bindir',                                          bindir)
  substs.set('rootbindir',                                      rootbindir)
@@ -8,13 +8,13 @@
  substs.set('rootlibexecdir',                                  rootlibexecdir)
  substs.set('systemunitdir',                                   systemunitdir)
  substs.set('userunitdir',                                     userunitdir)
-@@ -2164,7 +2166,7 @@ exe = executable('udevadm',
+@@ -2650,7 +2651,7 @@
                                   libblkid],
                   install_rpath : udev_rpath,
                   install : true,
 -                 install_dir : rootbindir)
 +                 install_dir : rootsbindir)
- public_programs += [exe]
+ public_programs += exe
  
  executable('systemd-shutdown',
 --- systemd-183/units/systemd-udev-trigger.service.in~	2012-05-21 15:14:51.642981269 +0200
