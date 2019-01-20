@@ -111,9 +111,9 @@ BuildRequires:	libseccomp-devel >= 2.3.1
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
-BuildRequires:	lz4-devel >= r125
+BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
-BuildRequires:	meson >= 0.44
+BuildRequires:	meson >= 0.46
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
 BuildRequires:	pkgconfig >= 0.9.0
@@ -488,6 +488,7 @@ Group:		Libraries
 Requires:	libgcrypt >= 1.4.5
 Requires:	libseccomp >= 2.3.1
 %{?with_selinux:Requires:	libselinux >= 2.6}
+Requires:	lz4-libs >= 1:1.3.0
 Obsoletes:	nss_myhostname
 
 %description libs
