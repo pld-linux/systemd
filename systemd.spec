@@ -885,6 +885,7 @@ rm -rf $RPM_BUILD_ROOT
 /lib/systemd/systemd-random-seed save || :
 /bin/systemctl --system daemon-reexec || :
 /bin/journalctl --update-catalog || :
+/bin/systemd-sysusers || :
 
 %postun
 if [ $1 -ge 1 ]; then
