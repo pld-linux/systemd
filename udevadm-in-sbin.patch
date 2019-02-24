@@ -8,13 +8,13 @@
  substs.set('rootlibexecdir',                                  rootlibexecdir)
  substs.set('systemunitdir',                                   systemunitdir)
  substs.set('userunitdir',                                     userunitdir)
-@@ -2164,7 +2166,7 @@ exe = executable('udevadm',
+@@ -2667,7 +2668,7 @@
                                   libblkid],
                   install_rpath : udev_rpath,
                   install : true,
 -                 install_dir : rootbindir)
 +                 install_dir : rootsbindir)
- public_programs += [exe]
+ public_programs += exe
  
  executable('systemd-shutdown',
 --- systemd-183/units/systemd-udev-trigger.service.in~	2012-05-21 15:14:51.642981269 +0200

@@ -28,13 +28,13 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	239
-Release:	5
+Version:	241
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	6137e3f50390391cf34521d071a1a078
+# Source0-md5:	c5953c24c850b44fcf714326e567dc37
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -67,7 +67,6 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		udevadm-in-sbin.patch
 Patch6:		net-rename-revert.patch
-Patch7:		%{name}-struct-statx-in-glibc.patch
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -76,8 +75,6 @@ Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-seccomp_disable_on_i386.patch
-Patch16:	meson-debug.patch
-Patch17:	%{name}-timesync-changes-type-of-drift_freq-to-int64_t.patch
 URL:		http://www.freedesktop.org/wiki/Software/systemd
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -662,7 +659,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
-%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
@@ -671,8 +667,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
-%patch16 -p1
-%patch17 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -1095,7 +1089,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc doc/{BOOT_LOADER_SPECIFICATION.md,DISTRO_PORTING,ENVIRONMENT.md,TRANSIENT-SETTINGS.md,UIDS-GIDS.md} NEWS README TODO
+%doc docs/{BOOT_LOADER_SPECIFICATION.md,DISTRO_PORTING.md,ENVIRONMENT.md,TRANSIENT-SETTINGS.md,UIDS-GIDS.md} NEWS README TODO
 %{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
@@ -1119,6 +1113,7 @@ fi
 %endif
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/sleep.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/timesyncd.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
@@ -1156,6 +1151,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-cat
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
+%attr(755,root,root) %{_bindir}/systemd-id128
 %attr(755,root,root) %{_bindir}/systemd-mount
 %attr(755,root,root) %{_bindir}/systemd-nspawn
 %attr(755,root,root) %{_bindir}/systemd-path
@@ -1173,6 +1169,8 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-ac-power
 %attr(755,root,root) /lib/systemd/systemd-backlight
 %attr(755,root,root) /lib/systemd/systemd-binfmt
+%attr(755,root,root) /lib/systemd/systemd-bless-boot
+%attr(755,root,root) /lib/systemd/systemd-boot-check-no-failures
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
@@ -1183,6 +1181,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-hibernate-resume
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
 %attr(755,root,root) /lib/systemd/systemd-import
+%attr(755,root,root) /lib/systemd/systemd-import-fs
 %attr(755,root,root) /lib/systemd/systemd-importd
 %attr(755,root,root) /lib/systemd/systemd-initctl
 %attr(755,root,root) /lib/systemd/systemd-journald
@@ -1219,11 +1218,13 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-volatile-root
 %attr(755,root,root) /lib/systemd/systemd
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
+%attr(755,root,root) /lib/systemd/system-generators/systemd-bless-boot-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-fstab-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-getty-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-gpt-auto-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-hibernate-resume-generator
+%attr(755,root,root) /lib/systemd/system-generators/systemd-run-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-system-update-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-sysv-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-veritysetup-generator
@@ -1326,6 +1327,7 @@ fi
 %{_mandir}/man1/systemd-escape.1*
 %{_mandir}/man1/systemd-firstboot.1*
 %{_mandir}/man1/systemd-firstboot.service.1*
+%{_mandir}/man1/systemd-id128.1*
 %{_mandir}/man1/systemd-inhibit.1*
 %{_mandir}/man1/systemd-machine-id-setup.1*
 %{_mandir}/man1/systemd-mount.1*
@@ -1369,6 +1371,8 @@ fi
 %{_mandir}/man5/sysusers.d.5*
 %{_mandir}/man5/timesyncd.conf.5*
 %{_mandir}/man5/timesyncd.conf.d.5*
+%{_mandir}/man5/user-runtime-dir@.service.5*
+%{_mandir}/man5/user@.service.5*
 %{_mandir}/man5/user.conf.d.5*
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/bootup.7*
@@ -1393,6 +1397,9 @@ fi
 %{_mandir}/man8/nss-mymachines.8*
 %{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-binfmt.8*
+%{_mandir}/man8/systemd-bless-boot-generator.8*
+%{_mandir}/man8/systemd-bless-boot.service.8*
+%{_mandir}/man8/systemd-boot-check-no-failures.service.8*
 %{_mandir}/man8/systemd-coredump.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-debug-generator.8*
@@ -1427,6 +1434,7 @@ fi
 %{_mandir}/man8/systemd-remount-fs.8*
 %{_mandir}/man8/systemd-rfkill.8*
 %{_mandir}/man8/systemd-rfkill.service.8*
+%{_mandir}/man8/systemd-run-generator.8*
 %{_mandir}/man8/systemd-shutdown.8*
 %{_mandir}/man8/systemd-sleep.8*
 %{_mandir}/man8/systemd-socket-proxyd.8*
@@ -1600,6 +1608,8 @@ fi
 %{systemdunitdir}/systemd-ask-password-wall.service
 %{systemdunitdir}/systemd-backlight@.service
 %{systemdunitdir}/systemd-binfmt.service
+%{systemdunitdir}/systemd-bless-boot.service
+%{systemdunitdir}/systemd-boot-check-no-failures.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
 %{systemdunitdir}/systemd-fsck@.service
@@ -1667,6 +1677,7 @@ fi
 %{systemdunitdir}/systemd-udevd-kernel.socket
 %{systemdunitdir}/basic.target
 %{systemdunitdir}/bluetooth.target
+%{systemdunitdir}/boot-complete.target
 %{?with_cryptsetup:%{systemdunitdir}/cryptsetup-pre.target}
 %{?with_cryptsetup:%{systemdunitdir}/cryptsetup.target}
 %{systemdunitdir}/ctrl-alt-del.target
@@ -1878,6 +1889,7 @@ fi
 %files networkd
 %defattr(644,root,root,755)
 %{_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/networkd.conf
 %dir %{_sysconfdir}/systemd/network
 %dir %{_sysconfdir}/systemd/system/network-online.target.wants
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
@@ -1902,8 +1914,8 @@ fi
 
 %files portabled
 %defattr(644,root,root,755)
-%doc doc/PORTABLE_SERVICES.md
-%attr(755,root,root) /lib/systemd/portablectl
+%doc docs/PORTABLE_SERVICES.md
+%attr(755,root,root) /bin/portablectl
 %attr(755,root,root) /lib/systemd/systemd-portabled
 %{systemdunitdir}/dbus-org.freedesktop.portable1.service
 %{systemdunitdir}/systemd-portabled.service
@@ -2039,8 +2051,6 @@ fi
 %defattr(644,root,root,755)
 
 %{_prefix}/lib/udev
-
-%attr(755,root,root) /lib/udev/collect
 
 %attr(755,root,root) /lib/udev/net_helper
 
