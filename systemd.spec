@@ -1169,7 +1169,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-ac-power
 %attr(755,root,root) /lib/systemd/systemd-backlight
 %attr(755,root,root) /lib/systemd/systemd-binfmt
-%attr(755,root,root) /lib/systemd/systemd-bless-boot
+%{?with_efi:%attr(755,root,root) /lib/systemd/systemd-bless-boot}
 %attr(755,root,root) /lib/systemd/systemd-boot-check-no-failures
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
@@ -1218,7 +1218,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-volatile-root
 %attr(755,root,root) /lib/systemd/systemd
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
-%attr(755,root,root) /lib/systemd/system-generators/systemd-bless-boot-generator
+%{?with_efi:%attr(755,root,root) /lib/systemd/system-generators/systemd-bless-boot-generator}
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-fstab-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-getty-generator
@@ -1397,8 +1397,8 @@ fi
 %{_mandir}/man8/nss-mymachines.8*
 %{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-binfmt.8*
-%{_mandir}/man8/systemd-bless-boot-generator.8*
-%{_mandir}/man8/systemd-bless-boot.service.8*
+%{?with_efi:%{_mandir}/man8/systemd-bless-boot-generator.8*}
+%{?with_efi:%{_mandir}/man8/systemd-bless-boot.service.8*}
 %{_mandir}/man8/systemd-boot-check-no-failures.service.8*
 %{_mandir}/man8/systemd-coredump.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
@@ -1608,7 +1608,7 @@ fi
 %{systemdunitdir}/systemd-ask-password-wall.service
 %{systemdunitdir}/systemd-backlight@.service
 %{systemdunitdir}/systemd-binfmt.service
-%{systemdunitdir}/systemd-bless-boot.service
+%{?with_efi:%{systemdunitdir}/systemd-bless-boot.service}
 %{systemdunitdir}/systemd-boot-check-no-failures.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
