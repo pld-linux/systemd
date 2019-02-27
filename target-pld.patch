@@ -8,8 +8,8 @@
 +int read_etc_hostname_distro(const char *path, char **ret);
  int read_etc_hostname_stream(FILE *f, char **ret);
  int read_etc_hostname(const char *path, char **ret);
---- systemd-238/src/basic/hostname-util.c~	2018-03-05 23:16:37.000000000 +0100
-+++ systemd-238/src/basic/hostname-util.c	2018-05-15 13:21:08.392017315 +0200
+--- systemd-240/src/basic/hostname-util.c.orig	2018-12-21 19:53:33.000000000 +0100
++++ systemd-240/src/basic/hostname-util.c	2019-01-13 11:11:40.715590524 +0100
 @@ -8,6 +8,7 @@
  #include <unistd.h>
  
@@ -53,9 +53,8 @@
  
          f = fopen(path, "re");
          if (!f)
-diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-208/src/core/locale-setup.c
---- systemd-208.orig/src/core/locale-setup.c	2013-10-01 00:17:21.000000000 +0200
-+++ systemd-208/src/core/locale-setup.c	2014-01-09 15:15:41.000000000 +0100
+--- systemd-240/src/core/locale-setup.c.orig	2019-01-13 09:27:36.718995151 +0100
++++ systemd-240/src/core/locale-setup.c	2019-01-13 09:29:37.548993771 +0100
 @@ -21,6 +21,7 @@
          int r;
  
@@ -80,8 +79,8 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
          for (i = 0; i < _VARIABLE_LC_MAX; i++) {
                  char *s;
  
---- a/src/basic/time-util.c~	2016-11-03 18:16:42.000000000 +0100
-+++ b/src/basic/time-util.c	2016-11-12 19:54:28.457197174 +0100
+--- systemd-240/src/basic/time-util.c.orig	2019-01-13 09:27:36.718995151 +0100
++++ systemd-240/src/basic/time-util.c	2019-01-13 09:31:12.275659356 +0100
 @@ -14,6 +14,7 @@
  #include <unistd.h>
  
@@ -105,16 +104,15 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/core/locale-setup.c systemd-2
 +                                log_warning_errno(r, "Failed to read /etc/sysconfig/timezone: %m");
 +                        return -EINVAL;
 +                }
-+        }
++	}
  
          if (!timezone_is_valid(e, LOG_DEBUG))
                  return -EINVAL;
-diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c systemd-208/src/vconsole/vconsole-setup.c
---- systemd-208.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
-+++ systemd-208/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100
+--- systemd-240.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
++++ systemd-240/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100
 @@ -284,6 +284,17 @@ int main(int argc, char **argv) {
          if (r < 0 && r != -ENOENT)
-                 log_warning("Failed to read /etc/vconsole.conf: %s", strerror(-r));
+                 log_warning_errno(r, "Failed to read /etc/vconsole.conf: %m");
  
 +        if (r <= 0) {
 +                int r1 = parse_env_file(NULL, "/etc/sysconfig/console", NEWLINE,
@@ -124,7 +122,7 @@ diff -dur -x '*~' -x '*.orig' systemd-208.orig/src/vconsole/vconsole-setup.c sys
 +                                "KEYTABLE", &vc_keymap,
 +                                NULL);
 +                if (r1 < 0 && r1 != -ENOENT)
-+                        log_warning("Failed to read /etc/sysconfig/console: %s", strerror(-r1));
++                        log_warning_errno(r1, "Failed to read /etc/sysconfig/console: %m");
 +        } 
 +
          /* Let the kernel command line override /etc/vconsole.conf */

@@ -33,6 +33,7 @@ Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
+#Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
 # Source0-md5:	c5953c24c850b44fcf714326e567dc37
 Source1:	%{name}-sysv-convert
@@ -75,7 +76,7 @@ Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-seccomp_disable_on_i386.patch
-URL:		http://www.freedesktop.org/wiki/Software/systemd
+URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
@@ -110,9 +111,9 @@ BuildRequires:	libseccomp-devel >= 2.3.1
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
-BuildRequires:	lz4-devel >= r125
+BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
-BuildRequires:	meson >= 0.44
+BuildRequires:	meson >= 0.46
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
 BuildRequires:	pkgconfig >= 0.9.0
@@ -487,6 +488,7 @@ Group:		Libraries
 Requires:	libgcrypt >= 1.4.5
 Requires:	libseccomp >= 2.3.1
 %{?with_selinux:Requires:	libselinux >= 2.6}
+Requires:	lz4-libs >= 1:1.3.0
 Obsoletes:	nss_myhostname
 
 %description libs
@@ -1089,7 +1091,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc docs/{BOOT_LOADER_SPECIFICATION.md,DISTRO_PORTING.md,ENVIRONMENT.md,TRANSIENT-SETTINGS.md,UIDS-GIDS.md} NEWS README TODO
+%doc docs/{AUTOMATIC_BOOT_ASSESSMENT,BLOCK_DEVICE_LOCKING,BOOT_LOADER_INTERFACE,BOOT_LOADER_SPECIFICATION,DISTRO_PORTING,ENVIRONMENT,PREDICTABLE_INTERFACE_NAMES,TRANSIENT-SETTINGS,UIDS-GIDS}.md NEWS README TODO
 %{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
@@ -1371,8 +1373,6 @@ fi
 %{_mandir}/man5/sysusers.d.5*
 %{_mandir}/man5/timesyncd.conf.5*
 %{_mandir}/man5/timesyncd.conf.d.5*
-%{_mandir}/man5/user-runtime-dir@.service.5*
-%{_mandir}/man5/user@.service.5*
 %{_mandir}/man5/user.conf.d.5*
 %{_mandir}/man5/vconsole.conf.5*
 %{_mandir}/man7/bootup.7*
@@ -1398,8 +1398,6 @@ fi
 %{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-binfmt.8*
 %{?with_efi:%{_mandir}/man8/systemd-bless-boot-generator.8*}
-%{?with_efi:%{_mandir}/man8/systemd-bless-boot.service.8*}
-%{_mandir}/man8/systemd-boot-check-no-failures.service.8*
 %{_mandir}/man8/systemd-coredump.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-debug-generator.8*
@@ -1814,6 +1812,8 @@ fi
 %dir %{systemduserunitdir}/sockets.target.wants
 %{systemduserunitdir}/graphical-session-pre.target
 %{systemduserunitdir}/graphical-session.target
+%{_mandir}/man5/user@.service.5*
+%{_mandir}/man5/user-runtime-dir@.service.5*
 %{_mandir}/man8/30-systemd-environment-d-generator.8*
 %{_mandir}/man8/systemd-environment-d-generator.8*
 %{_mandir}/man8/systemd-ask-password-console.path.8*
@@ -1822,6 +1822,8 @@ fi
 %{_mandir}/man8/systemd-ask-password-wall.service.8*
 %{_mandir}/man8/systemd-backlight@.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
+%{?with_efi:%{_mandir}/man8/systemd-bless-boot.service.8*}
+%{_mandir}/man8/systemd-boot-check-no-failures.service.8*
 %{_mandir}/man8/systemd-coredump.socket.8*
 %{_mandir}/man8/systemd-coredump@.service.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}

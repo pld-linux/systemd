@@ -1,6 +1,5 @@
-diff -dur -x '*.orig' systemd-218.orig/man/systemd.special.xml systemd-218/man/systemd.special.xml
---- systemd-218.orig/man/systemd.special.xml	2014-12-05 01:26:51.000000000 +0100
-+++ systemd-218/man/systemd.special.xml	2015-04-03 15:01:42.000000000 +0200
+--- systemd-240/man/systemd.special.xml.orig	2019-01-13 09:31:46.448992299 +0100
++++ systemd-240/man/systemd.special.xml	2019-01-13 09:48:30.415647502 +0100
 @@ -940,6 +940,10 @@
              <varname>After=</varname> for this target unit to all SysV
              init script service units with an LSB header referring to
