@@ -114,6 +114,7 @@ BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
 BuildRequires:	meson >= 0.46
+BuildRequires:	ninja
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
 BuildRequires:	pkgconfig >= 0.9.0
