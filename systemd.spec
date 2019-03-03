@@ -86,8 +86,9 @@ BuildRequires:	coreutils >= 8.16
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
 BuildRequires:	curl-devel >= 7.32.0
 BuildRequires:	dbus-devel >= 1.9.18
+BuildRequires:	docbook-dtd42-xml
 BuildRequires:	docbook-dtd45-xml
-BuildRequires:	docbook-style-xsl
+BuildRequires:	docbook-style-xsl-nons
 BuildRequires:	elfutils-devel >= 0.158
 BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.22.0
