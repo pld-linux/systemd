@@ -28,7 +28,7 @@
 +        r = parse_env_file(NULL, "/etc/sysconfig/network", "HOSTNAME", &p);
 +        if (r < 0)
 +                return r;
-+        if (!p)
++        if (!p) /* EOF without any hostname? the file is empty, let's treat that exactly like no file at all: ENOENT */
 +                return -ENOENT;
 +        hostname_cleanup(p);
 +         if (!hostname_is_valid(p, true))
