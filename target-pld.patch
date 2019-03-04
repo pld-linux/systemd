@@ -25,10 +25,10 @@
 +int read_etc_hostname_distro(const char *path, char **ret) {
 +        int r;
 +        char *p = NULL;
-+        r = parse_env_file(NULL, "/etc/sysconfig/network", NEWLINE, "HOSTNAME", &p, NULL);
++        r = parse_env_file(NULL, "/etc/sysconfig/network", "HOSTNAME", &p);
 +        if (r < 0)
 +                return r;
-+        if (r == 0) /* EOF without any hostname? the file is empty, let's treat that exactly like no file at all: ENOENT */
++        if (!p)
 +                return -ENOENT;
 +        hostname_cleanup(p);
 +         if (!hostname_is_valid(p, true))
@@ -68,9 +68,9 @@
          }
  
 +        if (r <= 0 &&
-+            (r = parse_env_file(NULL, "/etc/sysconfig/i18n", NEWLINE,
-+                                "LANG", &variables[VARIABLE_LANG],
-+                                NULL)) < 0) {
++            (r = parse_env_file(NULL, "/etc/sysconfig/i18n",
++                                "LANG", &variables[VARIABLE_LANG]
++                                )) < 0) {
 +
 +                if (r != -ENOENT)
 +                        log_warning_errno(r, "Failed to read /etc/sysconfig/i18n: %m");
@@ -96,9 +96,9 @@
 -        if (!e)
 -                return -EINVAL;
 +        if (!e) {
-+                r = parse_env_file(NULL, "/etc/sysconfig/timezone", NEWLINE,
-+                        "TIMEZONE", &e,
-+                        NULL);
++                r = parse_env_file(NULL, "/etc/sysconfig/timezone"
++                        "TIMEZONE", &e
++                        );
 +                if (r < 0) {
 +                        if (r != -ENOENT)
 +                                log_warning_errno(r, "Failed to read /etc/sysconfig/timezone: %m");
@@ -114,13 +114,13 @@
          if (r < 0 && r != -ENOENT)
                  log_warning_errno(r, "Failed to read /etc/vconsole.conf: %m");
  
-+        if (r <= 0) {
-+                int r1 = parse_env_file(NULL, "/etc/sysconfig/console", NEWLINE,
++        if (r < 0) {
++                int r1 = parse_env_file(NULL, "/etc/sysconfig/console"
 +                                "CONSOLEFONT", &vc_font,
 +                                "CONSOLEMAP", &vc_font_map,
 +                                "CONSOLESCREENFONTMAP", &vc_font_unimap,
-+                                "KEYTABLE", &vc_keymap,
-+                                NULL);
++                                "KEYTABLE", &vc_keymap
++                                );
 +                if (r1 < 0 && r1 != -ENOENT)
 +                        log_warning_errno(r1, "Failed to read /etc/sysconfig/console: %m");
 +        } 
