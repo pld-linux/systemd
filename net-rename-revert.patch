@@ -9,55 +9,54 @@ We need to keep supporting systems with 75-persistent-net-generator.rules
 generated names for a while after switching to net.ifnames. Re-apply this old
 hack to make the renaming less likely to fail.
 ---
- src/udev/udev-event.c | 51 ++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 46 insertions(+), 5 deletions(-)
-
-diff --git a/src/udev/udev-event.c b/src/udev/udev-event.c
-index 07b7365..f67b295 100644
---- a/src/udev/udev-event.c
-+++ b/src/udev/udev-event.c
-@@ -680,6 +680,7 @@ static int rename_netif(UdevEvent *event) {
-         const char *action, *oldname;
-         char name[IFNAMSIZ];
+--- systemd-242/src/udev/udev-event.c.orig	2019-04-11 18:28:36.000000000 +0200
++++ systemd-242/src/udev/udev-event.c	2019-04-13 14:19:13.346990771 +0200
+@@ -698,6 +698,8 @@
+         sd_device *dev = event->dev;
+         const char *oldname;
          int ifindex, r;
++        char name[IFNAMSIZ];
 +        int loop;
  
          if (!event->name)
                  return 0; /* No new name is requested. */
-@@ -705,17 +706,57 @@ static int rename_netif(UdevEvent *event) {
+@@ -719,22 +720,66 @@
                  return log_device_error_errno(dev, r, "Failed to get ifindex: %m");
  
-         strscpy(name, IFNAMSIZ, event->name);
-+
-         r = rtnl_set_link_name(&event->rtnl, ifindex, name);
--        if (r < 0)
--                return log_device_error_errno(dev, r, "Failed to rename network interface %i from '%s' to '%s': %m", ifindex, oldname, name);
+         r = rtnl_set_link_name(&event->rtnl, ifindex, event->name);
 +        if (r >= 0) {
++                /* Set ID_RENAMING boolean property here, and drop it in the corresponding move uevent later. */
++                r = device_add_property(dev, "ID_RENAMING", "1");
++                if (r < 0)
++                        log_device_warning_errno(dev, r, "Failed to add 'ID_RENAMING' property: %m");
++
 +                r = device_rename(dev, event->name);
 +                if (r < 0)
-+                        return log_warning_errno(r, "Network interface %i is renamed from '%s' to '%s', but could not update sd_device object: %m", ifindex, oldname, name);
++                        log_device_warning_errno(dev, r, "Failed to update properties with new name '%s': %m", event->name);
 +
-+                log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, name);
-+
++                log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, event->name);
 +                return 1;
 +        }
 +
 +        /* keep trying if the destination interface name already exists */
 +        if (r != -EEXIST)
 +                goto out;
- 
--        r = device_rename(dev, event->name);
++
 +        /* free our own name, another process may wait for us */
 +        snprintf(name, IFNAMSIZ, "rename%u", ifindex);
 +        r = rtnl_set_link_name(&event->rtnl, ifindex, name);
          if (r < 0)
--                return log_warning_errno(r, "Network interface %i is renamed from '%s' to '%s', but could not update sd_device object: %m", ifindex, oldname, name);
+-                return log_device_error_errno(dev, r, "Failed to rename network interface %i from '%s' to '%s': %m",
+-                                              ifindex, oldname, event->name);
 +                goto out;
- 
++ 
 +        /* log temporary name */
-         log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, name);
++        log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, event->name);
  
--        return 1;
+-        /* Set ID_RENAMING boolean property here, and drop it in the corresponding move uevent later. */
+-        r = device_add_property(dev, "ID_RENAMING", "1");
+-        if (r < 0)
+-                log_device_warning_errno(dev, r, "Failed to add 'ID_RENAMING' property: %m");
 +        /* wait a maximum of 90 seconds for our target to become available */
 +        strscpy(name, IFNAMSIZ, event->name);
 +        loop = 90 * 20;
@@ -68,22 +67,33 @@ index 07b7365..f67b295 100644
 +
 +                r = rtnl_set_link_name(&event->rtnl, ifindex, name);
 +                if (r >= 0) {
++                        /* Set ID_RENAMING boolean property here, and drop it in the corresponding move uevent later. */
++                        r = device_add_property(dev, "ID_RENAMING", "1");
++                        if (r < 0)
++                                log_device_warning_errno(dev, r, "Failed to add 'ID_RENAMING' property: %m");
++
 +                        r = device_rename(dev, event->name);
 +                        if (r < 0)
-+                                return log_warning_errno(r, "Network interface %i is renamed from '%s' to '%s', but could not update sd_device object: %m", ifindex, oldname, name);
++                                log_device_warning_errno(dev, r, "Failed to update properties with new name '%s': %m", event->name);
 +
-+                        log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, name);
-+
++                        log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, event->name);
 +                        return 1;
 +                }
 +                if (r != -EEXIST)
 +                        goto out;
 +        }
-+
+ 
+-        r = device_rename(dev, event->name);
 +out:
-+        if (r < 0)
-+                return log_device_error_errno(dev, r, "Failed to rename network interface %i from '%s' to '%s': %m", ifindex, oldname, name);
+         if (r < 0)
+-                log_device_warning_errno(dev, r, "Failed to update properties with new name '%s': %m", event->name);
++                return log_device_error_errno(dev, r, "Failed to rename network interface %i from '%s' to '%s': %m",
++                                              ifindex, oldname, event->name);
 +        return r;
+ 
+-        log_device_debug(dev, "Network interface %i is renamed from '%s' to '%s'", ifindex, oldname, event->name);
+ 
+-        return 1;
  }
  
  static int update_devnode(UdevEvent *event) {
