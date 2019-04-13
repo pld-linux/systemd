@@ -7,4 +7,4 @@
 +
 +# Run as group 'proc' to ensure access to /proc when
 +# it is mounted with hidepid=1|2 option
-+Group=17
++SupplementaryGroups=17
