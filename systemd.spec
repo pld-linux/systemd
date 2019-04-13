@@ -1003,6 +1003,11 @@ if [ -L /etc/systemd/system/getty.target.wants/getty@.service ] ; then
 	rm -f /etc/systemd/system/getty.target.wants/getty@.service || :
 fi
 
+%triggerpostun units -- systemd-units < 1:242
+if [ -L /var/lib/systemd/timesync ] ; then
+	rm -f /var/lib/systemd/timesync || :
+fi
+
 %post inetd
 %systemd_reload
 # Do not change it to restart, we only want to start new services here
