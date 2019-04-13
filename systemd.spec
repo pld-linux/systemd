@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	241
-Release:	2
+Version:	242
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	c5953c24c850b44fcf714326e567dc37
+# Source0-md5:	5e004a4007cebbc4c7a06bfd2b9b3d4c
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -849,11 +849,6 @@ install -p %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}
 # Create directory for service helper scripts
 install -d $RPM_BUILD_ROOT/lib/systemd/pld-helpers.d
 
-# to be enabled only when the packages are installed
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-networkd.service \
-	$RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-networkd.socket \
-	$RPM_BUILD_ROOT%{_sysconfdir}/systemd/system/*.target.wants/systemd-resolved.service
-
 install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/btmp
 :> $RPM_BUILD_ROOT/var/log/wtmp
@@ -1126,14 +1121,7 @@ fi
 %dir %{_sysconfdir}/systemd/user
 %dir %{_sysconfdir}/systemd/system/getty.target.wants
 %dir %{_sysconfdir}/systemd/system/multi-user.target.wants
-%dir %{_sysconfdir}/systemd/system/sockets.target.wants
-%dir %{_sysconfdir}/systemd/system/sysinit.target.wants
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/getty.target.wants/getty@tty1.service
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/machines.target
-%{?with_cryptsetup:%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/remote-cryptsetup.target}
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/multi-user.target.wants/remote-fs.target
 
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/sysinit.target.wants/systemd-timesyncd.service
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/systemd-user
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
@@ -1246,6 +1234,7 @@ fi
 %{_prefix}/lib/environment.d/99-environment.conf
 %dir %{_prefix}/lib/kernel
 %dir %{_prefix}/lib/kernel/install.d
+%{_prefix}/lib/kernel/install.d/00-entry-directory.install
 %{_prefix}/lib/kernel/install.d/50-depmod.install
 %{_prefix}/lib/kernel/install.d/90-loaderentry.install
 %if %{with efi}
@@ -1736,6 +1725,7 @@ fi
 %{systemdunitdir}/swap.target
 %{systemdunitdir}/sysinit.target
 %{systemdunitdir}/system-update.target
+%{systemdunitdir}/time-set.target
 %{systemdunitdir}/time-sync.target
 %{systemdunitdir}/timers.target
 %{systemdunitdir}/umount.target
@@ -1767,7 +1757,6 @@ fi
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
-%{systemdunitdir}/local-fs.target.wants/systemd-remount-fs.service
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
 %{systemdunitdir}/local-fs.target.wants/var-run.mount
 %{systemdunitdir}/machines.target.wants/var-lib-machines.mount
@@ -1897,12 +1886,9 @@ fi
 %{_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/networkd.conf
 %dir %{_sysconfdir}/systemd/network
-%dir %{_sysconfdir}/systemd/system/network-online.target.wants
-%config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
 /lib/systemd/network/80-container-vz.network
-/etc/systemd/system/dbus-org.freedesktop.network1.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
 %{systemdunitdir}/systemd-networkd.socket
@@ -1946,7 +1932,6 @@ fi
 %files resolved
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
-%config(noreplace,missingok) %verify(not md5 mtime size) /etc/systemd/system/dbus-org.freedesktop.resolve1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.resolve1.conf
 %{_datadir}/dbus-1/system-services/org.freedesktop.resolve1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.resolve1.policy

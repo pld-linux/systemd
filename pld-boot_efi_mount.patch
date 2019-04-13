@@ -1,11 +1,11 @@
---- a/src/gpt-auto-generator/gpt-auto-generator.c~	2016-11-03 18:16:42.000000000 +0100
-+++ b/src/gpt-auto-generator/gpt-auto-generator.c	2016-11-12 20:01:04.784509883 +0100
-@@ -466,7 +466,7 @@ static int add_boot(const char *what) {
+--- systemd-242/src/gpt-auto-generator/gpt-auto-generator.c.orig	2019-04-11 19:40:01.816893823 +0200
++++ systemd-242/src/gpt-auto-generator/gpt-auto-generator.c	2019-04-11 19:42:53.022916795 +0200
+@@ -438,7 +438,7 @@
+ 
+                 /* Use /boot as fallback, but only if there's no XBOOTLDR partition */
+                 if (!has_xbootldr) {
+-                        esp_path = "/boot";
++                        esp_path = "/boot/efi";
+                         id = "boot";
+                 }
          }
- 
-         /* If /efi exists we'll use that. Otherwise we'll use /boot, as that's usually the better choice */
--        esp = access("/efi/", F_OK) >= 0 ? "/efi" : "/boot";
-+        esp = access("/efi/", F_OK) >= 0 ? "/efi" : "/boot/efi";
- 
-         /* We create an .automount which is not overridden by the .mount from the fstab generator. */
-         if (fstab_is_mount_point(esp)) {
