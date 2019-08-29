@@ -76,7 +76,6 @@ Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
-Patch15:	%{name}-seccomp_disable_on_i386.patch
 Patch16:	gcc9.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
@@ -673,7 +672,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
-%patch15 -p1
 %patch16 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
