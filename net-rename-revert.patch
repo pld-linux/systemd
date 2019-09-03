@@ -56,7 +56,7 @@ hack to make the renaming less likely to fail.
 -        /* Set ID_RENAMING boolean property here, and drop it in the corresponding move uevent later. */
 -        r = device_add_property(dev, "ID_RENAMING", "1");
 -        if (r < 0)
--                log_device_warning_errno(dev, r, "Failed to add 'ID_RENAMING' property: %m");
+-                return log_device_warning_errno(dev, r, "Failed to add 'ID_RENAMING' property: %m");
 +        /* wait a maximum of 90 seconds for our target to become available */
 +        strscpy(name, IFNAMSIZ, event->name);
 +        loop = 90 * 20;
@@ -86,7 +86,7 @@ hack to make the renaming less likely to fail.
 -        r = device_rename(dev, event->name);
 +out:
          if (r < 0)
--                log_device_warning_errno(dev, r, "Failed to update properties with new name '%s': %m", event->name);
+-                return log_device_warning_errno(dev, r, "Failed to update properties with new name '%s': %m", event->name);
 +                return log_device_error_errno(dev, r, "Failed to rename network interface %i from '%s' to '%s': %m",
 +                                              ifindex, oldname, event->name);
 +        return r;

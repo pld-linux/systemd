@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	242
-Release:	2
+Version:	243
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	5e004a4007cebbc4c7a06bfd2b9b3d4c
+# Source0-md5:	ca2403fa7dff73afd2e896b4cb25021b
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -76,7 +76,6 @@ Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
-Patch16:	gcc9.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -672,7 +671,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
-%patch16 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -690,6 +688,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	-Dlibidn2=true \
 	-Dloadkeys-path=/usr/bin/loadkeys \
 	-Dlz4=true \
+	-Dman=true \
 	-Dmicrohttpd=%{__true_false microhttpd} \
 	-Dmount-path=/bin/mount \
 	-Dnobody-user="nobody" \
@@ -739,7 +738,6 @@ rm $RPM_BUILD_ROOT%{systemdunitdir}/sysinit.target.wants/sys-kernel-config.mount
 ln -s %{systemdunitdir}/prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/graphical.target.wants/display-manager.service
 ln -s prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/display-manager.service
 ln -s rescue.service $RPM_BUILD_ROOT%{systemdunitdir}/single.service
-ln -s %{systemdunitdir}/halt-local.service $RPM_BUILD_ROOT%{systemdunitdir}/final.target.wants/halt-local.service
 ln -s %{systemdunitdir}/rc-local.service $RPM_BUILD_ROOT%{systemdunitdir}/multi-user.target.wants/rc-local.service
 
 # compatibility symlinks to udevd binary
@@ -1119,13 +1117,12 @@ fi
 %endif
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/pstore.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/sleep.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/timesyncd.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
 %dir %{_sysconfdir}/systemd/user
-%dir %{_sysconfdir}/systemd/system/getty.target.wants
-%dir %{_sysconfdir}/systemd/system/multi-user.target.wants
 
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/systemd-user
 /etc/xdg/systemd
@@ -1193,6 +1190,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-machined
 %attr(755,root,root) /lib/systemd/systemd-makefs
 %attr(755,root,root) /lib/systemd/systemd-modules-load
+%attr(755,root,root) /lib/systemd/systemd-pstore
 %attr(755,root,root) /lib/systemd/systemd-pull
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
@@ -1280,20 +1278,21 @@ fi
 %{_prefix}/lib/tmpfiles.d/home.conf
 %{_prefix}/lib/tmpfiles.d/journal-nocow.conf
 %{_prefix}/lib/tmpfiles.d/legacy.conf
+%{_prefix}/lib/tmpfiles.d/static-nodes-permissions.conf
 %{_prefix}/lib/tmpfiles.d/systemd.conf
 %{_prefix}/lib/tmpfiles.d/systemd-nologin.conf
 %{_prefix}/lib/tmpfiles.d/systemd-nspawn.conf
+%{_prefix}/lib/tmpfiles.d/systemd-tmp.conf
 %{_prefix}/lib/tmpfiles.d/tmp.conf
 %{_prefix}/lib/tmpfiles.d/var.conf
 %{_prefix}/lib/tmpfiles.d/x11.conf
 %{_prefix}/lib/sysctl.d/50-coredump.conf
-%{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
+%{_prefix}/lib/sysctl.d/50-pid-max.conf
 %{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timesync1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
@@ -1308,6 +1307,7 @@ fi
 %{?with_microhttpd:%{_datadir}/systemd/gatewayd}
 %{_datadir}/systemd/kbd-model-map
 %{_datadir}/systemd/language-fallback-map
+%{_datadir}/factory/etc/issue
 %{_datadir}/factory/etc/nsswitch.conf
 %{_datadir}/factory/etc/pam.d/other
 %{_datadir}/factory/etc/pam.d/system-auth
@@ -1361,6 +1361,8 @@ fi
 %{_mandir}/man5/machine-info.5*
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/os-release.5*
+%{_mandir}/man5/pstore.conf.5*
+%{_mandir}/man5/pstore.conf.d.5*
 %{_mandir}/man5/sleep.conf.d.5*
 %{_mandir}/man5/sysctl.d.5*
 %{_mandir}/man5/system.conf.d.5*
@@ -1425,6 +1427,8 @@ fi
 %{_mandir}/man8/systemd-makefs@.service.8*
 %{_mandir}/man8/systemd-makeswap@.service.8*
 %{_mandir}/man8/systemd-modules-load.8*
+%{_mandir}/man8/systemd-pstore.8*
+%{_mandir}/man8/systemd-pstore.service.8*
 %{_mandir}/man8/systemd-quotacheck.8*
 %{_mandir}/man8/systemd-random-seed.8*
 %{_mandir}/man8/systemd-remount-fs.8*
@@ -1528,6 +1532,8 @@ fi
 %attr(755,root,root) %{_prefix}/lib/systemd/user-environment-generators/30-systemd-environment-d-generator
 %dir %{_prefix}/lib/systemd/user-preset
 %{_prefix}/lib/systemd/user-preset/90-systemd.preset
+%dir /lib/systemd/ntp-units.d
+/lib/systemd/ntp-units.d/80-systemd-timesync.list
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
@@ -1555,6 +1561,7 @@ fi
 %{systemdunitdir}/systemd-coredump@.service
 %{systemdunitdir}/systemd-coredump.socket
 %{systemdunitdir}/systemd-exit.service
+%{systemdunitdir}/systemd-pstore.service
 %{systemdunitdir}/systemd-rfkill.socket
 %{systemdunitdir}/tmp.mount
 %{systemdunitdir}/var-lib-machines.mount
@@ -1578,7 +1585,6 @@ fi
 %{systemdunitdir}/display-manager.service
 %{systemdunitdir}/emergency.service
 %{systemdunitdir}/getty@.service
-%{systemdunitdir}/halt-local.service
 %{systemdunitdir}/initrd-cleanup.service
 %{systemdunitdir}/initrd-parse-etc.service
 %{systemdunitdir}/initrd-switch-root.service
@@ -1605,6 +1611,7 @@ fi
 %{systemdunitdir}/systemd-backlight@.service
 %{systemdunitdir}/systemd-binfmt.service
 %{?with_efi:%{systemdunitdir}/systemd-bless-boot.service}
+%{?with_efi:%{systemdunitdir}/systemd-boot-system-token.service}
 %{systemdunitdir}/systemd-boot-check-no-failures.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
@@ -1758,7 +1765,6 @@ fi
 %dir %{systemdunitdir}/syslog.target.wants
 %dir %{systemdunitdir}/system-update.target.wants
 %dir %{systemdunitdir}/timers.target.wants
-%{systemdunitdir}/final.target.wants/halt-local.service
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
@@ -1790,6 +1796,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/sys-kernel-debug.mount
 %{systemdunitdir}/sysinit.target.wants/systemd-ask-password-console.path
 %{systemdunitdir}/sysinit.target.wants/systemd-binfmt.service
+%{?with_efi:%{systemdunitdir}/sysinit.target.wants/systemd-boot-system-token.service}
 %{systemdunitdir}/sysinit.target.wants/systemd-firstboot.service
 %{systemdunitdir}/sysinit.target.wants/systemd-hwdb-update.service
 %{systemdunitdir}/sysinit.target.wants/systemd-journal-catalog-update.service
@@ -1822,6 +1829,7 @@ fi
 %{_mandir}/man8/systemd-binfmt.service.8*
 %{?with_efi:%{_mandir}/man8/systemd-bless-boot.service.8*}
 %{_mandir}/man8/systemd-boot-check-no-failures.service.8*
+%{?with_efi:%{_mandir}/man8/systemd-boot-system-token.service.8*}
 %{_mandir}/man8/systemd-coredump.socket.8*
 %{_mandir}/man8/systemd-coredump@.service.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}
@@ -1861,6 +1869,7 @@ fi
 %{_mandir}/man8/systemd-tmpfiles-clean.timer.8*
 %{_mandir}/man8/systemd-tmpfiles-setup.service.8*
 %{_mandir}/man8/systemd-tmpfiles-setup-dev.service.8*
+%{_mandir}/man8/systemd-udev-settle.service.8*
 %{_mandir}/man8/systemd-udevd.service.8*
 %{_mandir}/man8/systemd-udevd-control.socket.8*
 %{_mandir}/man8/systemd-udevd-kernel.socket.8*
@@ -1894,16 +1903,20 @@ fi
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
 /lib/systemd/network/80-container-vz.network
+%{systemdunitdir}/systemd-network-generator.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
 %{systemdunitdir}/systemd-networkd.socket
 %{_datadir}/dbus-1/system-services/org.freedesktop.network1.service
+%{_datadir}/polkit-1/actions/org.freedesktop.network1.policy
 %attr(755,root,root) /bin/networkctl
+%attr(755,root,root) /lib/systemd/systemd-network-generator
 %attr(755,root,root) /lib/systemd/systemd-networkd
 %attr(755,root,root) /lib/systemd/systemd-networkd-wait-online
 %{_mandir}/man1/networkctl.1*
 %{_mandir}/man5/networkd.conf.5*
 %{_mandir}/man5/networkd.conf.d.5*
+%{_mandir}/man7/systemd.net-naming-scheme.7*
 %{_mandir}/man8/systemd-networkd-wait-online.8*
 %{_mandir}/man8/systemd-networkd-wait-online.service.8*
 %{_mandir}/man8/systemd-networkd.8*
@@ -2022,6 +2035,7 @@ fi
 %{zsh_compdir}/_loginctl
 %{zsh_compdir}/_machinectl
 %{zsh_compdir}/_networkctl
+%{zsh_compdir}/_resolvectl
 %{zsh_compdir}/_sd_hosts_or_user_at_host
 %{zsh_compdir}/_sd_machines
 %{zsh_compdir}/_sd_outputmodes
@@ -2032,7 +2046,6 @@ fi
 %{zsh_compdir}/_systemd-delta
 %{zsh_compdir}/_systemd-inhibit
 %{zsh_compdir}/_systemd-nspawn
-%{zsh_compdir}/_systemd-resolve
 %{zsh_compdir}/_systemd-run
 %{zsh_compdir}/_systemd-tmpfiles
 %{zsh_compdir}/_timedatectl
