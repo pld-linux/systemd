@@ -677,6 +677,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 %build
 %meson build \
 	-Daudit=%{__true_false audit} \
+	-Ddefault-hierarchy=hybrid \
 	-Ddefault-kill-user-processes=false \
 	%{?debug:--buildtype=debug} \
 	-Defi=%{__true_false efi} \
