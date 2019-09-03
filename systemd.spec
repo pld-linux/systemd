@@ -1288,7 +1288,10 @@ fi
 %{_prefix}/lib/tmpfiles.d/var.conf
 %{_prefix}/lib/tmpfiles.d/x11.conf
 %{_prefix}/lib/sysctl.d/50-coredump.conf
+# if cc.sizeof('long') > 4
+%ifarch %{x8664}
 %{_prefix}/lib/sysctl.d/50-pid-max.conf
+%endif
 %{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
