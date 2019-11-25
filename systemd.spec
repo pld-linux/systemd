@@ -108,7 +108,7 @@ BuildRequires:	libgpg-error-devel >= 1.12
 BuildRequires:	libidn2-devel
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
 BuildRequires:	libmount-devel >= 2.30
-BuildRequires:	libseccomp-devel >= 2.3.1
+BuildRequires:	libseccomp-devel >= 2.4.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
@@ -488,7 +488,7 @@ Summary:	Shared systemd libraries
 Summary(pl.UTF-8):	Biblioteki współdzielone systemd
 Group:		Libraries
 Requires:	libgcrypt >= 1.4.5
-Requires:	libseccomp >= 2.3.1
+Requires:	libseccomp >= 2.4.0
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	lz4-libs >= 1:1.3.0
 Obsoletes:	nss_myhostname
