@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	243
-Release:	3
+Version:	244
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	ca2403fa7dff73afd2e896b4cb25021b
+# Source0-md5:	413121fe918b252ae62310f6fc7c4b32
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -76,7 +76,6 @@ Patch11:	optional-tmp-on-tmpfs.patch
 Patch12:	uids_gids.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
-Patch15:	defs.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -672,7 +671,6 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
-%patch15 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -1431,7 +1429,7 @@ fi
 %{_mandir}/man8/systemd-machine-id-commit.service.8*
 %{_mandir}/man8/systemd-makefs.8*
 %{_mandir}/man8/systemd-makefs@.service.8*
-%{_mandir}/man8/systemd-makeswap@.service.8*
+%{_mandir}/man8/systemd-mkswap@.service.8*
 %{_mandir}/man8/systemd-modules-load.8*
 %{_mandir}/man8/systemd-pstore.8*
 %{_mandir}/man8/systemd-pstore.service.8*
@@ -1909,6 +1907,7 @@ fi
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
 /lib/systemd/network/80-container-vz.network
+/lib/systemd/network/80-wifi-adhoc.network
 %{systemdunitdir}/systemd-network-generator.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
@@ -2071,6 +2070,7 @@ fi
 
 %attr(755,root,root) /lib/udev/ata_id
 %attr(755,root,root) /lib/udev/cdrom_id
+%attr(755,root,root) /lib/udev/fido_id
 %attr(755,root,root) /lib/udev/mtd_probe
 %attr(755,root,root) /lib/udev/scsi_id
 %attr(755,root,root) /lib/udev/v4l_id
@@ -2120,16 +2120,19 @@ fi
 
 # rules below are NOT supposed to be changed by users
 /lib/udev/rules.d/50-udev-default.rules
+/lib/udev/rules.d/60-autosuspend-chromiumos.rules
 /lib/udev/rules.d/60-block.rules
 /lib/udev/rules.d/60-cdrom_id.rules
 /lib/udev/rules.d/60-drm.rules
 /lib/udev/rules.d/60-evdev.rules
+/lib/udev/rules.d/60-fido-id.rules
 /lib/udev/rules.d/60-persistent-alsa.rules
 /lib/udev/rules.d/60-persistent-input.rules
 /lib/udev/rules.d/60-persistent-storage.rules
 /lib/udev/rules.d/60-persistent-storage-tape.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/60-serial.rules
+/lib/udev/rules.d/61-autosuspend-manual.rules
 /lib/udev/rules.d/64-btrfs.rules
 /lib/udev/rules.d/70-mouse.rules
 /lib/udev/rules.d/70-power-switch.rules
