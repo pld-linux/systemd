@@ -1,0 +1,20 @@
+diff -urN systemd-244.orig/src/test/test-seccomp.c systemd-244/src/test/test-seccomp.c
+--- systemd-244.orig/src/test/test-seccomp.c	2019-11-29 17:32:36.000000000 +0100
++++ systemd-244/src/test/test-seccomp.c	2019-12-02 16:38:04.314771202 +0100
+@@ -558,11 +558,11 @@
+         log_info("/* %s */", __func__);
+ 
+         SECCOMP_FOREACH_LOCAL_ARCH(arch) {
+-                log_debug("arch %s: SCMP_SYS(mmap) = %d", seccomp_arch_to_string(arch), SCMP_SYS(mmap));
+-                log_debug("arch %s: SCMP_SYS(mmap2) = %d", seccomp_arch_to_string(arch), SCMP_SYS(mmap2));
+-                log_debug("arch %s: SCMP_SYS(shmget) = %d", seccomp_arch_to_string(arch), SCMP_SYS(shmget));
+-                log_debug("arch %s: SCMP_SYS(shmat) = %d", seccomp_arch_to_string(arch), SCMP_SYS(shmat));
+-                log_debug("arch %s: SCMP_SYS(shmdt) = %d", seccomp_arch_to_string(arch), SCMP_SYS(shmdt));
++                log_debug("arch %s: SCMP_SYS(mmap) = %lli", seccomp_arch_to_string(arch), (long long int) SCMP_SYS(mmap));
++                log_debug("arch %s: SCMP_SYS(mmap2) = %lli", seccomp_arch_to_string(arch), (long long int) SCMP_SYS(mmap2));
++                log_debug("arch %s: SCMP_SYS(shmget) = %lli", seccomp_arch_to_string(arch), (long long int) SCMP_SYS(shmget));
++                log_debug("arch %s: SCMP_SYS(shmat) = %lli", seccomp_arch_to_string(arch), (long long int) SCMP_SYS(shmat));
++                log_debug("arch %s: SCMP_SYS(shmdt) = %lli", seccomp_arch_to_string(arch), (long long int) SCMP_SYS(shmdt));
+         }
+ 
+         if (!is_seccomp_available()) {
