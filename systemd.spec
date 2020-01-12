@@ -29,7 +29,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	244
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -728,7 +728,8 @@ install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{_rootsbindir} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,systemd/system-preset} \
 	$RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants \
-	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants
+	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
+	$RPM_BUILD_ROOT%{_prefix}/lib/systemd/system-environment-generators
 
 %meson_install -C build
 
@@ -1538,6 +1539,7 @@ fi
 %attr(755,root,root) %{_prefix}/lib/systemd/user-environment-generators/30-systemd-environment-d-generator
 %dir %{_prefix}/lib/systemd/user-preset
 %{_prefix}/lib/systemd/user-preset/90-systemd.preset
+%dir %{_prefix}/lib/systemd/system-environment-generators
 %dir /lib/systemd/ntp-units.d
 /lib/systemd/ntp-units.d/80-systemd-timesync.list
 %dir /lib/systemd/pld-helpers.d
