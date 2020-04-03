@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	244
-Release:	2
+Version:	245
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	413121fe918b252ae62310f6fc7c4b32
+# Source0-md5:	04f02d9841ea5992a16f6b03c873da28
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -66,7 +66,7 @@ Patch1:		config-pld.patch
 Patch2:		pld-sysv-network.patch
 Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
-Patch5:		udevadm-in-sbin.patch
+
 Patch6:		net-rename-revert.patch
 Patch7:		%{name}-completion.patch
 Patch8:		proc-hidepid.patch
@@ -661,7 +661,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
+
 # rejected upstream (do not disable!)
 %patch6 -p1
 %patch7 -p1
@@ -676,6 +676,8 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
+grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash,#!/bin/bash,g'
+
 %build
 %meson build \
 	-Daudit=%{__true_false audit} \
@@ -683,9 +685,7 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	-Ddefault-kill-user-processes=false \
 	%{?debug:--buildtype=debug} \
 	-Defi=%{__true_false efi} \
-	-Dhalt-local=/sbin/halt.local \
 	-Dkexec-path=/sbin/kexec \
-	-Dkill-path=/bin/kill \
 	-Dkmod-path=/sbin/kmod \
 	-Dlibcryptsetup=%{__true_false cryptsetup} \
 	-Dlibidn2=true \
@@ -705,7 +705,6 @@ cp -p %{SOURCE2} src/systemd_booted.c
 	-Drc-local=/etc/rc.d/rc.local \
 	-Drootlibdir=/%{_lib} \
 	-Drootprefix="" \
-	-Drootsbindir=%{_rootsbindir} \
 	-Dselinux=%{__true_false selinux} \
 	-Dsetfont-path=/bin/setfont \
 	-Dsplit-bin=true \
@@ -750,7 +749,7 @@ ln -s /lib/udev/udevd $RPM_BUILD_ROOT/lib/systemd/systemd-udevd
 ln -s /lib/udev/udevd $RPM_BUILD_ROOT%{_rootsbindir}/udevd
 
 # compat symlinks for "/ merged into /usr" programs
-ln -s %{_rootsbindir}/udevadm $RPM_BUILD_ROOT/bin
+ln -s ../bin/udevadm $RPM_BUILD_ROOT%{_rootsbindir}
 ln -s /lib/udev $RPM_BUILD_ROOT%{_prefix}/lib
 
 # install custom udev rules from pld package
@@ -1070,14 +1069,14 @@ fi
 %endif
 
 %triggerpostun -n udev-core -- udev < 165
-/sbin/udevadm info --convert-db
+/bin/udevadm info --convert-db
 
 %post -n udev-core
-/sbin/udevadm hwdb --update || :
+/bin/udevadm hwdb --update || :
 if [ $1 -gt 1 ]; then
 	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
 		if grep -qs devtmpfs /proc/mounts && [ -n "$(pidof udevd)" ]; then
-			/sbin/udevadm control --exit
+			/bin/udevadm control --exit
 			/lib/udev/udevd --daemon
 		fi
 	else
@@ -1162,6 +1161,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/systemd-umount
 %attr(755,root,root) %{_bindir}/timedatectl
+%attr(755,root,root) %{_bindir}/userdbctl
 /lib/modprobe.d/systemd.conf
 /lib/systemd/import-pubring.gpg
 /lib/systemd/resolv.conf
@@ -1346,6 +1346,7 @@ fi
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man1/systemd-umount.1*
 %{_mandir}/man1/timedatectl.1*
+%{_mandir}/man1/userdbctl.1*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
@@ -2093,6 +2094,7 @@ fi
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
 /lib/udev/hwdb.d/20-vmbus-class.hwdb
 /lib/udev/hwdb.d/60-evdev.hwdb
+/lib/udev/hwdb.d/60-input-id.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
 /lib/udev/hwdb.d/60-sensor.hwdb
 /lib/udev/hwdb.d/70-joystick.hwdb
