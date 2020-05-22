@@ -729,6 +729,7 @@ install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,systemd/system-preset} \
 	$RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
+	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
 	$RPM_BUILD_ROOT%{_prefix}/lib/systemd/system-environment-generators
 
 %meson_install -C build
@@ -1664,6 +1665,7 @@ fi
 %{systemdunitdir}/systemd-udev-settle.service
 %{systemdunitdir}/systemd-udev-trigger.service
 %{systemdunitdir}/systemd-udevd.service
+%dir %{systemdunitdir}/systemd-udevd.service.d
 %{systemdunitdir}/systemd-update-done.service
 %{systemdunitdir}/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/systemd-update-utmp.service
