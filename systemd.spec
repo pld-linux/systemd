@@ -440,6 +440,23 @@ responder LLMNR.
 Generuje także dla zgodności plik /run/systemd/resolve/resolv.conf,
 który można użyć do dowiązania symbolicznego z /etc/resolv.conf.
 
+%package userdb
+Summary:	systemd userdb service and client tool
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description userdb
+userdb component is a framework which allows defining rich user and
+group records in a JSON format, extending on the classic "struct
+passwd" and "struct group" structures. Various components in systemd
+have been updated to process records in this format, including
+systemd-logind and pam-systemd. The user records are intended to be
+extensible, and allow setting various resource management, security
+and runtime parameters that shall be applied to processes and sessions
+of the user as they log in. This facility is intended to allow
+associating such metadata directly with user/group records so that
+they can be produced, extended and consumed in unified form.
+
 %package inetd
 Summary:	Native inet service support for systemd via socket activation
 Summary(pl.UTF-8):	Natywna obsługa usług inet dla systemd
@@ -1162,7 +1179,6 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/systemd-umount
 %attr(755,root,root) %{_bindir}/timedatectl
-%attr(755,root,root) %{_bindir}/userdbctl
 /lib/modprobe.d/systemd.conf
 /lib/systemd/import-pubring.gpg
 /lib/systemd/resolv.conf
@@ -1296,11 +1312,13 @@ fi
 %ifarch %{x8664}
 %{_prefix}/lib/sysctl.d/50-pid-max.conf
 %endif
+%{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timesync1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
@@ -1347,12 +1365,12 @@ fi
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man1/systemd-umount.1*
 %{_mandir}/man1/timedatectl.1*
-%{_mandir}/man1/userdbctl.1*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/dnssec-trust-anchors.d.5*
 %{_mandir}/man5/hostname.5*
+%{_mandir}/man5/journald@.conf.5*
 %{?with_efi:%{_mandir}/man5/loader.conf.5*}
 %if %{with microhttpd}
 %{_mandir}/man5/journal-remote.conf.5*
@@ -1406,7 +1424,11 @@ fi
 %{_mandir}/man8/nss-mymachines.8*
 %{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-binfmt.8*
-%{?with_efi:%{_mandir}/man8/systemd-bless-boot-generator.8*}
+%if %{with efi}
+%{_mandir}/man8/systemd-bless-boot.8*
+%{_mandir}/man8/systemd-bless-boot-generator.8*
+%endif
+%{_mandir}/man8/systemd-boot-check-no-failures.8*
 %{_mandir}/man8/systemd-coredump.8*
 %{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
 %{_mandir}/man8/systemd-debug-generator.8*
@@ -1423,7 +1445,10 @@ fi
 %{_mandir}/man8/systemd-importd.8*
 %{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8*
+%{_mandir}/man8/systemd-journald-varlink@.socket.8*
 %{_mandir}/man8/systemd-journald.8*
+%{_mandir}/man8/systemd-journald@.service.8*
+%{_mandir}/man8/systemd-journald@.socket.8*
 %if %{with microhttpd}
 %{_mandir}/man8/systemd-journal-remote.8*
 %{_mandir}/man8/systemd-journal-upload.8*
@@ -1568,6 +1593,7 @@ fi
 %{systemdunitdir}/sys-fs-fuse-connections.mount
 %{systemdunitdir}/sys-kernel-config.mount
 %{systemdunitdir}/sys-kernel-debug.mount
+%{systemdunitdir}/sys-kernel-tracing.mount
 %{systemdunitdir}/systemd-coredump@.service
 %{systemdunitdir}/systemd-coredump.socket
 %{systemdunitdir}/systemd-exit.service
@@ -1602,6 +1628,7 @@ fi
 %{systemdunitdir}/killall.service
 %{systemdunitdir}/kmod-static-nodes.service
 %{systemdunitdir}/ldconfig.service
+%{systemdunitdir}/modprobe@.service
 %{systemdunitdir}/netfs.service
 %{systemdunitdir}/network.service
 %{systemdunitdir}/pld-clean-tmp.service
@@ -1640,6 +1667,7 @@ fi
 %{systemdunitdir}/systemd-journal-remote.service
 %{systemdunitdir}/systemd-journal-upload.service
 %{systemdunitdir}/systemd-journald.service
+%{systemdunitdir}/systemd-journald@.service
 %{systemdunitdir}/systemd-kexec.service
 %{systemdunitdir}/systemd-localed.service
 %{systemdunitdir}/systemd-logind.service
@@ -1676,6 +1704,7 @@ fi
 %{systemdunitdir}/user@.service
 %{systemdunitdir}/machine.slice
 #%{systemdunitdir}/system.slice
+%{?with_cryptsetup:%{systemdunitdir}/system-systemd\x2dcryptsetup.slice}
 %dir %{systemdunitdir}/user-.slice.d
 %{systemdunitdir}/user-.slice.d/10-defaults.conf
 %{systemdunitdir}/user-runtime-dir@.service
@@ -1686,10 +1715,13 @@ fi
 %{systemdunitdir}/systemd-journal-remote.socket
 %{systemdunitdir}/systemd-journald-audit.socket
 %{systemdunitdir}/systemd-journald-dev-log.socket
+%{systemdunitdir}/systemd-journald-varlink@.socket
 %{systemdunitdir}/systemd-journald.socket
+%{systemdunitdir}/systemd-journald@.socket
 %{systemdunitdir}/systemd-udevd-control.socket
 %{systemdunitdir}/systemd-udevd-kernel.socket
 %{systemdunitdir}/basic.target
+%{systemdunitdir}/blockdev@.target
 %{systemdunitdir}/bluetooth.target
 %{systemdunitdir}/boot-complete.target
 %{?with_cryptsetup:%{systemdunitdir}/cryptsetup-pre.target}
@@ -1805,6 +1837,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/sysinit.target.wants/sys-fs-fuse-connections.mount
 %{systemdunitdir}/sysinit.target.wants/sys-kernel-debug.mount
+%{systemdunitdir}/sysinit.target.wants/sys-kernel-tracing.mount
 %{systemdunitdir}/sysinit.target.wants/systemd-ask-password-console.path
 %{systemdunitdir}/sysinit.target.wants/systemd-binfmt.service
 %{?with_efi:%{systemdunitdir}/sysinit.target.wants/systemd-boot-system-token.service}
@@ -1929,6 +1962,8 @@ fi
 %{_mandir}/man5/networkd.conf.5*
 %{_mandir}/man5/networkd.conf.d.5*
 %{_mandir}/man7/systemd.net-naming-scheme.7*
+%{_mandir}/man8/systemd-network-generator.8*
+%{_mandir}/man8/systemd-network-generator.service.8*
 %{_mandir}/man8/systemd-networkd-wait-online.8*
 %{_mandir}/man8/systemd-networkd-wait-online.service.8*
 %{_mandir}/man8/systemd-networkd.8*
@@ -1975,6 +2010,19 @@ fi
 %{_mandir}/man5/resolved.conf.d.5*
 %{_mandir}/man8/systemd-resolved.8*
 %{_mandir}/man8/systemd-resolved.service.8*
+
+%files userdb
+%defattr(644,root,root,755)
+%doc docs/GROUP_RECORD.md docs/USER_GROUP_API.md docs/USER_RECORD.md
+%attr(755,root,root) /bin/userdbctl
+%attr(755,root,root) /lib/systemd/systemd-userdbd
+%attr(755,root,root) /lib/systemd/systemd-userwork
+%{systemdunitdir}/sockets.target.wants/systemd-userdbd.socket
+%{systemdunitdir}/systemd-userdbd.service
+%{systemdunitdir}/systemd-userdbd.socket
+%{_mandir}/man8/systemd-userdbd.8*
+%{_mandir}/man8/systemd-userdbd.service.8*
+%{_mandir}/man1/userdbctl.1*
 
 %files inetd
 %defattr(644,root,root,755)
