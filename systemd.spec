@@ -1309,7 +1309,7 @@ fi
 %{_prefix}/lib/tmpfiles.d/x11.conf
 %{_prefix}/lib/sysctl.d/50-coredump.conf
 # if cc.sizeof('long') > 4
-%ifarch %{x8664}
+%ifarch %{x8664} aarch64
 %{_prefix}/lib/sysctl.d/50-pid-max.conf
 %endif
 %{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
