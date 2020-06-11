@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	245
-Release:	1.1
+Version:	245.6
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
-Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	04f02d9841ea5992a16f6b03c873da28
+Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
+# Source0-md5:	1eb3ca8f77978cc52dea6293467211a8
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -655,7 +655,7 @@ zsh completion for udev commands.
 Uzupełnianie parametrów w zsh dla poleceń udev.
 
 %prep
-%setup -q
+%setup -q -n systemd-stable-%{version}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
