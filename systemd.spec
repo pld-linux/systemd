@@ -440,23 +440,6 @@ responder LLMNR.
 Generuje także dla zgodności plik /run/systemd/resolve/resolv.conf,
 który można użyć do dowiązania symbolicznego z /etc/resolv.conf.
 
-%package userdb
-Summary:	systemd userdb service and client tool
-Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
-
-%description userdb
-userdb component is a framework which allows defining rich user and
-group records in a JSON format, extending on the classic "struct
-passwd" and "struct group" structures. Various components in systemd
-have been updated to process records in this format, including
-systemd-logind and pam-systemd. The user records are intended to be
-extensible, and allow setting various resource management, security
-and runtime parameters that shall be applied to processes and sessions
-of the user as they log in. This facility is intended to allow
-associating such metadata directly with user/group records so that
-they can be produced, extended and consumed in unified form.
-
 %package inetd
 Summary:	Native inet service support for systemd via socket activation
 Summary(pl.UTF-8):	Natywna obsługa usług inet dla systemd
@@ -1114,7 +1097,7 @@ fi
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc docs/{AUTOMATIC_BOOT_ASSESSMENT,BLOCK_DEVICE_LOCKING,BOOT_LOADER_INTERFACE,BOOT_LOADER_SPECIFICATION,DISTRO_PORTING,ENVIRONMENT,PREDICTABLE_INTERFACE_NAMES,TRANSIENT-SETTINGS,UIDS-GIDS}.md NEWS README TODO
+%doc docs/{AUTOMATIC_BOOT_ASSESSMENT,BLOCK_DEVICE_LOCKING,BOOT_LOADER_INTERFACE,BOOT_LOADER_SPECIFICATION,DISTRO_PORTING,ENVIRONMENT,GROUP_RECORD,PREDICTABLE_INTERFACE_NAMES,TRANSIENT-SETTINGS,UIDS-GIDS,USER_GROUP_API,USER_RECORD}.md NEWS README TODO
 %{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
@@ -1159,6 +1142,7 @@ fi
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-sysusers
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
+%attr(755,root,root) /bin/userdbctl
 %{?with_efi:%attr(755,root,root) %{_bindir}/bootctl}
 %attr(755,root,root) %{_bindir}/busctl
 %attr(755,root,root) %{_bindir}/coredumpctl
@@ -1231,6 +1215,8 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-update-done
 %attr(755,root,root) /lib/systemd/systemd-user-runtime-dir
 %attr(755,root,root) /lib/systemd/systemd-user-sessions
+%attr(755,root,root) /lib/systemd/systemd-userdbd
+%attr(755,root,root) /lib/systemd/systemd-userwork
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
 %attr(755,root,root) /lib/systemd/systemd-veritysetup
 %attr(755,root,root) /lib/systemd/systemd-volatile-root
@@ -1365,6 +1351,7 @@ fi
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man1/systemd-umount.1*
 %{_mandir}/man1/timedatectl.1*
+%{_mandir}/man1/userdbctl.1*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
@@ -1486,6 +1473,7 @@ fi
 %{_mandir}/man8/systemd-update-done.service.8*
 %{_mandir}/man8/systemd-update-utmp.8*
 %{_mandir}/man8/systemd-user-sessions.8*
+%{_mandir}/man8/systemd-userdbd.8*
 %{_mandir}/man8/systemd-vconsole-setup.8*
 %{_mandir}/man8/systemd-veritysetup.8*
 %{_mandir}/man8/systemd-veritysetup-generator.8*
@@ -1699,6 +1687,8 @@ fi
 %{systemdunitdir}/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/systemd-update-utmp.service
 %{systemdunitdir}/systemd-user-sessions.service
+%{systemdunitdir}/systemd-userdbd.service
+%{systemdunitdir}/systemd-userdbd.socket
 %{systemdunitdir}/systemd-vconsole-setup.service
 %{systemdunitdir}/systemd-volatile-root.service
 %{systemdunitdir}/user@.service
@@ -1829,6 +1819,7 @@ fi
 %{systemdunitdir}/sockets.target.wants/systemd-journald.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-control.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-kernel.socket
+%{systemdunitdir}/sockets.target.wants/systemd-userdbd.socket
 %{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
 %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
 %{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
@@ -1920,6 +1911,7 @@ fi
 %{_mandir}/man8/systemd-update-utmp-runlevel.service.8*
 %{_mandir}/man8/systemd-update-utmp.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
+%{_mandir}/man8/systemd-userdbd.service.8*
 %{_mandir}/man8/systemd-vconsole-setup.service.8*
 
 %files tools
@@ -2010,19 +2002,6 @@ fi
 %{_mandir}/man5/resolved.conf.d.5*
 %{_mandir}/man8/systemd-resolved.8*
 %{_mandir}/man8/systemd-resolved.service.8*
-
-%files userdb
-%defattr(644,root,root,755)
-%doc docs/GROUP_RECORD.md docs/USER_GROUP_API.md docs/USER_RECORD.md
-%attr(755,root,root) /bin/userdbctl
-%attr(755,root,root) /lib/systemd/systemd-userdbd
-%attr(755,root,root) /lib/systemd/systemd-userwork
-%{systemdunitdir}/sockets.target.wants/systemd-userdbd.socket
-%{systemdunitdir}/systemd-userdbd.service
-%{systemdunitdir}/systemd-userdbd.socket
-%{_mandir}/man8/systemd-userdbd.8*
-%{_mandir}/man8/systemd-userdbd.service.8*
-%{_mandir}/man1/userdbctl.1*
 
 %files inetd
 %defattr(644,root,root,755)
