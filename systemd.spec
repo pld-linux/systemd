@@ -582,6 +582,7 @@ Requires:	kmod >= 15
 Requires:	libblkid >= 2.24
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	setup >= 2.9.0-3
+Requires:	systemd-libs = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
 Obsoletes:	udev-compat
