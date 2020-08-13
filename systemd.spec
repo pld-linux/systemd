@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	245.7
-Release:	1
+Version:	246
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	4cae7b0a6ad980d5c1057bd028fb489b
+# Source0-md5:	1591873c35243be954d2b0e404b044f5
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -84,7 +84,7 @@ BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	bzip2-devel
 # ln --relative
 BuildRequires:	coreutils >= 8.16
-%{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 1.6.0}
+%{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 2.3.0}
 BuildRequires:	curl-devel >= 7.32.0
 BuildRequires:	dbus-devel >= 1.9.18
 BuildRequires:	docbook-dtd42-xml
@@ -101,7 +101,7 @@ BuildRequires:	intltool >= 0.40.0
 # pkgconfig(libiptc)
 BuildRequires:	iptables-devel
 BuildRequires:	kmod-devel >= 15
-BuildRequires:	libapparmor-devel
+BuildRequires:	libapparmor-devel >= 1:2.13
 BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
 BuildRequires:	libgcrypt-devel >= 1.4.5
@@ -131,6 +131,7 @@ BuildRequires:	usbutils >= 0.82
 BuildRequires:	xorg-lib-libxkbcommon-devel >= 0.5.0
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
+BuildRequires:	zstd-devel >= 1.4.0
 Requires(post,postun):	%{name}-units = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -145,7 +146,7 @@ Requires:	%{name}-tools = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
-%{?with_cryptsetup:Requires:	cryptsetup >= 1.6.0}
+%{?with_cryptsetup:Requires:	cryptsetup >= 2.3.0}
 Requires:	curl-libs >= 7.32.0
 Requires:	dbus >= 1.9.18
 Requires:	filesystem >= 4.0-39
@@ -492,6 +493,7 @@ Requires:	libgcrypt >= 1.4.5
 Requires:	libseccomp >= 2.4.0
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	lz4-libs >= 1:1.3.0
+Requires:	zstd >= 1.4.0
 Obsoletes:	nss_myhostname
 
 %description libs
@@ -1221,6 +1223,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-vconsole-setup
 %attr(755,root,root) /lib/systemd/systemd-veritysetup
 %attr(755,root,root) /lib/systemd/systemd-volatile-root
+%attr(755,root,root) /lib/systemd/systemd-xdg-autostart-condition
 %attr(755,root,root) /lib/systemd/systemd
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
 %{?with_efi:%attr(755,root,root) /lib/systemd/system-generators/systemd-bless-boot-generator}
@@ -1290,6 +1293,7 @@ fi
 %{_prefix}/lib/tmpfiles.d/systemd.conf
 %{_prefix}/lib/tmpfiles.d/systemd-nologin.conf
 %{_prefix}/lib/tmpfiles.d/systemd-nspawn.conf
+%{_prefix}/lib/tmpfiles.d/systemd-pstore.conf
 %{_prefix}/lib/tmpfiles.d/systemd-tmp.conf
 %{_prefix}/lib/tmpfiles.d/tmp.conf
 %{_prefix}/lib/tmpfiles.d/var.conf
@@ -1375,6 +1379,14 @@ fi
 %{_mandir}/man5/machine-id.5*
 %{_mandir}/man5/machine-info.5*
 %{_mandir}/man5/modules-load.d.5*
+%{_mandir}/man5/org.freedesktop.LogControl1.5*
+%{_mandir}/man5/org.freedesktop.hostname1.5*
+%{_mandir}/man5/org.freedesktop.import1.5*
+%{_mandir}/man5/org.freedesktop.locale1.5*
+%{_mandir}/man5/org.freedesktop.login1.5*
+%{_mandir}/man5/org.freedesktop.machine1.5*
+%{_mandir}/man5/org.freedesktop.systemd1.5*
+%{_mandir}/man5/org.freedesktop.timedate1.5*
 %{_mandir}/man5/os-release.5*
 %{_mandir}/man5/pstore.conf.5*
 %{_mandir}/man5/pstore.conf.d.5*
@@ -1385,6 +1397,7 @@ fi
 %{_mandir}/man5/systemd-sleep.conf.5*
 %{_mandir}/man5/systemd-system.conf.5*
 %{_mandir}/man5/systemd-user.conf.5*
+%{_mandir}/man5/systemd-user-runtime-dir.5*
 %{_mandir}/man5/sysusers.d.5*
 %{_mandir}/man5/timesyncd.conf.5*
 %{_mandir}/man5/timesyncd.conf.d.5*
@@ -1481,6 +1494,7 @@ fi
 %{_mandir}/man8/systemd-veritysetup@.service.8*
 %{_mandir}/man8/systemd-volatile-root.8*
 %{_mandir}/man8/systemd-volatile-root.service.8*
+%{_mandir}/man8/systemd-xdg-autostart-generator.8*
 %attr(700,root,root) %dir /var/lib/machines
 %dir /var/lib/%{name}
 %dir /var/lib/%{name}/coredump
@@ -1550,7 +1564,9 @@ fi
 %{_prefix}/lib/systemd/user/systemd-tmpfiles-setup.service
 %{_prefix}/lib/systemd/user/timers.target
 %{_prefix}/lib/systemd/user/systemd-exit.service
+%{_prefix}/lib/systemd/user/xdg-desktop-autostart.target
 %dir %{_prefix}/lib/systemd/user-generators
+%attr(755,root,root) %{_prefix}/lib/systemd/user-generators/systemd-xdg-autostart-generator
 %dir %{_prefix}/lib/systemd/user-environment-generators
 %attr(755,root,root) %{_prefix}/lib/systemd/user-environment-generators/30-systemd-environment-d-generator
 %dir %{_prefix}/lib/systemd/user-preset
@@ -1820,7 +1836,6 @@ fi
 %{systemdunitdir}/sockets.target.wants/systemd-journald.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-control.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-kernel.socket
-%{systemdunitdir}/sockets.target.wants/systemd-userdbd.socket
 %{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
 %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
 %{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
@@ -1940,6 +1955,7 @@ fi
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
 /lib/systemd/network/80-container-vz.network
+/lib/systemd/network/80-vm-vt.network
 /lib/systemd/network/80-wifi-adhoc.network
 %{systemdunitdir}/systemd-network-generator.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
@@ -1999,6 +2015,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-resolved
 %{_mandir}/man1/resolvconf.1*
 %{_mandir}/man1/resolvectl.1*
+%{_mandir}/man5/org.freedesktop.resolve1.5*
 %{_mandir}/man5/resolved.conf.5*
 %{_mandir}/man5/resolved.conf.d.5*
 %{_mandir}/man8/systemd-resolved.8*
@@ -2123,6 +2140,8 @@ fi
 /lib/udev/hwdb.d/20-usb-classes.hwdb
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
 /lib/udev/hwdb.d/20-vmbus-class.hwdb
+/lib/udev/hwdb.d/60-autosuspend-chromiumos.hwdb
+/lib/udev/hwdb.d/60-autosuspend.hwdb
 /lib/udev/hwdb.d/60-evdev.hwdb
 /lib/udev/hwdb.d/60-input-id.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
@@ -2156,7 +2175,7 @@ fi
 
 # rules below are NOT supposed to be changed by users
 /lib/udev/rules.d/50-udev-default.rules
-/lib/udev/rules.d/60-autosuspend-chromiumos.rules
+/lib/udev/rules.d/60-autosuspend.rules
 /lib/udev/rules.d/60-block.rules
 /lib/udev/rules.d/60-cdrom_id.rules
 /lib/udev/rules.d/60-drm.rules
@@ -2168,7 +2187,6 @@ fi
 /lib/udev/rules.d/60-persistent-storage-tape.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/60-serial.rules
-/lib/udev/rules.d/61-autosuspend-manual.rules
 /lib/udev/rules.d/64-btrfs.rules
 /lib/udev/rules.d/70-mouse.rules
 /lib/udev/rules.d/70-power-switch.rules
