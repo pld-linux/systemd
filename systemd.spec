@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	246.3
+Version:	246.4
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	1408c07c017470fa49cbb6d78c9aedea
+# Source0-md5:	4e6d938bf5715e92c772bca7d5a6fa28
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -1791,6 +1791,7 @@ fi
 %{systemdunitdir}/time-sync.target
 %{systemdunitdir}/timers.target
 %{systemdunitdir}/umount.target
+%{systemdunitdir}/usb-gadget.target
 %{systemdunitdir}/systemd-tmpfiles-clean.timer
 %dir %{systemdunitdir}/basic.target.wants
 %dir %{systemdunitdir}/dbus.target.wants
