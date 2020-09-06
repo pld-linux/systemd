@@ -95,7 +95,7 @@ BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
 %{?with_efi:BuildRequires:	gnu-efi}
-BuildRequires:	gnutls-devel >= 3.1.4
+BuildRequires:	gnutls-devel >= 3.6.0
 BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
 # pkgconfig(libiptc)
@@ -104,11 +104,14 @@ BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel >= 1:2.13
 BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
+BuildRequires:	libfdisk-devel >= 2.33
+BuildRequires:	libfido2-devel
 BuildRequires:	libgcrypt-devel >= 1.4.5
 BuildRequires:	libgpg-error-devel >= 1.12
 BuildRequires:	libidn2-devel
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
 BuildRequires:	libmount-devel >= 2.30
+BuildRequires:	libpwquality-devel
 BuildRequires:	libseccomp-devel >= 2.4.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
@@ -117,6 +120,7 @@ BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
 BuildRequires:	meson >= 0.46
 BuildRequires:	ninja
+BuildRequires:	p11-kit-devel >= 0.23.3
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
 BuildRequires:	pkgconfig >= 0.9.0
@@ -124,7 +128,7 @@ BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
-BuildRequires:	rpmbuild(macros) >= 1.728
+BuildRequires:	rpmbuild(macros) >= 1.736
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 BuildRequires:	usbutils >= 0.82
@@ -151,7 +155,7 @@ Requires:	curl-libs >= 7.32.0
 Requires:	dbus >= 1.9.18
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
-Requires:	gnutls-libs >= 3.1.4
+Requires:	gnutls-libs >= 3.6.0
 Requires:	kmod >= 25-2
 Requires:	libgpg-error >= 1.12
 %{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
@@ -388,6 +392,24 @@ HTTP.
 systemd-journal-gatewayd serwuje zdarzenia dziennika po sieci poprzez
 HTTP.
 
+%package homed
+Summary:	systemd home area/user account manager
+Summary(pl.UTF-8):	Zarządca obszarów domowych/kont użytkownika dla systemd
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	libfdisk >= 2.33
+
+%description homed
+systemd-homed is a system service that may be used to create, remove,
+change or inspect home areas (directories and network mounts and real
+or loopback block devices with a filesystem, optionally encrypted).
+
+%description homed -l pl.UTF-8
+systemd-homed to usługa systemowa służąca do tworzenia, usuwania,
+zmiany lub dozorowania obszarów domowych (katalogów, montowań
+sieciowych oraz prawdziwych lub symulowanych urządzeń blokowych z
+systemami plików, opcjonalnie szyfrowanymi).
+
 %package networkd
 Summary:	systemd network manager
 Summary(pl.UTF-8):	Zarządca sieci systemd
@@ -418,6 +440,21 @@ detach and inspect portable service images.
 %description portabled -l pl.UTF-8
 systemd-portabled to usługa systemowa służąca do podłączania,
 odłączania i badania obrazów usług przenośnych.
+
+%package repart
+Summary:	systemd service to automatically grow and add partitions
+Summary(pl.UTF-8):	Usługa systemd do automatycznego powiększania lub dodawania partycji
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	libfdisk >= 2.33
+
+%description repart
+systemd-repart grows and adds partitions to a partition table, based
+on the configuration files.
+
+%description repart -l pl.UTF-8
+systemd-repart powiększa i dodaje partycje do tablicy partycji w
+oparciu o pliki konfiguracyjne.
 
 %package resolved
 Summary:	systemd network name resolution manager
@@ -523,7 +560,7 @@ Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	bash-completion >= 2.0
 Obsoletes:	bash-completion-elogind
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -539,7 +576,7 @@ Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń systemd
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Obsoletes:	zsh-completion-elogind
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -632,7 +669,7 @@ Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
 Group:		Applications/Shells
 Requires:	bash-completion >= 2.0
 Requires:	udev = %{epoch}:%{version}-%{release}
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -647,7 +684,7 @@ Summary:	zsh completion for udev commands
 Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń udev
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-%if "%{_rpmversion}" >= "5"
+%if "%{_rpmversion}" >= "4.6"
 BuildArch:	noarch
 %endif
 
@@ -718,11 +755,11 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dumount-path=/bin/umount \
 	-Dusers-gid=1000 \
 
-%meson_build -C build
+%ninja_build -C build
 
 %{__cc} %{rpmcppflags} %{rpmcflags} -o build/systemd_booted %{rpmldflags} src/systemd_booted.c -Lbuild -lsystemd
 
-%{?with_tests:%meson_test -C build}
+%{?with_tests:%ninja_test -C build}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -734,14 +771,14 @@ install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
 	$RPM_BUILD_ROOT%{_prefix}/lib/systemd/system-environment-generators
 
-%meson_install -C build
+%ninja_install -C build
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/random-seed
 
 install -p -m755 build/systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
 
 # target-pld.patch supplements
-rm $RPM_BUILD_ROOT%{systemdunitdir}/sysinit.target.wants/sys-kernel-config.mount
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/sysinit.target.wants/sys-kernel-config.mount
 ln -s %{systemdunitdir}/prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/graphical.target.wants/display-manager.service
 ln -s prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/display-manager.service
 ln -s rescue.service $RPM_BUILD_ROOT%{systemdunitdir}/single.service
@@ -1799,6 +1836,7 @@ fi
 %dir %{systemdunitdir}/graphical.target.wants
 %dir %{systemdunitdir}/halt.target.wants
 %dir %{systemdunitdir}/initrd.target.wants
+%dir %{systemdunitdir}/initrd-root-fs.target.wants
 %dir %{systemdunitdir}/kexec.target.wants
 %dir %{systemdunitdir}/local-fs.target.wants
 %dir %{systemdunitdir}/machines.target.wants
@@ -1948,6 +1986,25 @@ fi
 %{_mandir}/man8/systemd-journal-gatewayd.socket.8*
 %endif
 
+%files homed
+%defattr(644,root,root,755)
+%attr(755,root,root) /bin/homectl
+%attr(755,root,root) /lib/systemd/systemd-homed
+%attr(755,root,root) /lib/systemd/systemd-homework
+%attr(755,root,root) /%{_lib}/security/pam_systemd_home.so
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/homed.conf
+%{systemdunitdir}/systemd-homed.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.home1.service
+%{_datadir}/dbus-1/system.d/org.freedesktop.home1.conf
+%{_datadir}/polkit-1/actions/org.freedesktop.home1.policy
+%{_mandir}/man1/homectl.1*
+%{_mandir}/man5/homed.conf.5*
+%{_mandir}/man5/homed.conf.d.5*
+%{_mandir}/man5/org.freedesktop.home1.5*
+%{_mandir}/man8/pam_systemd_home.8*
+%{_mandir}/man8/systemd-homed.8*
+%{_mandir}/man8/systemd-homed.service.8*
+
 %files networkd
 %defattr(644,root,root,755)
 %{_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
@@ -2003,6 +2060,16 @@ fi
 %{_mandir}/man1/portablectl.1*
 %{_mandir}/man8/systemd-portabled.8*
 %{_mandir}/man8/systemd-portabled.service.8*
+
+%files repart
+%defattr(644,root,root,755)
+%attr(755,root,root) /bin/systemd-repart
+%{systemdunitdir}/systemd-repart.service
+%{systemdunitdir}/initrd-root-fs.target.wants/systemd-repart.service
+%{systemdunitdir}/sysinit.target.wants/systemd-repart.service
+%{_mandir}/man5/repart.d.5*
+%{_mandir}/man8/systemd-repart.8*
+%{_mandir}/man8/systemd-repart.service.8*
 
 %files resolved
 %defattr(644,root,root,755)
