@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	246.6
+Version:	246.10
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	a17b5e6b9e0aa1ac71587c05124e46e7
+# Source0-md5:	64aa63ce1ee531363ea99958a85ee825
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -317,11 +317,9 @@ Summary:	systemd /sbin/init and LSB/SysV compatibility symlinks
 Summary(pl.UTF-8):	/sbin/init z systemd i dowiązania dla kompatybilności z LSB/SysV
 Group:		Base
 Requires:	systemd
-Provides:	readahead = 1:1.5.7-3
-Provides:	virtual(init-daemon)
+Provides:	virtual-init-daemon
 Obsoletes:	SysVinit
-Obsoletes:	readahead < 1:1.5.7-3
-Obsoletes:	virtual(init-daemon)
+Obsoletes:	virtual-init-daemon
 Conflicts:	rc-scripts < 0.4.5.5-2
 Conflicts:	upstart
 # systemd takes care of that and causes problems
@@ -625,7 +623,7 @@ Requires:	systemd-libs = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
 Obsoletes:	udev-compat
-Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}}
+Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}
 Conflicts:	geninitrd < 12639
 Conflicts:	rc-scripts < 0.4.5.3-1
 Conflicts:	systemd-units < 1:183
@@ -989,8 +987,6 @@ if [ $1 -eq 1 ]; then
 	/bin/systemctl enable \
 		network.service \
 		remote-fs.target \
-		systemd-readahead-replay.service \
-		systemd-readahead-collect.service \
 		systemd-udev-settle.service || :
 fi
 
@@ -999,8 +995,6 @@ if [ $1 -eq 0 ] ; then
 	/bin/systemctl disable \
 		network.service \
 		remote-fs.target \
-		systemd-readahead-replay.service \
-		systemd-readahead-collect.service \
 		systemd-udev-settle.service || :
 
 	%{__rm} -f %{_sysconfdir}/systemd/system/default.target || :
