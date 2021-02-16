@@ -128,7 +128,7 @@ BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel}
-BuildRequires:	rpmbuild(macros) >= 1.736
+BuildRequires:	rpmbuild(macros) >= 1.752
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 BuildRequires:	usbutils >= 0.82
@@ -558,9 +558,7 @@ Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	bash-completion >= 2.0
 Obsoletes:	bash-completion-elogind
-%if "%{_rpmversion}" >= "4.6"
-BuildArch:	noarch
-%endif
+%{?noarchpackage}
 
 %description -n bash-completion-systemd
 bash-completion for systemd.
@@ -574,9 +572,7 @@ Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń systemd
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Obsoletes:	zsh-completion-elogind
-%if "%{_rpmversion}" >= "4.6"
-BuildArch:	noarch
-%endif
+%{?noarchpackage}
 
 %description -n zsh-completion-systemd
 zsh completion for systemd commands.
@@ -667,9 +663,7 @@ Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
 Group:		Applications/Shells
 Requires:	bash-completion >= 2.0
 Requires:	udev = %{epoch}:%{version}-%{release}
-%if "%{_rpmversion}" >= "4.6"
-BuildArch:	noarch
-%endif
+%{?noarchpackage}
 
 %description -n bash-completion-udev
 bash-completion for udev.
@@ -682,9 +676,7 @@ Summary:	zsh completion for udev commands
 Summary(pl.UTF-8):	Uzupełnianie parametrów w zsh dla poleceń udev
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-%if "%{_rpmversion}" >= "4.6"
-BuildArch:	noarch
-%endif
+%{?noarchpackage}
 
 %description -n zsh-completion-udev
 zsh completion for udev commands.
