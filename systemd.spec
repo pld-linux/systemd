@@ -123,7 +123,7 @@ BuildRequires:	ninja
 BuildRequires:	p11-kit-devel >= 0.23.3
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
-BuildRequires:	pkgconfig >= 0.9.0
+BuildRequires:	pkgconfig >= 1:0.9.0
 BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
 BuildRequires:	python3-lxml
