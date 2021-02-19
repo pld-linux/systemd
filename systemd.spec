@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	246.10
-Release:	1
+Version:	247.3
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	64aa63ce1ee531363ea99958a85ee825
+# Source0-md5:	5be57c584847b161c67577f2d997903a
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -127,7 +127,7 @@ BuildRequires:	pkgconfig >= 1:0.9.0
 BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
 BuildRequires:	python3-lxml
-%{?with_qrencode:BuildRequires:	qrencode-devel}
+%{?with_qrencode:BuildRequires:	qrencode-devel >= 4}
 BuildRequires:	rpmbuild(macros) >= 1.752
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
@@ -150,7 +150,6 @@ Requires:	%{name}-tools = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
-%{?with_cryptsetup:Requires:	cryptsetup >= 2.3.0}
 Requires:	curl-libs >= 7.32.0
 Requires:	dbus >= 1.9.18
 Requires:	filesystem >= 4.0-39
@@ -167,7 +166,12 @@ Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
 Requires:	util-linux >= 2.30
+%{?with_cryptsetup:Suggests:	cryptsetup >= 2.3.0}
 Suggests:	fsck >= 2.25.0
+Suggests:	libidn2
+Suggests:	libpwquality
+Suggests:	pcre2-8
+%{?with_qrencode:Suggests:	qrencode-libs >= 4}
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Suggests:	xorg-lib-libxkbcommon >= 0.5.0
@@ -424,6 +428,17 @@ virtual network devices.
 systemd-networkd to usługa systemowa zarządzająca siecią. Wykrywa i
 konfiguruje interfejsy sieciowe gdy się pojawiają, a także tworzy
 wirtualne urządzenia sieciowe.
+
+%package oomd
+Summary:	systemd userspace oom killer service
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description oomd
+systemd-oomd is a system service which monitors resource contention
+for selected parts of the unit hierarchy using the PSI information
+reported by the kernel, and kills processes when memory or swap
+pressure is above configured limits.
 
 %package portabled
 Summary:	systemd portable service images service
@@ -1154,7 +1169,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
 %dir %{_sysconfdir}/systemd/user
 
-%config(noreplace) %verify(not md5 mtime size) /etc/pam.d/systemd-user
+%config(noreplace) %verify(not md5 mtime size) /usr/lib/pam.d/systemd-user
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
 %attr(755,root,root) /bin/loginctl
@@ -1178,6 +1193,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-cat
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
+%attr(755,root,root) %{_bindir}/systemd-dissect
 %attr(755,root,root) %{_bindir}/systemd-id128
 %attr(755,root,root) %{_bindir}/systemd-mount
 %attr(755,root,root) %{_bindir}/systemd-nspawn
@@ -1201,7 +1217,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
-%attr(755,root,root) /lib/systemd/systemd-dissect
 %attr(755,root,root) /lib/systemd/systemd-export
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-growfs
@@ -1364,6 +1379,7 @@ fi
 %{_mandir}/man1/systemd-cat.1*
 %{_mandir}/man1/systemd-delta.1*
 %{_mandir}/man1/systemd-detect-virt.1*
+%{_mandir}/man1/systemd-dissect.1*
 %{_mandir}/man1/systemd-escape.1*
 %{_mandir}/man1/systemd-firstboot.1*
 %{_mandir}/man1/systemd-firstboot.service.1*
@@ -1572,12 +1588,15 @@ fi
 %dir %{_prefix}/lib/systemd/system-shutdown
 %dir %{_prefix}/lib/systemd/system-sleep
 %dir %{_prefix}/lib/systemd/user
+%{_prefix}/lib/systemd/user/app.slice
+%{_prefix}/lib/systemd/user/background.slice
 %{_prefix}/lib/systemd/user/basic.target
 %{_prefix}/lib/systemd/user/bluetooth.target
 %{_prefix}/lib/systemd/user/default.target
 %{_prefix}/lib/systemd/user/exit.target
 %{_prefix}/lib/systemd/user/paths.target
 %{_prefix}/lib/systemd/user/printer.target
+%{_prefix}/lib/systemd/user/session.slice
 %{_prefix}/lib/systemd/user/shutdown.target
 %{_prefix}/lib/systemd/user/smartcard.target
 %{_prefix}/lib/systemd/user/sockets.target
@@ -1761,6 +1780,7 @@ fi
 %{systemdunitdir}/emergency.target
 %{systemdunitdir}/exit.target
 %{systemdunitdir}/final.target
+%{systemdunitdir}/first-boot-complete.target
 %{systemdunitdir}/getty.target
 %{systemdunitdir}/getty-pre.target
 %{systemdunitdir}/graphical.target
@@ -1822,6 +1842,7 @@ fi
 %dir %{systemdunitdir}/graphical.target.wants
 %dir %{systemdunitdir}/halt.target.wants
 %dir %{systemdunitdir}/initrd.target.wants
+%dir %{systemdunitdir}/initrd-root-device.target.wants
 %dir %{systemdunitdir}/initrd-root-fs.target.wants
 %dir %{systemdunitdir}/kexec.target.wants
 %dir %{systemdunitdir}/local-fs.target.wants
@@ -1840,6 +1861,9 @@ fi
 %dir %{systemdunitdir}/syslog.target.wants
 %dir %{systemdunitdir}/system-update.target.wants
 %dir %{systemdunitdir}/timers.target.wants
+%if %{with cryptsetup}
+%{systemdunitdir}/initrd-root-device.target.wants/remote-cryptsetup.target
+%endif
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
@@ -1980,6 +2004,7 @@ fi
 %attr(755,root,root) /%{_lib}/security/pam_systemd_home.so
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/homed.conf
 %{systemdunitdir}/systemd-homed.service
+%{systemdunitdir}/systemd-homed-activate.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.home1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.home1.conf
 %{_datadir}/polkit-1/actions/org.freedesktop.home1.policy
@@ -2021,6 +2046,21 @@ fi
 %{_mandir}/man8/systemd-networkd-wait-online.service.8*
 %{_mandir}/man8/systemd-networkd.8*
 %{_mandir}/man8/systemd-networkd.service.8*
+
+%files oomd
+%defattr(644,root,root,755)
+%attr(755,root,root) /bin/oomctl
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/oomd.conf
+%attr(755,root,root) /lib/systemd/systemd-oomd
+%{systemdunitdir}/systemd-oomd.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.oom1.service
+%{_datadir}/dbus-1/system.d/org.freedesktop.oom1.conf
+%{_mandir}/man1/oomctl.1*
+%{_mandir}/man5/oomd.conf.5*
+%{_mandir}/man5/oomd.conf.d.5*
+%{_mandir}/man5/org.freedesktop.oom1.5*
+%{_mandir}/man8/systemd-oomd.8*
+%{_mandir}/man8/systemd-oomd.service.8*
 
 %files portabled
 %defattr(644,root,root,755)
@@ -2112,6 +2152,7 @@ fi
 %{bash_compdir}/bootctl
 %{bash_compdir}/busctl
 %{bash_compdir}/coredumpctl
+%{bash_compdir}/homectl
 %{bash_compdir}/hostnamectl
 %{bash_compdir}/journalctl
 %{bash_compdir}/kernel-install
@@ -2128,6 +2169,7 @@ fi
 %{bash_compdir}/systemd-cgtop
 %{bash_compdir}/systemd-delta
 %{bash_compdir}/systemd-detect-virt
+%{bash_compdir}/systemd-id128
 %{bash_compdir}/systemd-nspawn
 %{bash_compdir}/systemd-path
 %{bash_compdir}/systemd-resolve
@@ -2157,6 +2199,7 @@ fi
 %{zsh_compdir}/_systemd-delta
 %{zsh_compdir}/_systemd-inhibit
 %{zsh_compdir}/_systemd-nspawn
+%{zsh_compdir}/_systemd-path
 %{zsh_compdir}/_systemd-run
 %{zsh_compdir}/_systemd-tmpfiles
 %{zsh_compdir}/_timedatectl
