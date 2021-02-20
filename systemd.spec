@@ -180,6 +180,7 @@ Provides:	group(systemd-journal)
 Provides:	group(systemd-journal-remote)
 Provides:	group(systemd-journal-upload)
 Provides:	group(systemd-network)
+Provides:	group(systemd-oom)
 Provides:	group(systemd-resolve)
 Provides:	group(systemd-timesync)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
@@ -187,6 +188,7 @@ Provides:	user(systemd-coredump)
 Provides:	user(systemd-journal-remote)
 Provides:	user(systemd-journal-upload)
 Provides:	user(systemd-network)
+Provides:	user(systemd-oom)
 Provides:	user(systemd-resolve)
 Provides:	user(systemd-timesync)
 # kde4 still can't live without ConsoleKit
@@ -921,6 +923,8 @@ rm -rf $RPM_BUILD_ROOT
 %useradd -u 320 -g 320 -d /var/log/journal -s /bin/false -c "Systemd Journal Upload" systemd-journal-upload
 %groupadd -g 333 systemd-coredump
 %useradd -u 333 -g 333 -d /var/log/journal -s /bin/false -c "Systemd Core Dumper" systemd-coredump
+%groupadd -g 341 systemd-oom
+%useradd -u 341 -g 341 -d /var/log/journal -s /bin/false -c "Systemd Userspace OOM Killer" systemd-oom
 
 %post
 /bin/systemd-machine-id-setup || :
@@ -939,6 +943,8 @@ if [ "$1" = "0" ]; then
 	%groupremove systemd-coredump
 	%userremove systemd-network
 	%groupremove systemd-network
+	%userremove systemd-oom
+	%groupremove systemd-oom
 	%userremove systemd-resolve
 	%groupremove systemd-resolve
 	%userremove systemd-timesync
