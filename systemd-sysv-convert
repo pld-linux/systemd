@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- Mode: Python; python-indent: 8; indent-tabs-mode: t -*-
 
 import sys, os, argparse, errno
@@ -23,7 +23,7 @@ def find_service(service, runlevel):
 def lookup_database(services):
 	try:
 		database = open("/var/lib/systemd/sysv-convert/database", "r")
-	except IOError, e:
+	except IOError as e:
 		if e.errno != errno.ENOENT:
 			raise e
 
@@ -39,7 +39,7 @@ def lookup_database(services):
 		try:
 			runlevel = int(r)
 			priority = int(p)
-		except ValueError, e:
+		except ValueError as e:
 			sys.stderr.write("Failed to parse database line %i. Ignoring." % k)
 			continue
 
@@ -64,8 +64,8 @@ def lookup_database(services):
 
 def mkdir_p(path):
 	try:
-		os.makedirs(path, 0755)
-	except OSError, e:
+		os.makedirs(path, 0o755)
+	except OSError as e:
 		if e.errno != errno.EEXIST:
 			raise e
 
@@ -114,8 +114,8 @@ elif a.show:
 		sys.stderr.write("No information about passed services found.\n")
 		sys.exit(1)
 
-	for service, data in found.iteritems():
-		for runlevel, priority in data.iteritems():
+	for service, data in iter(found.items()):
+		for runlevel, priority in iter(data.items()):
 			sys.stdout.write("SysV service %s enabled in runlevel %s at priority %s\n" % (service, runlevel, priority))
 
 elif a.apply:
@@ -130,8 +130,8 @@ elif a.apply:
 		sys.stderr.write("No information about passed services found.\n")
 		sys.exit(1)
 
-	for service, data in found.iteritems():
-		for runlevel in data.iterkeys():
+	for service, data in iter(found.items()):
+		for runlevel in iter(data.keys()):
 
 			sys.stderr.write("ln -sf /lib/systemd/system/%s.service /etc/systemd/system/runlevel%i.target.wants/%s.service\n" % (service, runlevel, service))
 
@@ -140,7 +140,7 @@ elif a.apply:
 			try:
 				os.symlink("/lib/systemd/system/%s.service" % service,
 					   "/etc/systemd/system/runlevel%i.target.wants/%s.service" % (runlevel, service))
-			except OSError, e:
+			except OSError as e:
 				if e.errno != errno.EEXIST:
 					raise e
 
