@@ -126,5 +126,5 @@
 +        } 
 +
          /* Let the kernel command line override /etc/vconsole.conf */
-         if (detect_container(NULL) <= 0) {
-                 r = parse_env_file(NULL, "/proc/cmdline", WHITESPACE,
+         r = proc_cmdline_get_key_many(
+                         PROC_CMDLINE_STRIP_RD_PREFIX,

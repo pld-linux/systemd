@@ -8,8 +8,8 @@ diff -urN systemd-241.orig/shell-completion/bash/meson.build systemd-241/shell-c
 -                 ['bootctl',             'ENABLE_EFI'],
 +                 ['bootctl',             ''],
                   ['coredumpctl',         'ENABLE_COREDUMP'],
+                  ['homectl',             'ENABLE_HOMED'],
                   ['hostnamectl',         'ENABLE_HOSTNAMED'],
-                  ['localectl',           'ENABLE_LOCALED'],
 diff -urN systemd-241.orig/shell-completion/zsh/meson.build systemd-241/shell-completion/zsh/meson.build
 --- systemd-241.orig/shell-completion/zsh/meson.build	2019-02-14 11:11:58.000000000 +0100
 +++ systemd-241/shell-completion/zsh/meson.build	2019-03-07 01:09:00.655641470 +0100

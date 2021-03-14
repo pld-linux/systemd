@@ -32,7 +32,7 @@ diff -ur systemd-245/units.org/systemd-tmpfiles-setup.service systemd-245/units/
 diff -ur systemd-245/units.org/user/systemd-tmpfiles-clean.service systemd-245/units/user/systemd-tmpfiles-clean.service
 --- systemd-245/units.org/user/systemd-tmpfiles-clean.service	2020-03-06 13:38:52.000000000 +0100
 +++ systemd-245/units/user/systemd-tmpfiles-clean.service	2020-04-03 21:08:42.151365700 +0200
-@@ -16,6 +16,6 @@
+@@ -16,7 +16,7 @@
  
  [Service]
  Type=oneshot
@@ -40,6 +40,7 @@ diff -ur systemd-245/units.org/user/systemd-tmpfiles-clean.service systemd-245/u
 +ExecStart=-systemd-tmpfiles --user --clean
  SuccessExitStatus=DATAERR
  IOSchedulingClass=idle
+ Slice=background.slice
 diff -ur systemd-245/units.org/user/systemd-tmpfiles-setup.service systemd-245/units/user/systemd-tmpfiles-setup.service
 --- systemd-245/units.org/user/systemd-tmpfiles-setup.service	2020-03-06 13:38:52.000000000 +0100
 +++ systemd-245/units/user/systemd-tmpfiles-setup.service	2020-04-03 21:08:42.151365700 +0200
