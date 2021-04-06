@@ -1,6 +1,6 @@
 --- systemd-238/sysusers.d/basic.conf.in~	2018-03-05 23:16:37.000000000 +0100
 +++ systemd-238/sysusers.d/basic.conf.in	2018-05-15 13:30:41.922818679 +0200
-@@ -12,27 +12,27 @@ u root    0     "Super User" /root
+@@ -12,28 +12,28 @@ u root    0     "Super User" /root
  u @NOBODY_USER_NAME@  65534 "Nobody"     -
  
  # Administrator group: can *see* more than normal users
@@ -34,6 +34,7 @@
 +g kvm     160   -            -
 +g lp      7     -            -
  g render  -     -            -
+ g sgx     -     -            -
 -g tape    -     -            -
 -g video   -     -            -
 +g tape    68    -            -

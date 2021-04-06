@@ -18,6 +18,8 @@
 %bcond_without	qrencode	# QRencode support
 %bcond_without	selinux		# SELinux support
 %bcond_without	efi		# EFI boot support
+%bcond_without	fido2		# FIDO2 support
+%bcond_without	tpm2		# TPM2 support
 %bcond_with	tests		# "make check" (requires systemd already installed)
 
 %ifnarch %{ix86} %{x8664} aarch64
@@ -28,14 +30,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	247.6
+Version:	248
 Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	49f67c4d6fcd98e74bf82ff0e3b812e6
+# Source0-md5:	5f72949ebbc609cb9f07ee05165093fa
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -105,7 +107,7 @@ BuildRequires:	libapparmor-devel >= 1:2.13
 BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
 BuildRequires:	libfdisk-devel >= 2.33
-BuildRequires:	libfido2-devel
+%{?with_fido2:BuildRequires:	libfido2-devel}
 BuildRequires:	libgcrypt-devel >= 1.4.5
 BuildRequires:	libgpg-error-devel >= 1.12
 BuildRequires:	libidn2-devel
@@ -131,6 +133,7 @@ BuildRequires:	python3-lxml
 BuildRequires:	rpmbuild(macros) >= 1.752
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
+%{?with_tpm2:BuildRequires:	tpm2-tss-devel}
 BuildRequires:	usbutils >= 0.82
 BuildRequires:	xorg-lib-libxkbcommon-devel >= 0.5.0
 BuildRequires:	xz-devel
@@ -168,6 +171,7 @@ Requires:	uname(release) >= 3.13
 Requires:	util-linux >= 2.30
 %{?with_cryptsetup:Suggests:	cryptsetup >= 2.3.0}
 Suggests:	fsck >= 2.25.0
+%{?with_fido2:Suggests:	libfido2}
 Suggests:	libidn2
 Suggests:	libpwquality
 Suggests:	pcre2-8
@@ -732,6 +736,7 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Ddefault-kill-user-processes=false \
 	%{?debug:--buildtype=debug} \
 	-Defi=%{__true_false efi} \
+	-Dfido2=%{__true_false fido2} \
 	-Dkexec-path=/sbin/kexec \
 	-Dkmod-path=/sbin/kmod \
 	-Dlibcryptsetup=%{__true_false cryptsetup} \
@@ -759,6 +764,7 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dsulogin-path=/sbin/sulogin \
 	-Dsysvinit-path=/etc/rc.d/init.d \
 	-Dsysvrcnd-path=/etc/rc.d \
+	-Dtpm2=%{__true_false tpm2} \
 	-Dumount-path=/bin/umount \
 	-Dusers-gid=1000 \
 
@@ -878,7 +884,8 @@ cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 	$RPM_BUILD_ROOT%{_mandir}/man8/systemd-rc-local-generator.8
 
 # provided by rc-scripts
-%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/rc-local.service
+%{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/rc-local.service \
+	$RPM_BUILD_ROOT%{_mandir}/man8/rc-local.service.8
 
 # Make sure these directories are properly owned:
 #	- halt,kexec,poweroff,reboot: generic ones used by ConsoleKit-systemd,
@@ -1187,6 +1194,7 @@ fi
 %attr(755,root,root) /bin/systemd-inhibit
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
+%attr(755,root,root) /bin/systemd-sysext
 %attr(755,root,root) /bin/systemd-sysusers
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
 %attr(755,root,root) /bin/userdbctl
@@ -1197,6 +1205,7 @@ fi
 %attr(755,root,root) %{_bindir}/kernel-install
 %attr(755,root,root) %{_bindir}/localectl
 %attr(755,root,root) %{_bindir}/systemd-cat
+%{?with_cryptsetup:%attr(755,root,root) %{_bindir}/systemd-cryptenroll}
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
 %attr(755,root,root) %{_bindir}/systemd-dissect
@@ -1383,6 +1392,7 @@ fi
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cat.1*
+%{?with_cryptsetup:%{_mandir}/man1/systemd-cryptenroll.1*}
 %{_mandir}/man1/systemd-delta.1*
 %{_mandir}/man1/systemd-detect-virt.1*
 %{_mandir}/man1/systemd-dissect.1*
@@ -1519,6 +1529,7 @@ fi
 %{_mandir}/man8/systemd-sleep.8*
 %{_mandir}/man8/systemd-socket-proxyd.8*
 %{_mandir}/man8/systemd-sysctl.8*
+%{_mandir}/man8/systemd-sysext.8*
 %{_mandir}/man8/systemd-system-update-generator.8*
 %{_mandir}/man8/systemd-sysusers.8*
 %{_mandir}/man8/systemd-sysusers.service.8*
@@ -1565,7 +1576,10 @@ fi
 %attr(755,root,root) /sbin/shutdown
 %attr(755,root,root) /sbin/telinit
 %{_mandir}/man1/init.1*
-%{?with_cryptsetup:%{_mandir}/man5/crypttab.5*}
+%if %{with cryptsetup}
+%{_mandir}/man5/crypttab.5*
+%{_mandir}/man5/veritytab.5*
+%endif
 %{_mandir}/man8/halt.8*
 %{_mandir}/man8/poweroff.8*
 %{_mandir}/man8/reboot.8*
@@ -1737,6 +1751,7 @@ fi
 %{systemdunitdir}/systemd-suspend.service
 %{systemdunitdir}/systemd-suspend-then-hibernate.service
 %{systemdunitdir}/systemd-sysctl.service
+%{systemdunitdir}/systemd-sysext.service
 %{systemdunitdir}/systemd-sysusers.service
 %{systemdunitdir}/systemd-time-wait-sync.service
 %{systemdunitdir}/systemd-timedated.service
@@ -1779,8 +1794,12 @@ fi
 %{systemdunitdir}/blockdev@.target
 %{systemdunitdir}/bluetooth.target
 %{systemdunitdir}/boot-complete.target
-%{?with_cryptsetup:%{systemdunitdir}/cryptsetup-pre.target}
-%{?with_cryptsetup:%{systemdunitdir}/cryptsetup.target}
+%if %{with cryptsetup}
+%{systemdunitdir}/cryptsetup-pre.target
+%{systemdunitdir}/cryptsetup.target
+%{systemdunitdir}/veritysetup-pre.target
+%{systemdunitdir}/veritysetup.target
+%endif
 %{systemdunitdir}/ctrl-alt-del.target
 %{systemdunitdir}/default.target
 %{systemdunitdir}/emergency.target
@@ -1815,6 +1834,7 @@ fi
 %{systemdunitdir}/remote-fs.target
 %if %{with cryptsetup}
 %{systemdunitdir}/remote-cryptsetup.target
+%{systemdunitdir}/remote-veritysetup.target
 %endif
 %{systemdunitdir}/rescue.target
 %{systemdunitdir}/rpcbind.target
@@ -1869,6 +1889,7 @@ fi
 %dir %{systemdunitdir}/timers.target.wants
 %if %{with cryptsetup}
 %{systemdunitdir}/initrd-root-device.target.wants/remote-cryptsetup.target
+%{systemdunitdir}/initrd-root-device.target.wants/remote-veritysetup.target
 %endif
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
@@ -1891,7 +1912,10 @@ fi
 %{systemdunitdir}/sockets.target.wants/systemd-journald.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-control.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-kernel.socket
-%{?with_cryptsetup:%{systemdunitdir}/sysinit.target.wants/cryptsetup.target}
+%if %{with cryptsetup}
+%{systemdunitdir}/sysinit.target.wants/cryptsetup.target
+%{systemdunitdir}/sysinit.target.wants/veritysetup.target
+%endif
 %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
 %{systemdunitdir}/sysinit.target.wants/dev-mqueue.mount
 %{systemdunitdir}/sysinit.target.wants/kmod-static-nodes.service
@@ -1969,6 +1993,7 @@ fi
 %{_mandir}/man8/systemd-suspend.service.8*
 %{_mandir}/man8/systemd-suspend-then-hibernate.service.8*
 %{_mandir}/man8/systemd-sysctl.service.8*
+%{_mandir}/man8/systemd-sysext.service.8*
 %{_mandir}/man8/systemd-time-wait-sync.service.8*
 %{_mandir}/man8/systemd-timedated.service.8*
 %{_mandir}/man8/systemd-tmpfiles-clean.service.8*
@@ -2090,6 +2115,7 @@ fi
 %{_datadir}/dbus-1/system.d/org.freedesktop.portable1.conf
 %{_datadir}/polkit-1/actions/org.freedesktop.portable1.policy
 %{_mandir}/man1/portablectl.1*
+%{_mandir}/man5/org.freedesktop.portable1.5*
 %{_mandir}/man8/systemd-portabled.8*
 %{_mandir}/man8/systemd-portabled.service.8*
 
@@ -2225,6 +2251,7 @@ fi
 
 %attr(755,root,root) /lib/udev/ata_id
 %attr(755,root,root) /lib/udev/cdrom_id
+%attr(755,root,root) /lib/udev/dmi_memory_id
 %attr(755,root,root) /lib/udev/fido_id
 %attr(755,root,root) /lib/udev/mtd_probe
 %attr(755,root,root) /lib/udev/scsi_id
@@ -2234,6 +2261,7 @@ fi
 
 /lib/udev/hwdb.d/20-acpi-vendor.hwdb
 /lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb
+/lib/udev/hwdb.d/20-dmi-id.hwdb
 /lib/udev/hwdb.d/20-net-ifname.hwdb
 /lib/udev/hwdb.d/20-OUI.hwdb
 /lib/udev/hwdb.d/20-pci-classes.hwdb
@@ -2244,6 +2272,7 @@ fi
 /lib/udev/hwdb.d/20-usb-vendor-model.hwdb
 /lib/udev/hwdb.d/20-vmbus-class.hwdb
 /lib/udev/hwdb.d/60-autosuspend-chromiumos.hwdb
+/lib/udev/hwdb.d/60-autosuspend-fingerprint-reader.hwdb
 /lib/udev/hwdb.d/60-autosuspend.hwdb
 /lib/udev/hwdb.d/60-evdev.hwdb
 /lib/udev/hwdb.d/60-input-id.hwdb
@@ -2291,6 +2320,7 @@ fi
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/60-serial.rules
 /lib/udev/rules.d/64-btrfs.rules
+/lib/udev/rules.d/70-memory.rules
 /lib/udev/rules.d/70-mouse.rules
 /lib/udev/rules.d/70-power-switch.rules
 /lib/udev/rules.d/70-touchpad.rules

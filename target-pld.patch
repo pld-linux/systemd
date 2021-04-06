@@ -1,24 +1,25 @@
 ; rest of target-pld.patch logic in systemd.spec
---- a/src/basic/hostname-util.h~	2018-03-05 23:16:37.000000000 +0100
-+++ b/src/basic/hostname-util.h	2018-05-15 13:46:17.924678801 +0200
-@@ -42,5 +42,6 @@ int sethostname_idempotent(const char *s
+--- systemd-stable-248/src/shared/hostname-setup.h.orig	2021-03-30 22:59:02.000000000 +0200
++++ systemd-stable-248/src/shared/hostname-setup.h	2021-04-07 00:02:26.813489363 +0200
+@@ -18,6 +18,7 @@
  
  int shorten_overlong(const char *s, char **ret);
  
 +int read_etc_hostname_distro(const char *path, char **ret);
  int read_etc_hostname_stream(FILE *f, char **ret);
  int read_etc_hostname(const char *path, char **ret);
---- systemd-240/src/basic/hostname-util.c.orig	2018-12-21 19:53:33.000000000 +0100
-+++ systemd-240/src/basic/hostname-util.c	2019-01-13 11:11:40.715590524 +0100
-@@ -8,6 +8,7 @@
+ 
+--- systemd-stable-248/src/shared/hostname-setup.c.orig	2021-03-30 22:59:02.000000000 +0200
++++ systemd-stable-248/src/shared/hostname-setup.c	2021-04-07 00:04:58.955649812 +0200
+@@ -7,6 +7,7 @@
  #include <unistd.h>
  
  #include "alloc-util.h"
 +#include "env-file.h"
  #include "fd-util.h"
  #include "fileio.h"
- #include "hostname-util.h"
-@@ -290,13 +290,33 @@ int read_etc_hostname_stream(FILE *f, ch
+ #include "fs-util.h"
+@@ -130,13 +131,34 @@
          }
  }
  
@@ -36,6 +37,7 @@
 +         *ret = p;
 +         return 0;
 +}
++
 +
  int read_etc_hostname(const char *path, char **ret) {
          _cleanup_fclose_ FILE *f = NULL;
