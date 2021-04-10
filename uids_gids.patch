@@ -34,9 +34,10 @@
 +g kvm     160   -            -
 +g lp      7     -            -
  g render  -     -            -
- g sgx     -     -            -
+-g sgx     -     -            -
 -g tape    -     -            -
 -g video   -     -            -
++g sgx     344   -            -
 +g tape    68    -            -
 +g video   24    -            -
  
