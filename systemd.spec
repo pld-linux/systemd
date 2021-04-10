@@ -965,11 +965,11 @@ if [ "$1" = "0" ]; then
 	%groupremove systemd-journal
 fi
 
-%triggerpostun -- systemd < 1:208-1
+%triggerpostun -- systemd < 1:220-1
+# systemd < 1:208-1
 chgrp -R systemd-journal /var/log/journal
 chmod g+s /var/log/journal
-
-%triggerpostun -- systemd < 1:220-1
+# systemd < 1:220-1
 # https://bugs.freedesktop.org/show_bug.cgi?id=89202
 /bin/getfacl -p /var/log/journal/$(cat /etc/machine-id) | grep -v '^#' | sort -u | /bin/setfacl -R --set-file=- /var/log/journal/$(cat /etc/machine-id) || :
 
@@ -1027,14 +1027,14 @@ if [ $1 -ge 1 ]; then
 	/bin/systemctl daemon-reload || :
 fi
 
-%triggerpostun units -- systemd-units < 43-7
+%triggerpostun units -- systemd-units < 1:242
+# systemd-units < 43-7
 # Remove design fialures
 %{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/ifcfg@*.service || :
 %{__rm} -f %{_sysconfdir}/systemd/system/network.target.wants/network-post.service || :
 %{__rm} -f %{_sysconfdir}/systemd/system/multi-user.target.wants/network-post.service || :
 /bin/systemctl reenable network.service || :
-
-%triggerpostun units -- systemd-units < 1:183
+# systemd-units < 1:183
 /bin/systemctl --quiet enable systemd-udev-settle.service || :
 %{__rm} -f /etc/systemd/system/basic.target.wants/udev-settle.service || :
 # preserve renamed configs
@@ -1046,22 +1046,19 @@ if [ -f /etc/systemd/systemd-logind.conf.rpmsave ]; then
 	%{__mv} /etc/systemd/logind.conf{,.rpmnew}
 	%{__mv} -f /etc/systemd/systemd-logind.conf.rpmsave /etc/systemd/logind.conf
 fi
-
-%triggerpostun units -- systemd-units < 1:187-3
+# systemd-units < 1:187-3
 if [ -f /etc/sysconfig/rpm ]; then
 	. /etc/sysconfig/rpm
 	if [ ${RPM_ENABLE_SYSTEMD_SERVICE:-yes} = no ]; then
 		echo "disable *" >>%{_sysconfdir}/systemd/system-preset/default.preset
 	fi
 fi
-
-%triggerpostun units -- systemd-units < 1:208-9
+# systemd-units < 1:208-9
 # remove buggy symlink
 if [ -L /etc/systemd/system/getty.target.wants/getty@.service ] ; then
 	rm -f /etc/systemd/system/getty.target.wants/getty@.service || :
 fi
-
-%triggerpostun units -- systemd-units < 1:242
+# systemd-units < 1:242
 if [ -L /var/lib/systemd/timesync ] ; then
 	rm -f /var/lib/systemd/timesync || :
 fi
@@ -1119,13 +1116,14 @@ if [ "$2" = 0 ]; then
 	/sbin/start_udev || exit 0
 fi
 
-%triggerpostun -n udev-core -- udev < 108
+%triggerpostun -n udev-core -- udev < 165
+# udev < 108
 %{__sed} -i -e 's#IMPORT{program}="/sbin/#IMPORT{program}="#g' /etc/udev/rules.d/*.rules
 %if "%{_lib}" != "lib"
 %{__sed} -i -e 's#/%{_lib}/udev/#/lib/udev/#g' /etc/udev/rules.d/*.rules
 %endif
 
-%triggerpostun -n udev-core -- udev < 165
+# udev < 165
 /bin/udevadm info --convert-db
 
 %post -n udev-core
