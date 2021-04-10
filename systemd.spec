@@ -165,7 +165,7 @@ Requires:	libgpg-error >= 1.12
 Requires:	libutempter
 Requires:	polkit >= 0.106
 Requires:	rc-scripts >= 0.4.5.3-7
-Requires:	setup >= 2.8.0-2
+Requires:	setup >= 2.10.1
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
@@ -636,7 +636,7 @@ Requires:	filesystem >= 3.0-45
 Requires:	kmod >= 15
 Requires:	libblkid >= 2.24
 %{?with_selinux:Requires:	libselinux >= 2.6}
-Requires:	setup >= 2.9.0-3
+Requires:	setup >= 2.10.1
 Requires:	systemd-libs = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
