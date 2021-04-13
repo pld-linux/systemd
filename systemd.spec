@@ -351,6 +351,7 @@ Summary(pl.UTF-8):	Pliki konfiguracyjne, katalogi i narzędzie instalacyjne dla 
 Group:		Base
 Requires(post):	coreutils
 Requires(post):	/bin/awk
+Requires:	less >= 568
 
 %description units
 Basic configuration files, directories and installation tool for the
