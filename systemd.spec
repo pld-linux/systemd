@@ -30,14 +30,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	248
+Version:	248.1
 Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	5f72949ebbc609cb9f07ee05165093fa
+# Source0-md5:	b91c9fbbbe8137bad09f2ce4a3d2ded7
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -2084,6 +2084,7 @@ fi
 %attr(755,root,root) /bin/oomctl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/oomd.conf
 %attr(755,root,root) /lib/systemd/systemd-oomd
+%{systemdunitdir}/dbus-org.freedesktop.oom1.service
 %{systemdunitdir}/systemd-oomd.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.oom1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.oom1.conf
