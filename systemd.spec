@@ -200,8 +200,9 @@ Provides:	user(systemd-timesync)
 #Obsoletes:	ConsoleKit
 #Obsoletes:	ConsoleKit-x11
 Obsoletes:	elogind
-Obsoletes:	systemd-no-compat-tmpfiles
-Obsoletes:	udev-systemd
+Obsoletes:	systemd-no-compat-tmpfiles < 1:183-1
+Obsoletes:	udev-acl < 1:181-1
+Obsoletes:	udev-systemd < 1:182-1
 # for storage detection / activation services
 Conflicts:	dmraid < 1.0.0-0.rc16.3.3
 Conflicts:	mdadm < 4.0-2
@@ -566,7 +567,7 @@ Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	%{name}-units = %{epoch}:%{version}-%{release}
-Obsoletes:	systemd-static
+Obsoletes:	systemd-static < 1:205
 
 %description devel
 Header files for systemd libraries.
@@ -609,14 +610,16 @@ Summary(pl.UTF-8):	Zarządca urządzeń dla Linuksa 2.6
 Group:		Base
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Provides:	dev = 3.5.0
-Obsoletes:	dev
-Obsoletes:	hotplug
-Obsoletes:	hotplug-input
-Obsoletes:	hotplug-net
-Obsoletes:	hotplug-pci
-Obsoletes:	udev-dev
+Obsoletes:	dev < 3.5
+Obsoletes:	hotplug < 2005
+Obsoletes:	hotplug-digicam < 2005
+Obsoletes:	hotplug-input < 2005
+Obsoletes:	hotplug-isapnp < 2005
+Obsoletes:	hotplug-net < 2005
+Obsoletes:	hotplug-pci < 2005
+Obsoletes:	udev-dev < 032
 Obsoletes:	udev-extras < 20090628
-Obsoletes:	udev-tools
+Obsoletes:	udev-tools < 1:125-2
 
 %description -n udev
 udev is the device manager for the Linux 2.6 kernel series. Its
@@ -641,8 +644,11 @@ Requires:	setup >= 2.10.1
 Requires:	systemd-libs = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
-Obsoletes:	udev-compat
-Obsoletes:	udev-initrd < %{epoch}:%{version}-%{release}
+Obsoletes:	udev-compat < 1:182-1
+Obsoletes:	udev-dbus < 027
+Obsoletes:	udev-digicam < 1:079-2
+Obsoletes:	udev-initramfs < 1:182-5
+Obsoletes:	udev-initrd < 1:198-1
 Conflicts:	geninitrd < 12639
 Conflicts:	rc-scripts < 0.4.5.3-1
 Conflicts:	systemd-units < 1:183
@@ -671,8 +677,8 @@ Summary:	Header file for libudev library
 Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libudev
 Group:		Development/Libraries
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Obsoletes:	udev-apidocs
-Obsoletes:	udev-static
+Obsoletes:	udev-apidocs < 1:221-1
+Obsoletes:	udev-static < 1:205
 
 %description -n udev-devel
 Header file for libudev library.
