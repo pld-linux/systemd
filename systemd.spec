@@ -439,7 +439,8 @@ konfiguruje interfejsy sieciowe gdy się pojawiają, a także tworzy
 wirtualne urządzenia sieciowe.
 
 %package oomd
-Summary:	systemd userspace oom killer service
+Summary:	systemd userspace OOM killer service
+Summary(pl.UTF-8):	Usługa systemd zabójcy OOM w przestrzeni użytkownika
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -448,6 +449,12 @@ systemd-oomd is a system service which monitors resource contention
 for selected parts of the unit hierarchy using the PSI information
 reported by the kernel, and kills processes when memory or swap
 pressure is above configured limits.
+
+%description oomd -l pl.UTF-8
+systemd-oomd to usługa systemowa monitorująca wykorzystanie zasobów
+dla wybranych części hierarchii jednostek przy użyciu informacji PSI,
+zgłaszanych przez jądro, oraz zabijająca procesy, kiedy niedobór
+pamięci lub przestrzeni wymiany jest powyżej skonfigurowanych limitów.
 
 %package portabled
 Summary:	systemd portable service images service
