@@ -30,14 +30,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	248.3
+Version:	249
 Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	bb412cc7f9c9c54bcfdb8e7a90f5a8b1
+# Source0-md5:	fb0481dfe8f30ea06d270005f1039364
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -76,7 +76,7 @@ Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
 Patch11:	optional-tmp-on-tmpfs.patch
-Patch12:	uids_gids.patch
+Patch12:	hostnamed-errno.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-x32.patch
@@ -129,6 +129,7 @@ BuildRequires:	pcre2-8-devel
 BuildRequires:	pkgconfig >= 1:0.9.0
 BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
+BuildRequires:	python3-jinja2
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel >= 4}
 BuildRequires:	rpmbuild(macros) >= 1.752
@@ -746,6 +747,27 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 
 %build
 %meson build \
+	-Dadm-gid=3 \
+	-Daudio-gid=23 \
+	-Dcdrom-gid=27 \
+	-Ddialout-gid=16 \
+	-Ddisk-gid=6 \
+	-Dinput-gid=182 \
+	-Dkmem-gid=9 \
+	-Dkvm-gid=160 \
+	-Dlp-gid=7 \
+	-Dsgx-gid=344 \
+	-Dtape-gid=68 \
+	-Dusers-gid=1000 \
+	-Dutmp-gid=22 \
+	-Dvideo-gid=24 \
+	-Dwheel-gid=10 \
+	-Dsystemd-journal-gid=288 \
+	-Dsystemd-network-uid=316 \
+	-Dsystemd-resolve-uid=317 \
+	-Dsystemd-timesync-uid=318 \
+	-Dnobody-user="nobody" \
+	-Dnobody-group="nogroup" \
 	-Daudit=%{__true_false audit} \
 	-Ddefault-hierarchy=hybrid \
 	-Ddefault-kill-user-processes=false \
@@ -761,8 +783,6 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dman=true \
 	-Dmicrohttpd=%{__true_false microhttpd} \
 	-Dmount-path=/bin/mount \
-	-Dnobody-user="nobody" \
-	-Dnobody-group="nogroup" \
 	-Dntp-servers='0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org' \
 	-Dpam=%{__true_false pam} \
 	-Dqrencode=%{__true_false qrencode} \
@@ -781,7 +801,6 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dsysvrcnd-path=/etc/rc.d \
 	-Dtpm2=%{__true_false tpm2} \
 	-Dumount-path=/bin/umount \
-	-Dusers-gid=1000 \
 
 %ninja_build -C build
 
@@ -1829,6 +1848,7 @@ fi
 %{systemdunitdir}/initrd-fs.target
 %{systemdunitdir}/initrd-root-fs.target
 %{systemdunitdir}/initrd-switch-root.target
+%{systemdunitdir}/initrd-usr-fs.target
 %{systemdunitdir}/initrd.target
 %{systemdunitdir}/kexec.target
 %{systemdunitdir}/local-fs-pre.target
@@ -2292,11 +2312,13 @@ fi
 /lib/udev/hwdb.d/60-evdev.hwdb
 /lib/udev/hwdb.d/60-input-id.hwdb
 /lib/udev/hwdb.d/60-keyboard.hwdb
+/lib/udev/hwdb.d/60-seat.hwdb
 /lib/udev/hwdb.d/60-sensor.hwdb
 /lib/udev/hwdb.d/70-joystick.hwdb
 /lib/udev/hwdb.d/70-mouse.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
+/lib/udev/hwdb.d/80-ieee1394-unit-function.hwdb
 
 %attr(755,root,root) %{_rootsbindir}/start_udev
 %attr(755,root,root) %{_rootsbindir}/udevd
@@ -2345,6 +2367,7 @@ fi
 /lib/udev/rules.d/78-sound-card.rules
 /lib/udev/rules.d/80-drivers.rules
 /lib/udev/rules.d/80-net-setup-link.rules
+/lib/udev/rules.d/81-net-dhcp.rules
 /lib/udev/rules.d/90-vconsole.rules
 
 %{_mandir}/man5/udev.conf.5*

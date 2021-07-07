@@ -3,7 +3,7 @@
 @@ -41,3 +41,7 @@
  # Increase the default a bit in order to allow many simultaneous logins since
  # we keep one fd open per session.
- LimitNOFILE=@HIGH_RLIMIT_NOFILE@
+ LimitNOFILE={{HIGH_RLIMIT_NOFILE}}
 +
 +# Run as group 'proc' to ensure access to /proc when
 +# it is mounted with hidepid=1|2 option
