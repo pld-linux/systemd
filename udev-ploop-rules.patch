@@ -1,12 +1,13 @@
 diff -ru udev-182.orig/rules/60-persistent-storage.rules udev-182/rules/60-persistent-storage.rules
 --- udev-182.orig/rules.d/60-persistent-storage.rules	2012-02-23 16:26:16.000000000 +0100
 +++ udev-182/rules.d/60-persistent-storage.rules	2012-05-24 11:23:01.000000000 +0200
-@@ -16,6 +16,8 @@
- # skip rules for inappropriate block devices
- KERNEL=="fd*|mtd*|nbd*|gnbd*|btibm*|dm-*|md*", GOTO="persistent_storage_end"
+@@ -9,6 +9,8 @@ ENV{UDEV_DISABLE_PERSISTENT_STORAGE_RULE
+ SUBSYSTEM!="block|ubi", GOTO="persistent_storage_end"
+ KERNEL!="loop*|mmcblk*[0-9]|msblk*[0-9]|mspblk*[0-9]|nvme*|sd*|sr*|vd*|xvd*|bcache*|cciss*|dasd*|ubd*|ubi*|scm*|pmem*|nbd*|zd*", GOTO="persistent_storage_end"
  
 +KERNEL=="ploop*", GOTO="persistent_storage_end"
 +
  # ignore partitions that span the entire disk
  TEST=="whole_disk", GOTO="persistent_storage_end"
  
+
