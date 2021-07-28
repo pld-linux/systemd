@@ -1448,6 +1448,7 @@ fi
 %{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/dnssec-trust-anchors.d.5*
 %{_mandir}/man5/hostname.5*
+%{_mandir}/man5/initrd-release.5*
 %{_mandir}/man5/journald@.conf.5*
 %{?with_efi:%{_mandir}/man5/loader.conf.5*}
 %if %{with microhttpd}
