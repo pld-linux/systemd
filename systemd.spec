@@ -1340,6 +1340,7 @@ fi
 %dir %{_prefix}/lib/systemd/boot/efi
 %ifarch %{ix86}
 %{_prefix}/lib/systemd/boot/efi/linuxia32.efi.stub
+%{_prefix}/lib/systemd/boot/efi/linuxia32.elf.stub
 %{_prefix}/lib/systemd/boot/efi/systemd-bootia32.efi
 %endif
 %ifarch %{x8664} x32
