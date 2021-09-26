@@ -79,6 +79,7 @@ Patch11:	optional-tmp-on-tmpfs.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-x32.patch
+Patch16:	cmsg_space_32bit.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -738,6 +739,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
