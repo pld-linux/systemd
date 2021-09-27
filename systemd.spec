@@ -31,7 +31,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	249.4
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -69,7 +69,7 @@ Patch1:		config-pld.patch
 Patch2:		pld-sysv-network.patch
 Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
-
+Patch5:		%{name}-split-usr-fix.patch
 Patch6:		net-rename-revert.patch
 Patch7:		%{name}-completion.patch
 Patch8:		proc-hidepid.patch
@@ -728,7 +728,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-
+%patch5 -p1
 # rejected upstream (do not disable!)
 %patch6 -p1
 %patch7 -p1
@@ -1634,6 +1634,7 @@ fi
 %dir %{_sysconfdir}/systemd/system-preset
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system-preset/default.preset
 %dir %{_sysconfdir}/tmpfiles.d
+%dir %{_prefix}/lib/binfmt.d
 %dir %{_prefix}/lib/environment.d
 %dir %{_prefix}/lib/modules-load.d
 %dir %{_prefix}/lib/sysctl.d
