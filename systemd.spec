@@ -1683,7 +1683,6 @@ fi
 %{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man5/environment.d.5*
 %{_mandir}/man8/systemd-tmpfiles.8*
-%{_npkgconfigdir}/systemd.pc
 
 %{systemdunitdir}/dev-hugepages.mount
 %{systemdunitdir}/dev-mqueue.mount
@@ -2212,6 +2211,7 @@ fi
 %attr(755,root,root) /%{_lib}/libsystemd.so
 %{_includedir}/%{name}
 %{_pkgconfigdir}/libsystemd.pc
+%{_npkgconfigdir}/systemd.pc
 %{_mandir}/man3/SD_*.3*
 %{_mandir}/man3/sd*.3*
 
