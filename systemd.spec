@@ -810,11 +810,11 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{_rootsbindir} \
-	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,systemd/system-preset} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/system-preset} \
 	$RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
-	$RPM_BUILD_ROOT%{_prefix}/lib/systemd/system-environment-generators
+	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators}
 
 %ninja_install -C build
 
@@ -2156,10 +2156,12 @@ fi
 
 %files repart
 %defattr(644,root,root,755)
+%dir %{_sysconfdir}/repart.d
 %attr(755,root,root) /bin/systemd-repart
 %{systemdunitdir}/systemd-repart.service
 %{systemdunitdir}/initrd-root-fs.target.wants/systemd-repart.service
 %{systemdunitdir}/sysinit.target.wants/systemd-repart.service
+%dir %{_prefix}/lib/repart.d
 %{_mandir}/man5/repart.d.5*
 %{_mandir}/man8/systemd-repart.8*
 %{_mandir}/man8/systemd-repart.service.8*
