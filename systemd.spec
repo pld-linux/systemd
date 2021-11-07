@@ -1322,12 +1322,6 @@ fi
 %attr(755,root,root) /lib/systemd/system-generators/systemd-veritysetup-generator
 %dir /lib/systemd/network
 /lib/systemd/network/99-default.link
-/lib/udev/rules.d/60-input-id.rules
-/lib/udev/rules.d/60-sensor.rules
-/lib/udev/rules.d/70-joystick.rules
-/lib/udev/rules.d/70-uaccess.rules
-/lib/udev/rules.d/71-seat.rules
-/lib/udev/rules.d/73-seat-late.rules
 /lib/udev/rules.d/99-systemd.rules
 %{_prefix}/lib/environment.d/99-environment.conf
 %dir %{_prefix}/lib/kernel
@@ -2354,17 +2348,23 @@ fi
 /lib/udev/rules.d/60-drm.rules
 /lib/udev/rules.d/60-evdev.rules
 /lib/udev/rules.d/60-fido-id.rules
+/lib/udev/rules.d/60-input-id.rules
 /lib/udev/rules.d/60-persistent-alsa.rules
 /lib/udev/rules.d/60-persistent-input.rules
 /lib/udev/rules.d/60-persistent-storage.rules
 /lib/udev/rules.d/60-persistent-storage-tape.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
+/lib/udev/rules.d/60-sensor.rules
 /lib/udev/rules.d/60-serial.rules
 /lib/udev/rules.d/64-btrfs.rules
+/lib/udev/rules.d/70-joystick.rules
 /lib/udev/rules.d/70-memory.rules
 /lib/udev/rules.d/70-mouse.rules
 /lib/udev/rules.d/70-power-switch.rules
 /lib/udev/rules.d/70-touchpad.rules
+/lib/udev/rules.d/70-uaccess.rules
+/lib/udev/rules.d/71-seat.rules
+/lib/udev/rules.d/73-seat-late.rules
 /lib/udev/rules.d/75-net-description.rules
 /lib/udev/rules.d/75-probe_mtd.rules
 /lib/udev/rules.d/78-sound-card.rules
