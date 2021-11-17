@@ -31,7 +31,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	249.6
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -767,7 +767,6 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dnobody-user="nobody" \
 	-Dnobody-group="nogroup" \
 	-Daudit=%{__true_false audit} \
-	-Ddefault-hierarchy=hybrid \
 	-Ddefault-kill-user-processes=false \
 	%{?debug:--buildtype=debug} \
 	-Defi=%{__true_false efi} \
