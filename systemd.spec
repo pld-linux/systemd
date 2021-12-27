@@ -131,6 +131,7 @@ BuildRequires:	python3
 BuildRequires:	python3-jinja2
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel >= 4}
+BuildRequires:	rpm-build >= 4.6
 BuildRequires:	rpmbuild(macros) >= 1.752
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
