@@ -30,14 +30,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	249.7
-Release:	1
+Version:	250
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	cb72d2e235f4f5d4b880d4fb556e427e
+# Source0-md5:	f08322d101f88f80068112d8284a5151
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -86,13 +86,13 @@ BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	bzip2-devel
 # ln --relative
 BuildRequires:	coreutils >= 8.16
-%{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 2.3.0}
+%{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 2.4.0}
 BuildRequires:	curl-devel >= 7.32.0
 BuildRequires:	dbus-devel >= 1.9.18
 BuildRequires:	docbook-dtd42-xml
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl-nons
-BuildRequires:	elfutils-devel >= 0.158
+BuildRequires:	elfutils-devel >= 0.177
 BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
@@ -120,7 +120,7 @@ BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
-BuildRequires:	meson >= 0.46
+BuildRequires:	meson >= 0.53.2
 BuildRequires:	ninja
 BuildRequires:	p11-kit-devel >= 0.23.3
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
@@ -156,6 +156,7 @@ Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	curl-libs >= 7.32.0
 Requires:	dbus >= 1.9.18
+Requires:	elfutils >= 0.177
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
 Requires:	gnutls-libs >= 3.6.0
@@ -170,7 +171,7 @@ Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 3.13
 Requires:	util-linux >= 2.30
-%{?with_cryptsetup:Suggests:	cryptsetup >= 2.3.0}
+%{?with_cryptsetup:Suggests:	cryptsetup >= 2.4.0}
 Suggests:	fsck >= 2.25.0
 %{?with_fido2:Suggests:	libfido2}
 Suggests:	libidn2
@@ -770,10 +771,11 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Ddefault-kill-user-processes=false \
 	%{?debug:--buildtype=debug} \
 	-Defi=%{__true_false efi} \
-	-Dfido2=%{__true_false fido2} \
+	-Dlibfido2=%{__true_false fido2} \
 	-Dkexec-path=/sbin/kexec \
 	-Dkmod-path=/sbin/kmod \
 	-Dlibcryptsetup=%{__true_false cryptsetup} \
+	-Dlibcryptsetup-plugins-dir=/usr/%{_lib}/cryptsetup \
 	-Dlibidn2=true \
 	-Dloadkeys-path=/usr/bin/loadkeys \
 	-Dlz4=true \
@@ -789,6 +791,7 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Drc-local=/etc/rc.d/rc.local \
 	-Drootlibdir=/%{_lib} \
 	-Drootprefix="" \
+	-Drpmmacrosdir=no \
 	-Dselinux=%{__true_false selinux} \
 	-Dsetfont-path=/bin/setfont \
 	-Dsplit-bin=true \
@@ -1182,6 +1185,14 @@ fi
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc docs/{AUTOMATIC_BOOT_ASSESSMENT,BLOCK_DEVICE_LOCKING,BOOT_LOADER_INTERFACE,BOOT_LOADER_SPECIFICATION,DISTRO_PORTING,ENVIRONMENT,GROUP_RECORD,PREDICTABLE_INTERFACE_NAMES,TRANSIENT-SETTINGS,UIDS-GIDS,USER_GROUP_API,USER_RECORD}.md NEWS README TODO
+%{_datadir}/dbus-1/interfaces/org.freedesktop.LogControl1.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.import1.*.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.login1.*.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.machine1.*.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.timedate1.xml
 %{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
@@ -1219,6 +1230,7 @@ fi
 %attr(755,root,root) /bin/machinectl
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
+%attr(755,root,root) /bin/systemd-creds
 %attr(755,root,root) /bin/systemd-escape
 %attr(755,root,root) /bin/systemd-firstboot
 %attr(755,root,root) /bin/systemd-inhibit
@@ -1261,7 +1273,13 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-boot-check-no-failures
 %attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
-%{?with_cryptsetup:%attr(755,root,root) /lib/systemd/systemd-cryptsetup}
+%if %{with cryptsetup}
+%attr(755,root,root) /lib/systemd/systemd-cryptsetup
+%attr(755,root,root) /lib/systemd/systemd-integritysetup
+%{?with_fido2:%attr(755,root,root) /usr/%{_lib}/cryptsetup/libcryptsetup-token-systemd-fido2.so}
+%attr(755,root,root) /usr/%{_lib}/cryptsetup/libcryptsetup-token-systemd-pkcs11.so
+%{?with_tpm2:%attr(755,root,root) /usr/%{_lib}/cryptsetup/libcryptsetup-token-systemd-tpm2.so}
+%endif
 %attr(755,root,root) /lib/systemd/systemd-export
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-growfs
@@ -1308,7 +1326,10 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-volatile-root
 %attr(755,root,root) /lib/systemd/systemd-xdg-autostart-condition
 %attr(755,root,root) /lib/systemd/systemd
-%{?with_cryptsetup:%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator}
+%if %{with cryptsetup}
+%attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator
+%attr(755,root,root) /lib/systemd/system-generators/systemd-integritysetup-generator
+%endif
 %{?with_efi:%attr(755,root,root) /lib/systemd/system-generators/systemd-bless-boot-generator}
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-fstab-generator
@@ -1325,7 +1346,6 @@ fi
 %{_prefix}/lib/environment.d/99-environment.conf
 %dir %{_prefix}/lib/kernel
 %dir %{_prefix}/lib/kernel/install.d
-%{_prefix}/lib/kernel/install.d/00-entry-directory.install
 %{_prefix}/lib/kernel/install.d/50-depmod.install
 %{_prefix}/lib/kernel/install.d/90-loaderentry.install
 %if %{with efi}
@@ -1338,10 +1358,12 @@ fi
 %endif
 %ifarch %{x8664} x32
 %{_prefix}/lib/systemd/boot/efi/linuxx64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/linuxx64.elf.stub
 %{_prefix}/lib/systemd/boot/efi/systemd-bootx64.efi
 %endif
 %ifarch aarch64
 %{_prefix}/lib/systemd/boot/efi/linuxaa64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/linuxaa64.elf.stub
 %{_prefix}/lib/systemd/boot/efi/systemd-bootaa64.efi
 %endif
 %endif
@@ -1359,7 +1381,9 @@ fi
 %lang(zh_TW) %{_prefix}/lib/systemd/catalog/systemd.zh_TW.catalog
 %dir %{_prefix}/lib/sysusers.d
 %{_prefix}/lib/sysusers.d/basic.conf
-%{_prefix}/lib/sysusers.d/systemd.conf
+%{_prefix}/lib/sysusers.d/systemd-coredump.conf
+%{_prefix}/lib/sysusers.d/systemd-journal.conf
+%{_prefix}/lib/sysusers.d/systemd-timesync.conf
 %if %{with microhttpd}
 %{_prefix}/lib/sysusers.d/systemd-remote.conf
 %endif
@@ -1417,6 +1441,7 @@ fi
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cat.1*
+%{_mandir}/man1/systemd-creds.1*
 %{?with_cryptsetup:%{_mandir}/man1/systemd-cryptenroll.1*}
 %{_mandir}/man1/systemd-delta.1*
 %{_mandir}/man1/systemd-detect-virt.1*
@@ -1441,6 +1466,7 @@ fi
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
 %{_mandir}/man5/dnssec-trust-anchors.d.5*
+%{_mandir}/man5/extension-release.5*
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/initrd-release.5*
 %{_mandir}/man5/journald@.conf.5*
@@ -1488,8 +1514,20 @@ fi
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/file-hierarchy.7*
 %{_mandir}/man7/kernel-command-line.7*
-%{?with_efi:%{_mandir}/man7/sd-boot.7*}
-%{?with_efi:%{_mandir}/man7/systemd-boot.7*}
+%if %{with efi}
+%ifarch %{ix86}
+%{_mandir}/man7/linuxia32.efi.stub.7*
+%endif
+%ifarch %{x8664}
+%{_mandir}/man7/linuxx64.efi.stub.7*
+%endif
+%ifarch aarch64
+%{_mandir}/man7/linuxaa64.efi.stub.7*
+%endif
+%{_mandir}/man7/sd-boot.7*
+%{_mandir}/man7/systemd-boot.7*
+%{_mandir}/man7/systemd-stub.7*
+%endif
 %{_mandir}/man7/systemd.directives.7*
 %{_mandir}/man7/systemd.environment-generator.7*
 %{_mandir}/man7/systemd.generator.7*
@@ -1512,7 +1550,10 @@ fi
 %endif
 %{_mandir}/man8/systemd-boot-check-no-failures.8*
 %{_mandir}/man8/systemd-coredump.8*
-%{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup-generator.8*}
+%if %{with cryptsetup}
+%{_mandir}/man8/systemd-cryptsetup-generator.8*
+%{_mandir}/man8/systemd-integritysetup-generator.8*
+%endif
 %{_mandir}/man8/systemd-debug-generator.8*
 %{_mandir}/man8/systemd-fsck.8*
 %{_mandir}/man8/systemd-fstab-generator.8*
@@ -1604,6 +1645,7 @@ fi
 %{_mandir}/man1/init.1*
 %if %{with cryptsetup}
 %{_mandir}/man5/crypttab.5*
+%{_mandir}/man5/integritytab.5*
 %{_mandir}/man5/veritytab.5*
 %endif
 %{_mandir}/man8/halt.8*
@@ -1740,8 +1782,11 @@ fi
 %{systemdunitdir}/systemd-ask-password-wall.service
 %{systemdunitdir}/systemd-backlight@.service
 %{systemdunitdir}/systemd-binfmt.service
-%{?with_efi:%{systemdunitdir}/systemd-bless-boot.service}
-%{?with_efi:%{systemdunitdir}/systemd-boot-system-token.service}
+%if %{with efi}
+%{systemdunitdir}/systemd-bless-boot.service
+%{systemdunitdir}/systemd-boot-system-token.service
+%{systemdunitdir}/systemd-boot-update.service
+%endif
 %{systemdunitdir}/systemd-boot-check-no-failures.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
@@ -1823,6 +1868,8 @@ fi
 %if %{with cryptsetup}
 %{systemdunitdir}/cryptsetup-pre.target
 %{systemdunitdir}/cryptsetup.target
+%{systemdunitdir}/integritysetup-pre.target
+%{systemdunitdir}/integritysetup.target
 %{systemdunitdir}/veritysetup-pre.target
 %{systemdunitdir}/veritysetup.target
 %endif
@@ -1830,6 +1877,7 @@ fi
 %{systemdunitdir}/default.target
 %{systemdunitdir}/emergency.target
 %{systemdunitdir}/exit.target
+%{systemdunitdir}/factory-reset.target
 %{systemdunitdir}/final.target
 %{systemdunitdir}/first-boot-complete.target
 %{systemdunitdir}/getty.target
@@ -1941,6 +1989,7 @@ fi
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-kernel.socket
 %if %{with cryptsetup}
 %{systemdunitdir}/sysinit.target.wants/cryptsetup.target
+%{systemdunitdir}/sysinit.target.wants/integritysetup.target
 %{systemdunitdir}/sysinit.target.wants/veritysetup.target
 %endif
 %{systemdunitdir}/sysinit.target.wants/dev-hugepages.mount
@@ -1989,8 +2038,12 @@ fi
 %{?with_efi:%{_mandir}/man8/systemd-boot-system-token.service.8*}
 %{_mandir}/man8/systemd-coredump.socket.8*
 %{_mandir}/man8/systemd-coredump@.service.8*
-%{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup.8*}
-%{?with_cryptsetup:%{_mandir}/man8/systemd-cryptsetup@.service.8*}
+%if %{with cryptsetup}
+%{_mandir}/man8/systemd-cryptsetup.8*
+%{_mandir}/man8/systemd-cryptsetup@.service.8*
+%{_mandir}/man8/systemd-integritysetup.8*
+%{_mandir}/man8/systemd-integritysetup@.service.8*
+%endif
 %{_mandir}/man8/systemd-fsck-root.service.8*
 %{_mandir}/man8/systemd-fsck@.service.8*
 %{_mandir}/man8/systemd-halt.service.8*
@@ -2063,6 +2116,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/homed.conf
 %{systemdunitdir}/systemd-homed.service
 %{systemdunitdir}/systemd-homed-activate.service
+%{_datadir}/dbus-1/interfaces/org.freedesktop.home1.*.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.home1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.home1.conf
 %{_datadir}/polkit-1/actions/org.freedesktop.home1.policy
@@ -2076,14 +2130,17 @@ fi
 
 %files networkd
 %defattr(644,root,root,755)
+%{_datadir}/dbus-1/interfaces/org.freedesktop.network1.*.xml
 %{_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/networkd.conf
 %dir %{_sysconfdir}/systemd/network
+/lib/systemd/network/80-6rd-tunnel.network
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
 /lib/systemd/network/80-container-vz.network
 /lib/systemd/network/80-vm-vt.network
 /lib/systemd/network/80-wifi-adhoc.network
+%{_prefix}/lib/sysusers.d/systemd-network.conf
 %{systemdunitdir}/systemd-network-generator.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd.service
@@ -2097,6 +2154,7 @@ fi
 %{_mandir}/man1/networkctl.1*
 %{_mandir}/man5/networkd.conf.5*
 %{_mandir}/man5/networkd.conf.d.5*
+%{_mandir}/man5/org.freedesktop.network1.5*
 %{_mandir}/man7/systemd.net-naming-scheme.7*
 %{_mandir}/man8/systemd-network-generator.8*
 %{_mandir}/man8/systemd-network-generator.service.8*
@@ -2110,8 +2168,11 @@ fi
 %attr(755,root,root) /bin/oomctl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/oomd.conf
 %attr(755,root,root) /lib/systemd/systemd-oomd
+%{_prefix}/lib/sysusers.d/systemd-oom.conf
 %{systemdunitdir}/dbus-org.freedesktop.oom1.service
 %{systemdunitdir}/systemd-oomd.service
+%{systemdunitdir}/systemd-oomd.socket
+%{_datadir}/dbus-1/interfaces/org.freedesktop.oom1.*.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.oom1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.oom1.conf
 %{_mandir}/man1/oomctl.1*
@@ -2139,6 +2200,7 @@ fi
 %dir /lib/systemd/portable/profile/trusted
 /lib/systemd/portable/profile/trusted/service.conf
 %{systemdtmpfilesdir}/portables.conf
+%{_datadir}/dbus-1/interfaces/org.freedesktop.portable1.*.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.portable1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.portable1.conf
 %{_datadir}/polkit-1/actions/org.freedesktop.portable1.policy
@@ -2162,6 +2224,9 @@ fi
 %files resolved
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/resolved.conf
+%{_prefix}/lib/sysusers.d/systemd-resolve.conf
+%{_prefix}/lib/tmpfiles.d/systemd-resolve.conf
+%{_datadir}/dbus-1/interfaces/org.freedesktop.resolve1.*.xml
 %{_datadir}/dbus-1/system.d/org.freedesktop.resolve1.conf
 %{_datadir}/dbus-1/system-services/org.freedesktop.resolve1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.resolve1.policy
@@ -2310,6 +2375,8 @@ fi
 /lib/udev/hwdb.d/60-keyboard.hwdb
 /lib/udev/hwdb.d/60-seat.hwdb
 /lib/udev/hwdb.d/60-sensor.hwdb
+/lib/udev/hwdb.d/70-analyzers.hwdb
+/lib/udev/hwdb.d/70-cameras.hwdb
 /lib/udev/hwdb.d/70-joystick.hwdb
 /lib/udev/hwdb.d/70-mouse.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
@@ -2356,6 +2423,7 @@ fi
 /lib/udev/rules.d/60-sensor.rules
 /lib/udev/rules.d/60-serial.rules
 /lib/udev/rules.d/64-btrfs.rules
+/lib/udev/rules.d/70-camera.rules
 /lib/udev/rules.d/70-joystick.rules
 /lib/udev/rules.d/70-memory.rules
 /lib/udev/rules.d/70-mouse.rules

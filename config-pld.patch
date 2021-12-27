@@ -1,14 +1,15 @@
-diff -dur systemd-218.orig/tmpfiles.d/legacy.conf systemd-218/tmpfiles.d/legacy.conf
---- systemd-218.orig/tmpfiles.d/legacy.conf	2014-06-11 00:11:32.000000000 +0200
-+++ systemd-218/tmpfiles.d/legacy.conf	2015-04-22 13:11:28.000000000 +0200
-@@ -10,13 +10,13 @@
+--- systemd-stable-250/tmpfiles.d/legacy.conf.in.orig	2021-12-27 11:37:45.454887047 +0100
++++ systemd-stable-250/tmpfiles.d/legacy.conf.in	2021-12-27 11:39:02.180866644 +0100
+@@ -10,7 +10,7 @@
  # These files are considered legacy and are unnecessary on legacy-free
  # systems.
  
 -d /run/lock 0755 root root -
 +d /run/lock 1771 root root -
  L /var/lock - - - - ../run/lock
- 
+ {% if CREATE_LOG_DIRS %}
+ L /var/log/README - - - - ../..{{DOC_DIR}}/README.logs
+@@ -19,7 +19,7 @@
  # /run/lock/subsys is used for serializing SysV service execution, and
  # hence without use on SysV-less systems.
  
