@@ -1,0 +1,102 @@
+--- systemd-stable-250/src/rpm/macros.systemd.in.orig	2021-12-23 21:09:35.000000000 +0100
++++ systemd-stable-250/src/rpm/macros.systemd.in	2022-01-04 22:15:56.292914548 +0100
+@@ -4,6 +4,54 @@
+ #  This file is part of systemd.
+ 
+ # RPM macros for packages installing systemd unit files
++#
++# Requirements:
++# BuildRequires:	rpmbuild(macros) >= 1.671
++# Requires:	systemd-units >= 38
++#
++# Usage:
++# %systemd_reload
++# %systemd_service_enable service_name1.service service_name2.service
++# %systemd_service_disable service_name1.service service_name2.service
++# %systemd_service_start service_name1.service service_name2.service
++# %systemd_service_stop service_name1.service service_name2.service
++# %systemd_service_restart service_name1.service service_name2.service
++# %systemd_service_reload service_name1.service service_name2.service
++#
++# %systemd_post service_name1.service service_name2.service
++# %systemd_preun service_name1.service service_name2.service
++# %systemd_postun service_name1.service service_name2.service
++#
++# Sample:
++#
++# %post
++# %systemd_post %{name}.service
++#
++# %preun
++# %systemd_preun %name}.service
++#
++# %postun
++# %systemd_postun_with_restart %{name}.service
++#
++# Some services do not support being restarted (e.g. D-Bus and various storage
++# daemons). If your service should not be restarted upon upgrade, then use the
++# following %postun scriptlet instead of the one shown above:
++#
++# %postun
++# %systemd_postun %{name}.service
++#
++# User units
++#
++# There are additional macros for user units (those installed under
++# %_userunitdir) that should be used similarly to those for system units. These
++# enable and disable user units according to presets, and are %systemd_user_post
++# (to be used in %post) and %systemd_user_preun (to be used in %preun).
++#
++# %post
++# %systemd_user_post %{name}.service
++#
++# %preun
++# %systemd_user_preun %{name}.service
+ 
+ %_systemd_util_dir {{ROOTLIBEXECDIR}}
+ %_unitdir {{SYSTEM_DATA_UNIT_DIR}}
+@@ -173,3 +221,34 @@
+ %{expand:%%{?__systemd_someargs_%#:%%__systemd_someargs_%# binfmt_apply}} \
+ [ -x {{ROOTLIBEXECDIR}}/systemd-binfmt ] && {{ROOTLIBEXECDIR}}/systemd-binfmt %{?*} || : \
+ %{nil}
++
++# PLD macros
++%systemd_reload() \
++	[ -x "/lib/systemd/systemd-update-helper" ] && \
++		/lib/systemd/systemd-update-helper system-reload || : \
++%{nil}
++
++%systemd_service_enable %systemd_post
++%systemd_service_disable %systemd_preun
++
++%systemd_service_start() \
++	[ -d /run/systemd/system ] && /bin/systemctl start %{*} || : \
++%{nil}
++
++%systemd_service_stop() \
++	[ -d /run/systemd/system ] && /bin/systemctl stop %{*} || : \
++%{nil}
++
++%systemd_service_restart() \
++	[ -d /run/systemd/system ] && /bin/systemctl try-restart %{*} || : \
++%{nil}
++
++%systemd_service_reload() \
++	[ -d /run/systemd/system ] && /bin/systemctl reload %{*} || : \
++%{nil}
++
++%systemd_trigger %systemd_post
++
++%systemdunitdir %_unitdir
++%systemduserunitdir %_userunitdir
++%systemdtmpfilesdir %_tmpfilesdir
+--- systemd-stable-250/src/rpm/systemd-update-helper.in.orig	2022-01-02 21:34:43.000000000 +0100
++++ systemd-stable-250/src/rpm/systemd-update-helper.in	2022-01-04 22:16:19.035914008 +0100
+@@ -11,6 +11,7 @@
+ case "$command" in
+     install-system-units)
+         systemctl --no-reload preset "$@"
++        echo "Run \"/bin/systemctl restart "$@"\" to restart "$@""
+         ;;
+ 
+     install-user-units)

@@ -79,6 +79,7 @@ Patch11:	optional-tmp-on-tmpfs.patch
 Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-x32.patch
+Patch16:	rpm-macros.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -722,6 +723,13 @@ zsh completion for udev commands.
 %description -n zsh-completion-udev -l pl.UTF-8
 Uzupełnianie parametrów w zsh dla poleceń udev.
 
+%package -n rpm-macros-systemd
+Summary:	Macros that define paths and scriptlets related to systemd
+BuildArch:	noarch
+
+%description -n rpm-macros-systemd
+Macros that define paths and scriptlets related to systemd.
+
 %prep
 %setup -q -n systemd-stable-%{version}
 %patch0 -p1
@@ -740,6 +748,7 @@ Uzupełnianie parametrów w zsh dla poleceń udev.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -792,7 +801,6 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Drc-local=/etc/rc.d/rc.local \
 	-Drootlibdir=/%{_lib} \
 	-Drootprefix="" \
-	-Drpmmacrosdir=no \
 	-Dselinux=%{__true_false selinux} \
 	-Dsetfont-path=/bin/setfont \
 	-Dsplit-bin=true \
@@ -2469,3 +2477,7 @@ fi
 %files -n zsh-completion-udev
 %defattr(644,root,root,755)
 %{zsh_compdir}/_udevadm
+
+%files -n rpm-macros-systemd
+%defattr(644,root,root,755)
+/usr/lib/rpm/macros.d/macros.systemd
