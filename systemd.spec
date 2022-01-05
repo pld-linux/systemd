@@ -1720,6 +1720,7 @@ fi
 /lib/systemd/system-preset/90-systemd.preset
 %dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
+%attr(755,root,root) /lib/systemd/systemd-update-helper
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %attr(755,root,root) /bin/systemd_booted
