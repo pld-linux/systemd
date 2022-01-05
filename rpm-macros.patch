@@ -62,8 +62,8 @@
 +
 +# PLD macros
 +%systemd_reload() \
-+	[ -x "/lib/systemd/systemd-update-helper" ] && \
-+		/lib/systemd/systemd-update-helper system-reload || : \
++	[ -x "{{SYSTEMD_UPDATE_HELPER_PATH}}" ] && \
++		{{SYSTEMD_UPDATE_HELPER_PATH}} system-reload || : \
 +%{nil}
 +
 +%systemd_service_enable %systemd_post
