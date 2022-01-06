@@ -85,7 +85,7 @@
 +	[ -d /run/systemd/system ] && /bin/systemctl reload %{*} || : \
 +%{nil}
 +
-+%systemd_trigger %systemd_post
++%systemd_trigger() %systemd_post %*
 +
 +%systemdunitdir %_unitdir
 +%systemduserunitdir %_userunitdir
