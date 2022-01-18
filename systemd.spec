@@ -30,14 +30,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	250.2
+Version:	250.3
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	18c586a74749bbd1e97f94e1cf9729c4
+# Source0-md5:	e4af37e9e8a52c1f279d9e054b25c06f
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -1467,6 +1467,7 @@ fi
 %{_mandir}/man1/systemd-path.1*
 %{_mandir}/man1/systemd-run.1*
 %{_mandir}/man1/systemd-socket-activate.1*
+%{_mandir}/man1/systemd-stdio-bridge.1*
 %{_mandir}/man1/systemd-tty-ask-password-agent.1*
 %{_mandir}/man1/systemd-umount.1*
 %{_mandir}/man1/timedatectl.1*
