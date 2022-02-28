@@ -6,9 +6,7 @@
 #   - restore (write) sane value for kernel.hotplug, i.e from rc-scripts: sysctl -q -e -w kernel.hotplug=/lib/firmware/firmware-loader.sh
 # - dev->udev upgrade:
 #   - /dev/urandom remains missing, not created with start_udev anymore
-#
-#warning: Installed (but unpackaged) file(s) found:
-#	/usr/lib/rpm/macros.d/macros.systemd
+# - clean up unpackaged files
 #
 # Conditional build:
 %bcond_without	audit		# audit support
@@ -126,6 +124,8 @@ BuildRequires:	ninja
 BuildRequires:	p11-kit-devel >= 0.23.3
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
+# for sbat-distro* in src/boot/efi/meson.build
+BuildRequires:	pld-release
 BuildRequires:	pkgconfig >= 1:0.9.0
 BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
@@ -724,11 +724,16 @@ zsh completion for udev commands.
 Uzupełnianie parametrów w zsh dla poleceń udev.
 
 %package -n rpm-macros-systemd
-Summary:	Macros that define paths and scriptlets related to systemd
+Summary:	RPM macros that define paths and scriptlets related to systemd
+Summary(pl.UTF-8):	Makra RPM-a definiujące ścieżki i skryptlety związane z systemd
+Group:		Development/Building
 BuildArch:	noarch
 
 %description -n rpm-macros-systemd
-Macros that define paths and scriptlets related to systemd.
+RPM macros that define paths and scriptlets related to systemd.
+
+%description -n rpm-macros-systemd -l pl.UTF-8
+Makra RPM-a definiujące ścieżki i skryptlety związane z systemd.
 
 %prep
 %setup -q -n systemd-stable-%{version}
