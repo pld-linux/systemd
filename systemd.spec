@@ -826,7 +826,7 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{_rootsbindir} \
-	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/system-preset} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset} \
 	$RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
@@ -1681,6 +1681,7 @@ fi
 %dir %{_sysconfdir}/systemd/system
 %dir %{_sysconfdir}/systemd/system-preset
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/system-preset/default.preset
+%dir %{_sysconfdir}/systemd/user-preset
 %dir %{_sysconfdir}/tmpfiles.d
 %dir %{_prefix}/lib/binfmt.d
 %dir %{_prefix}/lib/environment.d
