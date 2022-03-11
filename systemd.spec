@@ -28,14 +28,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	250.3
+Version:	250.4
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	e4af37e9e8a52c1f279d9e054b25c06f
+# Source0-md5:	a2a080032b6efbabe0922fdef0baf97f
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -105,7 +105,7 @@ BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel >= 1:2.13
 BuildRequires:	libblkid-devel >= 2.24
 BuildRequires:	libcap-devel
-BuildRequires:	libfdisk-devel >= 2.33
+BuildRequires:	libfdisk-devel >= 2.32
 %{?with_fido2:BuildRequires:	libfido2-devel}
 BuildRequires:	libgcrypt-devel >= 1.4.5
 BuildRequires:	libgpg-error-devel >= 1.12
@@ -411,7 +411,7 @@ Summary:	systemd home area/user account manager
 Summary(pl.UTF-8):	Zarządca obszarów domowych/kont użytkownika dla systemd
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	libfdisk >= 2.33
+Requires:	libfdisk >= 2.32
 
 %description homed
 systemd-homed is a system service that may be used to create, remove,
@@ -478,7 +478,7 @@ Summary:	systemd service to automatically grow and add partitions
 Summary(pl.UTF-8):	Usługa systemd do automatycznego powiększania lub dodawania partycji
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	libfdisk >= 2.33
+Requires:	libfdisk >= 2.32
 
 %description repart
 systemd-repart grows and adds partitions to a partition table, based
