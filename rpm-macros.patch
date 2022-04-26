@@ -66,8 +66,8 @@
 +		{{SYSTEMD_UPDATE_HELPER_PATH}} system-reload || : \
 +%{nil}
 +
-+%systemd_service_enable %systemd_post
-+%systemd_service_disable %systemd_preun
++%systemd_service_enable() %systemd_post $*
++%systemd_service_disable() %systemd_preun $*
 +
 +%systemd_service_start() \
 +	[ -d /run/systemd/system ] && /bin/systemctl start %{*} || : \
