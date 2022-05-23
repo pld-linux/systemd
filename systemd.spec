@@ -10,6 +10,7 @@
 #
 # Conditional build:
 %bcond_without	audit		# audit support
+%bcond_without	bpf		# BPF programs in restricted C support
 %bcond_without	cryptsetup	# cryptsetup support
 %bcond_without	microhttpd	# use microhttpd for network journal access
 %bcond_without	pam		# PAM authentication support
@@ -83,6 +84,7 @@ BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	bzip2-devel
+%{?with_bpf:BuildRequires:	clang}
 # ln --relative
 BuildRequires:	coreutils >= 8.16
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 2.4.0}
@@ -101,9 +103,11 @@ BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
 # pkgconfig(libiptc)
 BuildRequires:	iptables-devel
+%{?with_bpf:BuildRequires:	kernel-tools >= 4.15.0}
 BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel >= 1:2.13
 BuildRequires:	libblkid-devel >= 2.24
+%{?with_bpf:BuildRequires:	libbpf-devel >= 0.2}
 BuildRequires:	libcap-devel
 BuildRequires:	libfdisk-devel >= 2.32
 %{?with_fido2:BuildRequires:	libfido2-devel}
@@ -117,6 +121,7 @@ BuildRequires:	libseccomp-devel >= 2.4.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
+%{?with_bpf:BuildRequires:	llvm}
 BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
 BuildRequires:	meson >= 0.53.2
@@ -783,6 +788,7 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dnobody-user="nobody" \
 	-Dnobody-group="nogroup" \
 	-Daudit=%{__true_false audit} \
+	-Dbpf-framework=%{__true_false bpf} \
 	-Ddefault-kill-user-processes=false \
 	%{?debug:--buildtype=debug} \
 	-Defi=%{__true_false efi} \
