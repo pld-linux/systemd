@@ -9,14 +9,14 @@ generated names. Re-apply this old hack to make the renaming less likely to fail
 --- systemd-stable-246.1/src/udev/udev-event.c.orig	2020-08-07 17:09:53.000000000 +0200
 +++ systemd-stable-246.1/src/udev/udev-event.c	2020-08-15 11:04:10.263428290 +0200
 @@ -820,6 +820,8 @@
-         const char *oldname;
+         sd_device *dev;
          unsigned flags;
          int ifindex, r;
 +        char name[IFNAMSIZ];
 +        int loop;
  
-         if (!event->name)
-                 return 0; /* No new name is requested. */
+         assert(event);
+ 
 @@ -861,6 +863,32 @@
                  return log_device_debug_errno(event->dev_db_clone, r, "Failed to update database under /run/udev/data/: %m");
  

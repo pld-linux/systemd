@@ -4,7 +4,7 @@ diff -urN systemd-241.orig/shell-completion/bash/meson.build systemd-241/shell-c
 @@ -30,7 +30,7 @@
           ['systemd-run',         ''],
           ['udevadm',             ''],
-          ['kernel-install',      ''],
+          ['kernel-install',      'ENABLE_KERNEL_INSTALL'],
 -         ['bootctl',             'HAVE_GNU_EFI'],
 +         ['bootctl',             ''],
           ['coredumpctl',         'ENABLE_COREDUMP'],

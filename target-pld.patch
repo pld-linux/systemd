@@ -78,7 +78,7 @@
 +                        log_warning_errno(r, "Failed to read /etc/sysconfig/i18n: %m");
 +        }
 +
-         for (i = 0; i < _VARIABLE_LC_MAX; i++) {
+         for (LocaleVariable i = 0; i < _VARIABLE_LC_MAX; i++) {
                  char *s;
  
 --- systemd-240/src/basic/time-util.c.orig	2019-01-13 09:27:36.718995151 +0100

@@ -29,14 +29,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	250.5
-Release:	1
+Version:	251
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	de9d25171755f039af98b75d9fd2fe61
+# Source0-md5:	0a30ec77e6e0e15419a6a96eee37f15e
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -84,7 +84,7 @@ BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
 BuildRequires:	bzip2-devel
-%{?with_bpf:BuildRequires:	clang}
+%{?with_bpf:BuildRequires:	clang >= 10.0.0}
 # ln --relative
 BuildRequires:	coreutils >= 8.16
 %{?with_cryptsetup:BuildRequires:	cryptsetup-devel >= 2.4.0}
@@ -94,6 +94,7 @@ BuildRequires:	docbook-dtd42-xml
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl-nons
 BuildRequires:	elfutils-devel >= 0.177
+BuildRequires:	gcc >= 6:4.9
 BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
@@ -103,7 +104,7 @@ BuildRequires:	gperf
 BuildRequires:	intltool >= 0.40.0
 # pkgconfig(libiptc)
 BuildRequires:	iptables-devel
-%{?with_bpf:BuildRequires:	kernel-tools >= 4.15.0}
+%{?with_bpf:BuildRequires:	kernel-tools >= 5.13.0}
 BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel >= 1:2.13
 BuildRequires:	libblkid-devel >= 2.24
@@ -121,7 +122,6 @@ BuildRequires:	libseccomp-devel >= 2.4.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
-%{?with_bpf:BuildRequires:	llvm}
 BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
 BuildRequires:	meson >= 0.53.2
@@ -176,7 +176,7 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.10.1
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 3.13
+Requires:	uname(release) >= 4.15
 Requires:	util-linux >= 2.30
 %{?with_cryptsetup:Suggests:	cryptsetup >= 2.4.0}
 Suggests:	fsck >= 2.25.0
@@ -515,6 +515,18 @@ responder LLMNR.
 Generuje także dla zgodności plik /run/systemd/resolve/resolv.conf,
 który można użyć do dowiązania symbolicznego z /etc/resolv.conf.
 
+%package sysupdate
+Summary:	systemd service for automatic system update
+Summary(pl.UTF-8):	Usługa systemd do automatycznych aktualizacji systemu
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description sysupdate
+systemd service for automatic system update.
+
+%description sysupdate -l pl.UTF-8
+Usługa systemd do automatycznych aktualizacji systemu.
+
 %package inetd
 Summary:	Native inet service support for systemd via socket activation
 Summary(pl.UTF-8):	Natywna obsługa usług inet dla systemd
@@ -658,7 +670,7 @@ Requires:	libblkid >= 2.24
 Requires:	setup >= 2.10.1
 Requires:	systemd-libs = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 3.13
+Requires:	uname(release) >= 4.15
 Obsoletes:	udev-compat < 1:182-1
 Obsoletes:	udev-dbus < 027
 Obsoletes:	udev-digicam < 1:079-2
@@ -832,11 +844,11 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{_rootsbindir} \
-	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset,sysupdate.d} \
 	$RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
-	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators}
+	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators,sysupdate.d}
 
 %ninja_install -C build
 
@@ -1441,12 +1453,14 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.machine1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
+%{_datadir}/polkit-1/actions/org.freedesktop.timesync1.policy
 %{_datadir}/polkit-1/rules.d/systemd-networkd.rules
 %dir %{_datadir}/systemd
 %{?with_microhttpd:%{_datadir}/systemd/gatewayd}
 %{_datadir}/systemd/kbd-model-map
 %{_datadir}/systemd/language-fallback-map
 %{_datadir}/factory/etc/issue
+%{_datadir}/factory/etc/locale.conf
 %{_datadir}/factory/etc/nsswitch.conf
 %{_datadir}/factory/etc/pam.d/other
 %{_datadir}/factory/etc/pam.d/system-auth
@@ -1546,6 +1560,7 @@ fi
 %{_mandir}/man7/linuxaa64.efi.stub.7*
 %endif
 %{_mandir}/man7/sd-boot.7*
+%{_mandir}/man7/sd-stub.7*
 %{_mandir}/man7/systemd-boot.7*
 %{_mandir}/man7/systemd-stub.7*
 %endif
@@ -2157,6 +2172,7 @@ fi
 %{_datadir}/dbus-1/system.d/org.freedesktop.network1.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/networkd.conf
 %dir %{_sysconfdir}/systemd/network
+%{_prefix}/lib/tmpfiles.d/systemd-network.conf
 /lib/systemd/network/80-6rd-tunnel.network
 /lib/systemd/network/80-container-host0.network
 /lib/systemd/network/80-container-ve.network
@@ -2166,6 +2182,7 @@ fi
 %{_prefix}/lib/sysusers.d/systemd-network.conf
 %{systemdunitdir}/systemd-network-generator.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
+%{systemdunitdir}/systemd-networkd-wait-online@.service
 %{systemdunitdir}/systemd-networkd.service
 %{systemdunitdir}/systemd-networkd.socket
 %{_datadir}/dbus-1/system-services/org.freedesktop.network1.service
@@ -2183,16 +2200,16 @@ fi
 %{_mandir}/man8/systemd-network-generator.service.8*
 %{_mandir}/man8/systemd-networkd-wait-online.8*
 %{_mandir}/man8/systemd-networkd-wait-online.service.8*
+%{_mandir}/man8/systemd-networkd-wait-online@.service.8*
 %{_mandir}/man8/systemd-networkd.8*
 %{_mandir}/man8/systemd-networkd.service.8*
 
 %files oomd
 %defattr(644,root,root,755)
-%attr(755,root,root) /bin/oomctl
+%attr(755,root,root) %{_bindir}/oomctl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/oomd.conf
 %attr(755,root,root) /lib/systemd/systemd-oomd
 %{_prefix}/lib/sysusers.d/systemd-oom.conf
-%{systemdunitdir}/dbus-org.freedesktop.oom1.service
 %{systemdunitdir}/systemd-oomd.service
 %{systemdunitdir}/systemd-oomd.socket
 %{_datadir}/dbus-1/interfaces/org.freedesktop.oom1.*.xml
@@ -2265,6 +2282,22 @@ fi
 %{_mandir}/man8/systemd-resolved.8*
 %{_mandir}/man8/systemd-resolved.service.8*
 
+%files sysupdate
+%defattr(644,root,root,755)
+%dir %{_sysconfdir}/sysupdate.d
+%{systemdunitdir}/systemd-sysupdate.service
+%{systemdunitdir}/systemd-sysupdate.timer
+%{systemdunitdir}/systemd-sysupdate-reboot.service
+%{systemdunitdir}/systemd-sysupdate-reboot.timer
+%attr(755,root,root) /lib/systemd/systemd-sysupdate
+%dir %{_prefix}/lib/sysupdate.d
+%{_mandir}/man5/sysupdate.d.5*
+%{_mandir}/man8/systemd-sysupdate.8*
+%{_mandir}/man8/systemd-sysupdate.service.8*
+%{_mandir}/man8/systemd-sysupdate.timer.8*
+%{_mandir}/man8/systemd-sysupdate-reboot.service.8*
+%{_mandir}/man8/systemd-sysupdate-reboot.timer.8*
+
 %files inetd
 %defattr(644,root,root,755)
 %attr(755,root,root) %{systemdunitdir}-generators/pld-rc-inetd-generator
@@ -2283,6 +2316,7 @@ fi
 %attr(755,root,root) /%{_lib}/libnss_systemd.so.2
 %attr(755,root,root) /%{_lib}/libsystemd.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd.so.0
+%attr(755,root,root) /lib/systemd/libsystemd-core*.so
 %attr(755,root,root) /lib/systemd/libsystemd-shared*.so
 %{_mandir}/man8/libnss_resolve.so.2.8*
 %{_mandir}/man8/libnss_systemd.so.2.8*
@@ -2311,6 +2345,7 @@ fi
 %{bash_compdir}/loginctl
 %{bash_compdir}/machinectl
 %{bash_compdir}/networkctl
+%{bash_compdir}/oomctl
 %{bash_compdir}/portablectl
 %{bash_compdir}/resolvectl
 %{bash_compdir}/systemctl
@@ -2339,6 +2374,7 @@ fi
 %{zsh_compdir}/_loginctl
 %{zsh_compdir}/_machinectl
 %{zsh_compdir}/_networkctl
+%{zsh_compdir}/_oomctl
 %{zsh_compdir}/_resolvectl
 %{zsh_compdir}/_sd_hosts_or_user_at_host
 %{zsh_compdir}/_sd_machines
@@ -2403,6 +2439,7 @@ fi
 /lib/udev/hwdb.d/70-cameras.hwdb
 /lib/udev/hwdb.d/70-joystick.hwdb
 /lib/udev/hwdb.d/70-mouse.hwdb
+/lib/udev/hwdb.d/70-pda.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
 /lib/udev/hwdb.d/80-ieee1394-unit-function.hwdb
