@@ -1,8 +1,8 @@
 --- systemd-stable-249.4/src/core/systemd.pc.in.orig	2021-08-24 13:04:08.000000000 +0200
 +++ systemd-stable-249.4/src/core/systemd.pc.in	2021-09-27 19:10:02.119608114 +0200
 @@ -65,16 +65,16 @@ systemdshutdowndir=${systemd_shutdown_di
- tmpfiles_dir=${prefix}/lib/tmpfiles.d
- tmpfilesdir=${tmpfiles_dir}
+ 
+ user_tmpfiles_dir=${prefix}/share/user-tmpfiles.d
  
 -sysusers_dir=${rootprefix}/lib/sysusers.d
 +sysusers_dir=${prefix}/lib/sysusers.d
