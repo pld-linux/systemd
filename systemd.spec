@@ -608,7 +608,7 @@ Summary:	bash-completion for systemd
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla systemd
 Group:		Applications/Shells
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	bash-completion >= 2.0
+Requires:	bash-completion >= 1:2.0
 Obsoletes:	bash-completion-elogind
 BuildArch:	noarch
 
@@ -718,7 +718,7 @@ Plik nagłówkowy biblioteki libudev.
 Summary:	bash-completion for udev
 Summary(pl.UTF-8):	Bashowe dopełnianie składni dla udev
 Group:		Applications/Shells
-Requires:	bash-completion >= 2.0
+Requires:	bash-completion >= 1:2.0
 Requires:	udev = %{epoch}:%{version}-%{release}
 BuildArch:	noarch
 
