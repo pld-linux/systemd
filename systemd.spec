@@ -180,6 +180,7 @@ Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 4.15
 Requires:	util-linux >= 2.30
+Suggests:	%{name}-sysv-compat
 %{?with_cryptsetup:Suggests:	cryptsetup >= 2.4.0}
 Suggests:	fsck >= 2.25.0
 %{?with_fido2:Suggests:	libfido2}
@@ -355,6 +356,19 @@ Install this package when you are ready to final switch to systemd.
 %description init -l pl.UTF-8
 Ten pakiet należy zainstalować po przygotowaniu się do ostatecznego
 przejścia na systemd.
+
+%package sysv-compat
+Summary:	systemd/SysV interoperability tools
+Summary(pl.UTF-8):	Narzędzia wspomagające współpracę między systemd a SysV
+Group:		Base
+Requires:	python3
+Requires:	python3-modules
+
+%description sysv-compat
+systemd/SysV interoperability tools.
+
+%description sysv-compat -l pl.UTF-8
+Narzędzia wspomagające współpracę między systemd a SysV.
 
 %package units
 Summary:	Configuration files, directories and installation tool for systemd
@@ -1295,7 +1309,6 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-run
 %attr(755,root,root) %{_bindir}/systemd-socket-activate
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
-%attr(755,root,root) %{_bindir}/systemd-sysv-convert
 %attr(755,root,root) %{_bindir}/systemd-umount
 %attr(755,root,root) %{_bindir}/timedatectl
 /lib/modprobe.d/systemd.conf
@@ -1694,6 +1707,10 @@ fi
 %{_mandir}/man8/runlevel.8*
 %{_mandir}/man8/shutdown.8*
 %{_mandir}/man8/telinit.8*
+
+%files sysv-compat
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/systemd-sysv-convert
 
 %files units
 %defattr(644,root,root,755)
