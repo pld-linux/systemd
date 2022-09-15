@@ -168,7 +168,6 @@ Requires:	dbus >= 1.9.18
 Requires:	elfutils >= 0.177
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
-Requires:	gnutls-libs >= 3.6.0
 Requires:	kmod >= 25-2
 Requires:	libgpg-error >= 1.12
 Requires:	libutempter
@@ -410,6 +409,7 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	gnutls-libs >= 3.6.0
 Requires:	libmicrohttpd >= 0.9.33
 Provides:	group(systemd-journal-gateway)
 Provides:	group(systemd-journal-remote)
@@ -513,6 +513,7 @@ Summary:	systemd network name resolution manager
 Summary(pl.UTF-8):	Zarządca rozwiązywania nazw sieciowych systemd
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	gnutls-libs >= 3.6.0
 
 %description resolved
 systemd-resolved is a system service that manages network name
