@@ -179,7 +179,7 @@ Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 4.15
 Requires:	util-linux >= 2.30
-Suggests:	%{name}-sysv-compat
+Suggests:	%{name}-sysv-compat = %{epoch}:%{version}-%{release}
 %{?with_cryptsetup:Suggests:	cryptsetup >= 2.4.0}
 Suggests:	fsck >= 2.25.0
 %{?with_fido2:Suggests:	libfido2}
