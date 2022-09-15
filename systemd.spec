@@ -171,7 +171,6 @@ Requires:	glibc >= 2.16
 Requires:	gnutls-libs >= 3.6.0
 Requires:	kmod >= 25-2
 Requires:	libgpg-error >= 1.12
-%{?with_microhttpd:Requires:	libmicrohttpd >= 0.9.33}
 Requires:	libutempter
 Requires:	polkit >= 0.106
 Requires:	rc-scripts >= 0.4.5.3-7
@@ -193,16 +192,12 @@ Suggests:	service(syslog)
 Suggests:	xorg-lib-libxkbcommon >= 0.5.0
 Provides:	group(systemd-coredump)
 Provides:	group(systemd-journal)
-Provides:	group(systemd-journal-remote)
-Provides:	group(systemd-journal-upload)
 Provides:	group(systemd-network)
 Provides:	group(systemd-oom)
 Provides:	group(systemd-resolve)
 Provides:	group(systemd-timesync)
 Provides:	udev-acl = %{epoch}:%{version}-%{release}
 Provides:	user(systemd-coredump)
-Provides:	user(systemd-journal-remote)
-Provides:	user(systemd-journal-upload)
 Provides:	user(systemd-network)
 Provides:	user(systemd-oom)
 Provides:	user(systemd-resolve)
@@ -403,9 +398,9 @@ Tools that work with and without systemd started.
 %description tools -l pl.UTF-8
 Narzędzia działające przy uruchomionym jak i bez systemd.
 
-%package journal-gateway
-Summary:	Gateway for serving journal events over the network using HTTP
-Summary(pl.UTF-8):	Bramka do serwowania zdarzeń dziennika po sieci poprzez HTTP
+%package journal-remote
+Summary:	Tools for sending and receiving remote journal logs
+Summary(pl.UTF-8):	Narzędzia do wysyłania i odbierania zdarzeń dziennika po sieci
 License:	LGPL v2.1+
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
@@ -415,17 +410,21 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	libmicrohttpd >= 0.9.33
 Provides:	group(systemd-journal-gateway)
+Provides:	group(systemd-journal-remote)
+Provides:	group(systemd-journal-upload)
 Provides:	user(systemd-journal-gateway)
+Provides:	user(systemd-journal-remote)
+Provides:	user(systemd-journal-upload)
+Obsoletes:	systemd-journal-gateway < 1:251.4-3
 Conflicts:	systemd < 1:206-3
 
-%description journal-gateway
-systemd-journal-gatewayd serves journal events over the network using
-HTTP.
+%description journal-remote
+Tools for sending and receiving remote journal logs.
 
-%description journal-gateway -l pl.UTF-8
-systemd-journal-gatewayd serwuje zdarzenia dziennika po sieci poprzez
-HTTP.
+%description journal-remote -l pl.UTF-8
+Narzędzia do wysyłania i odbierania zdarzeń dziennika po sieci.
 
 %package homed
 Summary:	systemd home area/user account manager
@@ -1009,10 +1008,6 @@ rm -rf $RPM_BUILD_ROOT
 %useradd -u 317 -g 317 -d /var/log/journal -s /bin/false -c "Systemd Resolver" systemd-resolve
 %groupadd -g 318 systemd-timesync
 %useradd -u 318 -g 318 -d /var/log/journal -s /bin/false -c "Systemd Time Synchronization" systemd-timesync
-%groupadd -g 319 systemd-journal-remote
-%useradd -u 319 -g 319 -d /var/log/journal -s /bin/false -c "Systemd Journal Remote" systemd-journal-remote
-%groupadd -g 320 systemd-journal-upload
-%useradd -u 320 -g 320 -d /var/log/journal -s /bin/false -c "Systemd Journal Upload" systemd-journal-upload
 %groupadd -g 333 systemd-coredump
 %useradd -u 333 -g 333 -d /var/log/journal -s /bin/false -c "Systemd Core Dumper" systemd-coredump
 %groupadd -g 341 systemd-oom
@@ -1041,10 +1036,6 @@ if [ "$1" = "0" ]; then
 	%groupremove systemd-resolve
 	%userremove systemd-timesync
 	%groupremove systemd-timesync
-	%userremove systemd-journal-remote
-	%groupremove systemd-journal-remote
-	%userremove systemd-journal-upload
-	%groupremove systemd-journal-upload
 	%groupremove systemd-journal
 fi
 
@@ -1154,22 +1145,30 @@ fi
 %postun inetd
 %systemd_reload
 
-%pre journal-gateway
+%pre journal-remote
 %groupadd -g 287 systemd-journal-gateway
 %useradd -u 287 -g 287 -d /var/log/journal -s /bin/false -c "Systemd Journal Gateway" systemd-journal-gateway
+%groupadd -g 319 systemd-journal-remote
+%useradd -u 319 -g 319 -d /var/log/journal -s /bin/false -c "Systemd Journal Remote" systemd-journal-remote
+%groupadd -g 320 systemd-journal-upload
+%useradd -u 320 -g 320 -d /var/log/journal -s /bin/false -c "Systemd Journal Upload" systemd-journal-upload
 
-%post journal-gateway
+%post journal-remote
 %systemd_post systemd-journal-gatewayd.socket systemd-journal-gatewayd.service
 
-%preun journal-gateway
+%preun journal-remote
 %systemd_preun systemd-journal-gatewayd.socket systemd-journal-gatewayd.service
 
-%postun journal-gateway
+%postun journal-remote
 %systemd_reload
 
 if [ "$1" = "0" ]; then
 	%userremove systemd-journal-gateway
 	%groupremove systemd-journal-gateway
+	%userremove systemd-journal-remote
+	%groupremove systemd-journal-remote
+	%userremove systemd-journal-upload
+	%groupremove systemd-journal-upload
 fi
 
 %post networkd
@@ -1260,10 +1259,6 @@ fi
 %dir %{_sysconfdir}/kernel
 %dir %{_sysconfdir}/kernel/install.d
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/coredump.conf
-%if %{with microhttpd}
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-remote.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-upload.conf
-%endif
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journald.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/logind.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/pstore.conf
@@ -1339,10 +1334,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-importd
 %attr(755,root,root) /lib/systemd/systemd-initctl
 %attr(755,root,root) /lib/systemd/systemd-journald
-%if %{with microhttpd}
-%attr(755,root,root) /lib/systemd/systemd-journal-remote
-%attr(755,root,root) /lib/systemd/systemd-journal-upload
-%endif
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-machined
@@ -1522,12 +1513,6 @@ fi
 %{_mandir}/man5/initrd-release.5*
 %{_mandir}/man5/journald@.conf.5*
 %{?with_efi:%{_mandir}/man5/loader.conf.5*}
-%if %{with microhttpd}
-%{_mandir}/man5/journal-remote.conf.5*
-%{_mandir}/man5/journal-remote.conf.d.5*
-%{_mandir}/man5/journal-upload.conf.5.*
-%{_mandir}/man5/journal-upload.conf.d.5*
-%endif
 %{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/journald.conf.d.5*
 %{_mandir}/man5/locale.conf.5*
@@ -1624,10 +1609,6 @@ fi
 %{_mandir}/man8/systemd-journald.8*
 %{_mandir}/man8/systemd-journald@.service.8*
 %{_mandir}/man8/systemd-journald@.socket.8*
-%if %{with microhttpd}
-%{_mandir}/man8/systemd-journal-remote.8*
-%{_mandir}/man8/systemd-journal-upload.8*
-%endif
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
 %{_mandir}/man8/systemd-machined.8*
@@ -1859,8 +1840,6 @@ fi
 %{systemdunitdir}/systemd-initctl.service
 %{systemdunitdir}/systemd-journal-catalog-update.service
 %{systemdunitdir}/systemd-journal-flush.service
-%{systemdunitdir}/systemd-journal-remote.service
-%{systemdunitdir}/systemd-journal-upload.service
 %{systemdunitdir}/systemd-journald.service
 %{systemdunitdir}/systemd-journald@.service
 %{systemdunitdir}/systemd-kexec.service
@@ -1910,7 +1889,6 @@ fi
 %exclude %{systemdunitdir}/rc-inetd.service
 %{systemdunitdir}/syslog.socket
 %{systemdunitdir}/systemd-initctl.socket
-%{systemdunitdir}/systemd-journal-remote.socket
 %{systemdunitdir}/systemd-journald-audit.socket
 %{systemdunitdir}/systemd-journald-dev-log.socket
 %{systemdunitdir}/systemd-journald-varlink@.socket
@@ -2110,9 +2088,6 @@ fi
 %{_mandir}/man8/systemd-importd.service.8*
 %{_mandir}/man8/systemd-initctl.service.8*
 %{_mandir}/man8/systemd-initctl.socket.8*
-%{_mandir}/man8/systemd-journal-remote.service.8*
-%{_mandir}/man8/systemd-journal-remote.socket.8*
-%{_mandir}/man8/systemd-journal-upload.service.8*
 %{_mandir}/man8/systemd-journald.service.8*
 %{_mandir}/man8/systemd-journald.socket.8*
 %{_mandir}/man8/systemd-journald-audit.socket.8*
@@ -2155,15 +2130,31 @@ fi
 %{_mandir}/man1/systemd-cgtop.1*
 
 %if %{with microhttpd}
-%files journal-gateway
+%files journal-remote
 %defattr(644,root,root,755)
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-remote.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-upload.conf
 %{systemdunitdir}/systemd-journal-gatewayd.service
 %{systemdunitdir}/systemd-journal-gatewayd.socket
+%{systemdunitdir}/systemd-journal-remote.service
+%{systemdunitdir}/systemd-journal-upload.service
+%{systemdunitdir}/systemd-journal-remote.socket
 %attr(755,root,root) /lib/systemd/systemd-journal-gatewayd
+%attr(755,root,root) /lib/systemd/systemd-journal-remote
+%attr(755,root,root) /lib/systemd/systemd-journal-upload
 %{_datadir}/systemd/gatewayd
+%{_mandir}/man5/journal-remote.conf.5*
+%{_mandir}/man5/journal-remote.conf.d.5*
+%{_mandir}/man5/journal-upload.conf.5.*
+%{_mandir}/man5/journal-upload.conf.d.5*
 %{_mandir}/man8/systemd-journal-gatewayd.8*
 %{_mandir}/man8/systemd-journal-gatewayd.service.8*
 %{_mandir}/man8/systemd-journal-gatewayd.socket.8*
+%{_mandir}/man8/systemd-journal-remote.8*
+%{_mandir}/man8/systemd-journal-upload.8*
+%{_mandir}/man8/systemd-journal-remote.service.8*
+%{_mandir}/man8/systemd-journal-remote.socket.8*
+%{_mandir}/man8/systemd-journal-upload.service.8*
 %endif
 
 %files homed
