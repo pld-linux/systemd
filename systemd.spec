@@ -163,7 +163,6 @@ Requires:	%{name}-tools = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
-Requires:	curl-libs >= 7.32.0
 Requires:	dbus >= 1.9.18
 Requires:	elfutils >= 0.177
 Requires:	filesystem >= 4.0-39
@@ -178,6 +177,7 @@ Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 4.15
 Requires:	util-linux >= 2.30
+Suggests:	%{name}-container = %{epoch}:%{version}-%{release}
 Suggests:	%{name}-sysv-compat = %{epoch}:%{version}-%{release}
 %{?with_cryptsetup:Suggests:	cryptsetup >= 2.4.0}
 Suggests:	fsck >= 2.25.0
@@ -397,6 +397,20 @@ Tools that work with and without systemd started.
 %description tools -l pl.UTF-8
 Narzędzia działające przy uruchomionym jak i bez systemd.
 
+%package container
+Summary:	Tools for container/VM management
+Summary(pl.UTF-8):	Narzędzia do zarządzania kontenerami/wirtualnymi maszynami
+License:	LGPL v2.1+
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	curl-libs >= 7.32.0
+
+%description container
+Tools for container/VM management.
+
+%description container -l pl.UTF-8
+Narzędzia do zarządzania kontenerami/wirtualnymi maszynami.
+
 %package journal-remote
 Summary:	Tools for sending and receiving remote journal logs
 Summary(pl.UTF-8):	Narzędzia do wysyłania i odbierania zdarzeń dziennika po sieci
@@ -409,6 +423,7 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	curl-libs >= 7.32.0
 Requires:	gnutls-libs >= 3.6.0
 Requires:	libmicrohttpd >= 0.9.33
 Provides:	group(systemd-journal-gateway)
@@ -1237,17 +1252,13 @@ fi
 %doc docs/{AUTOMATIC_BOOT_ASSESSMENT,BLOCK_DEVICE_LOCKING,BOOT_LOADER_INTERFACE,BOOT_LOADER_SPECIFICATION,DISTRO_PORTING,ENVIRONMENT,GROUP_RECORD,PREDICTABLE_INTERFACE_NAMES,TRANSIENT-SETTINGS,UIDS-GIDS,USER_GROUP_API,USER_RECORD}.md NEWS README TODO
 %{_datadir}/dbus-1/interfaces/org.freedesktop.LogControl1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.import1.*.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.login1.*.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.machine1.*.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
 %{_datadir}/dbus-1/interfaces/org.freedesktop.timedate1.xml
 %{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
-%{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.login1.conf
-%{_datadir}/dbus-1/system.d/org.freedesktop.machine1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.systemd1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.timedate1.conf
 %{_datadir}/dbus-1/system.d/org.freedesktop.timesync1.conf
@@ -1273,7 +1284,6 @@ fi
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
 %attr(755,root,root) /bin/loginctl
-%attr(755,root,root) /bin/machinectl
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
 %attr(755,root,root) /bin/systemd-creds
@@ -1296,7 +1306,6 @@ fi
 %{?with_cryptsetup:%attr(755,root,root) %{_bindir}/systemd-cryptenroll}
 %attr(755,root,root) %{_bindir}/systemd-delta
 %attr(755,root,root) %{_bindir}/systemd-detect-virt
-%attr(755,root,root) %{_bindir}/systemd-dissect
 %attr(755,root,root) %{_bindir}/systemd-id128
 %attr(755,root,root) %{_bindir}/systemd-mount
 %attr(755,root,root) %{_bindir}/systemd-nspawn
@@ -1308,7 +1317,6 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-umount
 %attr(755,root,root) %{_bindir}/timedatectl
 /lib/modprobe.d/systemd.conf
-/lib/systemd/import-pubring.gpg
 /lib/systemd/resolv.conf
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/systemd-ac-power
@@ -1325,23 +1333,17 @@ fi
 %attr(755,root,root) /usr/%{_lib}/cryptsetup/libcryptsetup-token-systemd-pkcs11.so
 %{?with_tpm2:%attr(755,root,root) /usr/%{_lib}/cryptsetup/libcryptsetup-token-systemd-tpm2.so}
 %endif
-%attr(755,root,root) /lib/systemd/systemd-export
 %attr(755,root,root) /lib/systemd/systemd-fsck
 %attr(755,root,root) /lib/systemd/systemd-growfs
 %attr(755,root,root) /lib/systemd/systemd-hibernate-resume
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
-%attr(755,root,root) /lib/systemd/systemd-import
-%attr(755,root,root) /lib/systemd/systemd-import-fs
-%attr(755,root,root) /lib/systemd/systemd-importd
 %attr(755,root,root) /lib/systemd/systemd-initctl
 %attr(755,root,root) /lib/systemd/systemd-journald
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
-%attr(755,root,root) /lib/systemd/systemd-machined
 %attr(755,root,root) /lib/systemd/systemd-makefs
 %attr(755,root,root) /lib/systemd/systemd-modules-load
 %attr(755,root,root) /lib/systemd/systemd-pstore
-%attr(755,root,root) /lib/systemd/systemd-pull
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
 %attr(755,root,root) /lib/systemd/systemd-remount-fs
@@ -1448,18 +1450,14 @@ fi
 %endif
 %{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.timesync1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
-%{_datadir}/polkit-1/actions/org.freedesktop.import1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.locale1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.login1.policy
-%{_datadir}/polkit-1/actions/org.freedesktop.machine1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.timesync1.policy
@@ -1479,7 +1477,6 @@ fi
 %{_mandir}/man1/journalctl.1*
 %{_mandir}/man1/localectl.1*
 %{_mandir}/man1/loginctl.1*
-%{_mandir}/man1/machinectl.1*
 %{_mandir}/man1/systemd.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cat.1*
@@ -1525,10 +1522,8 @@ fi
 %{_mandir}/man5/modules-load.d.5*
 %{_mandir}/man5/org.freedesktop.LogControl1.5*
 %{_mandir}/man5/org.freedesktop.hostname1.5*
-%{_mandir}/man5/org.freedesktop.import1.5*
 %{_mandir}/man5/org.freedesktop.locale1.5*
 %{_mandir}/man5/org.freedesktop.login1.5*
-%{_mandir}/man5/org.freedesktop.machine1.5*
 %{_mandir}/man5/org.freedesktop.systemd1.5*
 %{_mandir}/man5/org.freedesktop.timedate1.5*
 %{_mandir}/man5/os-release.5*
@@ -1603,7 +1598,6 @@ fi
 %{_mandir}/man8/systemd-hibernate-resume.8*
 %{_mandir}/man8/systemd-hibernate-resume@.service.8*
 %{_mandir}/man8/systemd-hostnamed.8*
-%{_mandir}/man8/systemd-importd.8*
 %{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8*
 %{_mandir}/man8/systemd-journald-varlink@.socket.8*
@@ -1612,7 +1606,6 @@ fi
 %{_mandir}/man8/systemd-journald@.socket.8*
 %{_mandir}/man8/systemd-localed.8*
 %{_mandir}/man8/systemd-logind.8*
-%{_mandir}/man8/systemd-machined.8*
 %{_mandir}/man8/systemd-machine-id-commit.service.8*
 %{_mandir}/man8/systemd-makefs.8*
 %{_mandir}/man8/systemd-makefs@.service.8*
@@ -1775,7 +1768,6 @@ fi
 %{systemdunitdir}/systemd-pstore.service
 %{systemdunitdir}/systemd-rfkill.socket
 %{systemdunitdir}/tmp.mount
-%{systemdunitdir}/var-lib-machines.mount
 %{systemdunitdir}/var-lock.mount
 %{systemdunitdir}/var-run.mount
 %{systemdunitdir}/systemd-ask-password-console.path
@@ -1787,10 +1779,8 @@ fi
 %{systemdunitdir}/container-getty@.service
 %{systemdunitdir}/cpusets.service
 %{systemdunitdir}/dbus-org.freedesktop.hostname1.service
-%{systemdunitdir}/dbus-org.freedesktop.import1.service
 %{systemdunitdir}/dbus-org.freedesktop.locale1.service
 %{systemdunitdir}/dbus-org.freedesktop.login1.service
-%{systemdunitdir}/dbus-org.freedesktop.machine1.service
 %{systemdunitdir}/dbus-org.freedesktop.timedate1.service
 %{systemdunitdir}/debug-shell.service
 %{systemdunitdir}/display-manager.service
@@ -1837,7 +1827,6 @@ fi
 %{systemdunitdir}/systemd-hostnamed.service
 %{systemdunitdir}/systemd-hwdb-update.service
 %{systemdunitdir}/systemd-hybrid-sleep.service
-%{systemdunitdir}/systemd-importd.service
 %{systemdunitdir}/systemd-initctl.service
 %{systemdunitdir}/systemd-journal-catalog-update.service
 %{systemdunitdir}/systemd-journal-flush.service
@@ -1847,7 +1836,6 @@ fi
 %{systemdunitdir}/systemd-localed.service
 %{systemdunitdir}/systemd-logind.service
 %{systemdunitdir}/systemd-machine-id-commit.service
-%{systemdunitdir}/systemd-machined.service
 %{systemdunitdir}/systemd-modules-load.service
 %{systemdunitdir}/systemd-nspawn@.service
 %{systemdunitdir}/systemd-poweroff.service
@@ -1930,7 +1918,6 @@ fi
 %{systemdunitdir}/kexec.target
 %{systemdunitdir}/local-fs-pre.target
 %{systemdunitdir}/local-fs.target
-%{systemdunitdir}/machines.target
 %{systemdunitdir}/multi-user.target
 %{systemdunitdir}/network-online.target
 %{systemdunitdir}/network-pre.target
@@ -1983,7 +1970,6 @@ fi
 %dir %{systemdunitdir}/initrd-root-fs.target.wants
 %dir %{systemdunitdir}/kexec.target.wants
 %dir %{systemdunitdir}/local-fs.target.wants
-%dir %{systemdunitdir}/machines.target.wants
 %dir %{systemdunitdir}/multi-user.target.wants
 %dir %{systemdunitdir}/poweroff.target.wants
 %dir %{systemdunitdir}/reboot.target.wants
@@ -2007,14 +1993,12 @@ fi
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
 %{systemdunitdir}/local-fs.target.wants/var-run.mount
-%{systemdunitdir}/machines.target.wants/var-lib-machines.mount
 %{systemdunitdir}/multi-user.target.wants/getty.target
 %{systemdunitdir}/multi-user.target.wants/rc-local.service
 %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
 %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
 %{systemdunitdir}/multi-user.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
-%{systemdunitdir}/remote-fs.target.wants/var-lib-machines.mount
 %{systemdunitdir}/rescue.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/sigpwr.target.wants/sigpwr-container-shutdown.service
 %{systemdunitdir}/sockets.target.wants/systemd-initctl.socket
@@ -2086,7 +2070,6 @@ fi
 %{_mandir}/man8/systemd-hibernate.service.8*
 %{_mandir}/man8/systemd-hostnamed.service.8*
 %{_mandir}/man8/systemd-hybrid-sleep.service.8*
-%{_mandir}/man8/systemd-importd.service.8*
 %{_mandir}/man8/systemd-initctl.service.8*
 %{_mandir}/man8/systemd-initctl.socket.8*
 %{_mandir}/man8/systemd-journald.service.8*
@@ -2095,7 +2078,6 @@ fi
 %{_mandir}/man8/systemd-kexec.service.8*
 %{_mandir}/man8/systemd-localed.service.8*
 %{_mandir}/man8/systemd-logind.service.8*
-%{_mandir}/man8/systemd-machined.service.8*
 %{_mandir}/man8/systemd-modules-load.service.8*
 %{_mandir}/man8/systemd-poweroff.service.8*
 %{_mandir}/man8/systemd-quotacheck.service.8*
@@ -2129,6 +2111,42 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-cgtop
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-cgtop.1*
+
+%files container
+%defattr(644,root,root,755)
+%attr(755,root,root) /bin/machinectl
+/lib/systemd/import-pubring.gpg
+%attr(755,root,root) /lib/systemd/systemd-export
+%attr(755,root,root) /lib/systemd/systemd-import
+%attr(755,root,root) /lib/systemd/systemd-import-fs
+%attr(755,root,root) /lib/systemd/systemd-machined
+%attr(755,root,root) /lib/systemd/systemd-pull
+%attr(755,root,root) /lib/systemd/systemd-importd
+%attr(755,root,root) %{_bindir}/systemd-dissect
+%{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
+%{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
+%{_datadir}/dbus-1/interfaces/org.freedesktop.import1.*.xml
+%{_datadir}/dbus-1/interfaces/org.freedesktop.machine1.*.xml
+%{_datadir}/dbus-1/system.d/org.freedesktop.import1.conf
+%{_datadir}/dbus-1/system.d/org.freedesktop.machine1.conf
+%{_datadir}/polkit-1/actions/org.freedesktop.import1.policy
+%{_datadir}/polkit-1/actions/org.freedesktop.machine1.policy
+%{_mandir}/man1/machinectl.1*
+%{_mandir}/man5/org.freedesktop.import1.5*
+%{_mandir}/man5/org.freedesktop.machine1.5*
+%{_mandir}/man8/systemd-importd.8*
+%{_mandir}/man8/systemd-importd.service.8*
+%{_mandir}/man8/systemd-machined.8*
+%{_mandir}/man8/systemd-machined.service.8*
+%{systemdunitdir}/dbus-org.freedesktop.import1.service
+%{systemdunitdir}/dbus-org.freedesktop.machine1.service
+%{systemdunitdir}/machines.target
+%dir %{systemdunitdir}/machines.target.wants
+%{systemdunitdir}/machines.target.wants/var-lib-machines.mount
+%{systemdunitdir}/remote-fs.target.wants/var-lib-machines.mount
+%{systemdunitdir}/var-lib-machines.mount
+%{systemdunitdir}/systemd-importd.service
+%{systemdunitdir}/systemd-machined.service
 
 %if %{with microhttpd}
 %files journal-remote
