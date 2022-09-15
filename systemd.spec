@@ -1473,7 +1473,6 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.timesync1.policy
 %{_datadir}/polkit-1/rules.d/systemd-networkd.rules
 %dir %{_datadir}/systemd
-%{?with_microhttpd:%{_datadir}/systemd/gatewayd}
 %{_datadir}/systemd/kbd-model-map
 %{_datadir}/systemd/language-fallback-map
 %{_datadir}/factory/etc/issue
@@ -1860,7 +1859,6 @@ fi
 %{systemdunitdir}/systemd-initctl.service
 %{systemdunitdir}/systemd-journal-catalog-update.service
 %{systemdunitdir}/systemd-journal-flush.service
-%{systemdunitdir}/systemd-journal-gatewayd.service
 %{systemdunitdir}/systemd-journal-remote.service
 %{systemdunitdir}/systemd-journal-upload.service
 %{systemdunitdir}/systemd-journald.service
@@ -2159,8 +2157,10 @@ fi
 %if %{with microhttpd}
 %files journal-gateway
 %defattr(644,root,root,755)
+%{systemdunitdir}/systemd-journal-gatewayd.service
 %{systemdunitdir}/systemd-journal-gatewayd.socket
 %attr(755,root,root) /lib/systemd/systemd-journal-gatewayd
+%{_datadir}/systemd/gatewayd
 %{_mandir}/man8/systemd-journal-gatewayd.8*
 %{_mandir}/man8/systemd-journal-gatewayd.service.8*
 %{_mandir}/man8/systemd-journal-gatewayd.socket.8*
