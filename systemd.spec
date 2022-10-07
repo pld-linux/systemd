@@ -610,7 +610,7 @@ Requires:	libseccomp >= 2.4.0
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	lz4-libs >= 1:1.3.0
 Requires:	zstd >= 1.4.0
-Obsoletes:	nss_myhostname
+Obsoletes:	nss_myhostname < 0.4
 
 %description libs
 Shared systemd libraries.
