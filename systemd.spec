@@ -29,14 +29,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	251.5
+Version:	251.6
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	d26d9f41600e4d5f7142eccf079b8044
+# Source0-md5:	e19fcb34970ff43cc06693de4e59cf95
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -109,7 +109,7 @@ BuildRequires:	iptables-devel
 BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel >= 1:2.13
 BuildRequires:	libblkid-devel >= 2.24
-%{?with_bpf:BuildRequires:	libbpf-devel >= 0.2}
+%{?with_bpf:BuildRequires:	libbpf-devel >= 0.1.0}
 BuildRequires:	libcap-devel
 BuildRequires:	libfdisk-devel >= 2.32
 %{?with_fido2:BuildRequires:	libfido2-devel}
