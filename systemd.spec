@@ -29,14 +29,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	251.6
+Version:	251.7
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	e19fcb34970ff43cc06693de4e59cf95
+# Source0-md5:	5ef4286f7678127ca151c7910291874e
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -137,7 +137,7 @@ BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3
 BuildRequires:	python3-jinja2
 BuildRequires:	python3-lxml
-%{?with_qrencode:BuildRequires:	qrencode-devel >= 4}
+%{?with_qrencode:BuildRequires:	qrencode-devel >= 3}
 BuildRequires:	rpm-build >= 4.6
 BuildRequires:	rpmbuild(macros) >= 1.752
 BuildRequires:	sed >= 4.0
@@ -184,7 +184,7 @@ Suggests:	fsck >= 2.25.0
 Suggests:	libidn2
 Suggests:	libpwquality
 Suggests:	pcre2-8
-%{?with_qrencode:Suggests:	qrencode-libs >= 4}
+%{?with_qrencode:Suggests:	qrencode-libs >= 3}
 Suggests:	service(klogd)
 Suggests:	service(syslog)
 Suggests:	xorg-lib-libxkbcommon >= 0.5.0
