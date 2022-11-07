@@ -1339,9 +1339,13 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-makefs
+%if %{with efi} && %{with tpm2}
 %attr(755,root,root) /lib/systemd/systemd-measure
+%endif
 %attr(755,root,root) /lib/systemd/systemd-modules-load
+%if %{with efi} && %{with tpm2}
 %attr(755,root,root) /lib/systemd/systemd-pcrphase
+%endif
 %attr(755,root,root) /lib/systemd/systemd-pstore
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
@@ -1492,7 +1496,9 @@ fi
 %{_mandir}/man1/systemd-id128.1*
 %{_mandir}/man1/systemd-inhibit.1*
 %{_mandir}/man1/systemd-machine-id-setup.1*
+%if %{with efi} && %{with tpm2}
 %{_mandir}/man1/systemd-measure.1*
+%endif
 %{_mandir}/man1/systemd-mount.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
@@ -1841,9 +1847,11 @@ fi
 %{systemdunitdir}/systemd-machine-id-commit.service
 %{systemdunitdir}/systemd-modules-load.service
 %{systemdunitdir}/systemd-nspawn@.service
+%if %{with efi} && %{with tpm2}
 %{systemdunitdir}/systemd-pcrphase-initrd.service
 %{systemdunitdir}/systemd-pcrphase-sysinit.service
 %{systemdunitdir}/systemd-pcrphase.service
+%endif
 %{systemdunitdir}/systemd-poweroff.service
 %{systemdunitdir}/systemd-quotacheck.service
 %{systemdunitdir}/systemd-random-seed.service
@@ -2000,7 +2008,9 @@ fi
 %endif
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
+%if %{with efi} && %{with tpm2}
 %{systemdunitdir}/initrd.target.wants/systemd-pcrphase-initrd.service
+%endif
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
 %{systemdunitdir}/local-fs.target.wants/var-run.mount
@@ -2041,8 +2051,10 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-journal-flush.service
 %{systemdunitdir}/sysinit.target.wants/systemd-machine-id-commit.service
 %{systemdunitdir}/sysinit.target.wants/systemd-modules-load.service
+%if %{with efi} && %{with tpm2}
 %{systemdunitdir}/sysinit.target.wants/systemd-pcrphase-sysinit.service
 %{systemdunitdir}/sysinit.target.wants/systemd-pcrphase.service
+%endif
 %{systemdunitdir}/sysinit.target.wants/systemd-random-seed.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysctl.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysusers.service
@@ -2092,10 +2104,12 @@ fi
 %{_mandir}/man8/systemd-localed.service.8*
 %{_mandir}/man8/systemd-logind.service.8*
 %{_mandir}/man8/systemd-modules-load.service.8*
+%if %{with efi} && %{with tpm2}
 %{_mandir}/man8/systemd-pcrphase-initrd.service.8*
 %{_mandir}/man8/systemd-pcrphase-sysinit.service.8*
 %{_mandir}/man8/systemd-pcrphase.8*
 %{_mandir}/man8/systemd-pcrphase.service.8*
+%endif
 %{_mandir}/man8/systemd-poweroff.service.8*
 %{_mandir}/man8/systemd-quotacheck.service.8*
 %{_mandir}/man8/systemd-random-seed.service.8*
