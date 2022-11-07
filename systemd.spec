@@ -126,7 +126,7 @@ BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
 BuildRequires:	meson >= 0.53.2
 BuildRequires:	ninja
-%{?with_fido2:BuildRequires:	openssl-devel}
+BuildRequires:	openssl-devel
 BuildRequires:	p11-kit-devel >= 0.23.3
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
