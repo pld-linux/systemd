@@ -55,32 +55,34 @@
  
          f = fopen(path, "re");
          if (!f)
---- systemd-240/src/core/locale-setup.c.orig	2019-01-13 09:27:36.718995151 +0100
-+++ systemd-240/src/core/locale-setup.c	2019-01-13 09:29:37.548993771 +0100
+--- systemd-240/src/shared/locale-setup.c.orig	2019-01-13 09:27:36.718995151 +0100
++++ systemd-240/src/shared/locale-setup.c	2019-01-13 09:29:37.548993771 +0100
 @@ -21,6 +21,7 @@
-         int r;
+                 locale_context_clear(c);
  
-         r = proc_cmdline_get_key_many(PROC_CMDLINE_STRIP_RD_PREFIX,
-+                                      "LANG",                     &variables[VARIABLE_LANG],
-                                       "locale.LANG",              &variables[VARIABLE_LANG],
-                                       "locale.LANGUAGE",          &variables[VARIABLE_LANGUAGE],
-                                       "locale.LC_CTYPE",          &variables[VARIABLE_LC_CTYPE],
-@@ -59,6 +60,15 @@
-                         log_warning_errno(r, "Failed to read /etc/locale.conf: %m");
-         }
+                 r = proc_cmdline_get_key_many(PROC_CMDLINE_STRIP_RD_PREFIX,
++                                              "LANG",                     &c->locale[VARIABLE_LANG],
+                                               "locale.LANG",              &c->locale[VARIABLE_LANG],
+                                               "locale.LANGUAGE",          &c->locale[VARIABLE_LANGUAGE],
+                                               "locale.LC_CTYPE",          &c->locale[VARIABLE_LC_CTYPE],
+@@ -59,6 +60,17 @@
+                 if (r < 0 && errno != ENOENT)
+                         return log_debug_errno(errno, "Failed to stat /etc/locale.conf: %m");
  
-+        if (r <= 0 &&
-+            (r = parse_env_file(NULL, "/etc/sysconfig/i18n",
-+                                "LANG", &variables[VARIABLE_LANG]
++        if (r < 0 && stat("/etc/sysconfig/i18n", &st) == 0) {
++                locale_context_clear(c);
++                if ((r = parse_env_file(NULL, "/etc/sysconfig/i18n",
++                                "LANG", &c->locale[VARIABLE_LANG]
 +                                )) < 0) {
 +
-+                if (r != -ENOENT)
-+                        log_warning_errno(r, "Failed to read /etc/sysconfig/i18n: %m");
++                        if (r != -ENOENT)
++                                log_warning_errno(r, "Failed to read /etc/sysconfig/i18n: %m");
++                }
 +        }
 +
-         for (LocaleVariable i = 0; i < _VARIABLE_LC_MAX; i++) {
-                 char *s;
- 
+                 if (r >= 0) {
+                         /* If mtime is not changed, then we do not need to re-read the file. */
+                         t = timespec_load(&st.st_mtim);
 --- systemd-240/src/basic/time-util.c.orig	2019-01-13 09:27:36.718995151 +0100
 +++ systemd-240/src/basic/time-util.c	2019-01-13 09:31:12.275659356 +0100
 @@ -14,6 +14,7 @@

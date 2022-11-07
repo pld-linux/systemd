@@ -29,14 +29,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	251.7
+Version:	252
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	5ef4286f7678127ca151c7910291874e
+# Source0-md5:	99166e0d58c72988fcd1fe8ff147ed70
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -79,7 +79,6 @@ Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-x32.patch
 Patch16:	rpm-macros.patch
-Patch17:	%{name}-include.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -127,6 +126,7 @@ BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
 BuildRequires:	meson >= 0.53.2
 BuildRequires:	ninja
+%{?with_fido2:BuildRequires:	openssl-devel}
 BuildRequires:	p11-kit-devel >= 0.23.3
 %{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
 BuildRequires:	pcre2-8-devel
@@ -801,7 +801,6 @@ Makra RPM-a definiujące ścieżki i skryptlety związane z systemd.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
-%patch17 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -1293,7 +1292,6 @@ fi
 %attr(755,root,root) /bin/systemd-sysext
 %attr(755,root,root) /bin/systemd-sysusers
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
-%attr(755,root,root) /bin/userdbctl
 %{?with_efi:%attr(755,root,root) %{_bindir}/bootctl}
 %attr(755,root,root) %{_bindir}/busctl
 %attr(755,root,root) %{_bindir}/coredumpctl
@@ -1314,6 +1312,7 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-stdio-bridge
 %attr(755,root,root) %{_bindir}/systemd-umount
 %attr(755,root,root) %{_bindir}/timedatectl
+%attr(755,root,root) %{_bindir}/userdbctl
 /lib/modprobe.d/systemd.conf
 /lib/systemd/resolv.conf
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
@@ -1340,7 +1339,9 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-makefs
+%attr(755,root,root) /lib/systemd/systemd-measure
 %attr(755,root,root) /lib/systemd/systemd-modules-load
+%attr(755,root,root) /lib/systemd/systemd-pcrphase
 %attr(755,root,root) /lib/systemd/systemd-pstore
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
@@ -1352,6 +1353,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-socket-proxyd
 %attr(755,root,root) /lib/systemd/systemd-sulogin-shell
 %attr(755,root,root) /lib/systemd/systemd-sysctl
+%attr(755,root,root) /lib/systemd/systemd-sysroot-fstab-check
 %attr(755,root,root) /lib/systemd/systemd-time-wait-sync
 %attr(755,root,root) /lib/systemd/systemd-timedated
 %attr(755,root,root) /lib/systemd/systemd-timesyncd
@@ -1432,6 +1434,7 @@ fi
 %{_prefix}/lib/tmpfiles.d/home.conf
 %{_prefix}/lib/tmpfiles.d/journal-nocow.conf
 %{_prefix}/lib/tmpfiles.d/legacy.conf
+%{_prefix}/lib/tmpfiles.d/provision.conf
 %{_prefix}/lib/tmpfiles.d/static-nodes-permissions.conf
 %{_prefix}/lib/tmpfiles.d/systemd.conf
 %{_prefix}/lib/tmpfiles.d/systemd-nologin.conf
@@ -1489,6 +1492,7 @@ fi
 %{_mandir}/man1/systemd-id128.1*
 %{_mandir}/man1/systemd-inhibit.1*
 %{_mandir}/man1/systemd-machine-id-setup.1*
+%{_mandir}/man1/systemd-measure.1*
 %{_mandir}/man1/systemd-mount.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
@@ -1567,6 +1571,7 @@ fi
 %{_mandir}/man7/systemd.offline-updates.7*
 %{_mandir}/man7/systemd.special.7*
 %{_mandir}/man7/systemd.syntax.7*
+%{_mandir}/man7/systemd.system-credentials.7*
 %{_mandir}/man7/systemd.time.7*
 %{_mandir}/man8/kernel-install.8*
 %{_mandir}/man8/libnss_myhostname.so.2.8*
@@ -1836,6 +1841,9 @@ fi
 %{systemdunitdir}/systemd-machine-id-commit.service
 %{systemdunitdir}/systemd-modules-load.service
 %{systemdunitdir}/systemd-nspawn@.service
+%{systemdunitdir}/systemd-pcrphase-initrd.service
+%{systemdunitdir}/systemd-pcrphase-sysinit.service
+%{systemdunitdir}/systemd-pcrphase.service
 %{systemdunitdir}/systemd-poweroff.service
 %{systemdunitdir}/systemd-quotacheck.service
 %{systemdunitdir}/systemd-random-seed.service
@@ -1866,6 +1874,10 @@ fi
 %{systemdunitdir}/systemd-vconsole-setup.service
 %{systemdunitdir}/systemd-volatile-root.service
 %{systemdunitdir}/user@.service
+%dir %{systemdunitdir}/user@.service.d
+%{systemdunitdir}/user@.service.d/10-login-barrier.conf
+%dir %{systemdunitdir}/user@0.service.d
+%{systemdunitdir}/user@0.service.d/10-login-barrier.conf
 %{systemdunitdir}/machine.slice
 #%{systemdunitdir}/system.slice
 %{?with_cryptsetup:%{systemdunitdir}/system-systemd\x2dcryptsetup.slice}
@@ -1988,6 +2000,7 @@ fi
 %endif
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
+%{systemdunitdir}/initrd.target.wants/systemd-pcrphase-initrd.service
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
 %{systemdunitdir}/local-fs.target.wants/var-run.mount
@@ -2028,6 +2041,8 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-journal-flush.service
 %{systemdunitdir}/sysinit.target.wants/systemd-machine-id-commit.service
 %{systemdunitdir}/sysinit.target.wants/systemd-modules-load.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrphase-sysinit.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrphase.service
 %{systemdunitdir}/sysinit.target.wants/systemd-random-seed.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysctl.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysusers.service
@@ -2077,6 +2092,10 @@ fi
 %{_mandir}/man8/systemd-localed.service.8*
 %{_mandir}/man8/systemd-logind.service.8*
 %{_mandir}/man8/systemd-modules-load.service.8*
+%{_mandir}/man8/systemd-pcrphase-initrd.service.8*
+%{_mandir}/man8/systemd-pcrphase-sysinit.service.8*
+%{_mandir}/man8/systemd-pcrphase.8*
+%{_mandir}/man8/systemd-pcrphase.service.8*
 %{_mandir}/man8/systemd-poweroff.service.8*
 %{_mandir}/man8/systemd-quotacheck.service.8*
 %{_mandir}/man8/systemd-random-seed.service.8*
@@ -2176,7 +2195,7 @@ fi
 
 %files homed
 %defattr(644,root,root,755)
-%attr(755,root,root) /bin/homectl
+%attr(755,root,root) %{_bindir}/homectl
 %attr(755,root,root) /lib/systemd/systemd-homed
 %attr(755,root,root) /lib/systemd/systemd-homework
 %attr(755,root,root) /%{_lib}/security/pam_systemd_home.so
@@ -2345,8 +2364,8 @@ fi
 %attr(755,root,root) /%{_lib}/libnss_systemd.so.2
 %attr(755,root,root) /%{_lib}/libsystemd.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd.so.0
-%attr(755,root,root) /lib/systemd/libsystemd-core*.so
-%attr(755,root,root) /lib/systemd/libsystemd-shared*.so
+%attr(755,root,root) /%{_lib}/systemd/libsystemd-core*.so
+%attr(755,root,root) /%{_lib}/systemd/libsystemd-shared*.so
 %{_mandir}/man8/libnss_resolve.so.2.8*
 %{_mandir}/man8/libnss_systemd.so.2.8*
 %{_mandir}/man8/nss-resolve.8*
@@ -2382,6 +2401,7 @@ fi
 %{bash_compdir}/systemd-cat
 %{bash_compdir}/systemd-cgls
 %{bash_compdir}/systemd-cgtop
+%{bash_compdir}/systemd-cryptenroll
 %{bash_compdir}/systemd-delta
 %{bash_compdir}/systemd-detect-virt
 %{bash_compdir}/systemd-id128

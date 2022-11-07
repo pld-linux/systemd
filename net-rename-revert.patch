@@ -26,7 +26,7 @@ generated names. Re-apply this old hack to make the renaming less likely to fail
 +                goto out;
 +
 +        /* free our own name, another process may wait for us */
-+        snprintf(name, IFNAMSIZ, "rename%u", ifindex);
++        snprintf(name, IFNAMSIZ, "rename%d", ifindex);
 +        r = rtnl_set_link_name(&event->rtnl, ifindex, name);
 +        if (r < 0)
 +                goto out;
