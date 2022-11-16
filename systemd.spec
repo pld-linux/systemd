@@ -30,7 +30,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	252.1
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -2378,6 +2378,9 @@ fi
 %attr(755,root,root) /%{_lib}/libnss_systemd.so.2
 %attr(755,root,root) /%{_lib}/libsystemd.so.*.*.*
 %attr(755,root,root) %ghost /%{_lib}/libsystemd.so.0
+%if "%{_lib}" != "lib"
+%dir /%{_lib}/systemd
+%endif
 %attr(755,root,root) /%{_lib}/systemd/libsystemd-core*.so
 %attr(755,root,root) /%{_lib}/systemd/libsystemd-shared*.so
 %{_mandir}/man8/libnss_resolve.so.2.8*
