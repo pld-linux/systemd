@@ -30,7 +30,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	252.4
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -174,7 +174,7 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.10.1
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 4.15
+Requires:	uname(release) >= 3.15
 Requires:	util-linux >= 2.30
 Suggests:	%{name}-container = %{epoch}:%{version}-%{release}
 Suggests:	%{name}-sysv-compat = %{epoch}:%{version}-%{release}
