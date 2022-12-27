@@ -57,6 +57,7 @@ Source103:	udev-links.conf
 Source104:	udev-uinput.rules
 Source105:	udev-steam_controller.rules
 Source106:	udev-i2c.rules
+Source107:	udev-raspberrypi.rules
 # scripts / helpers
 Source110:	udev-net.helper
 Source111:	start_udev
@@ -908,6 +909,9 @@ cp -a %{SOURCE102} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-udev-pld.rules
 cp -a %{SOURCE104} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-uinput.rules
 cp -a %{SOURCE105} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-steam_controller.rules
 cp -a %{SOURCE106} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-i2c.rules
+%ifarch %{arm} aarch64
+cp -a %{SOURCE107} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/70-raspberrypi.rules
+%endif
 
 # http://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
 ln -s /dev/null $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/80-net-setup-link.rules
@@ -2529,6 +2533,9 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-uinput.rules
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-steam_controller.rules
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-i2c.rules
+%ifarch %{arm} aarch64
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-raspberrypi.rules
+%endif
 %config(noreplace,missingok) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/80-net-setup-link.rules
 
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/udev.conf
