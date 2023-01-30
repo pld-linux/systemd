@@ -29,14 +29,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	252.4
-Release:	2
+Version:	252.5
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	be1709332649a39c7a143d99a3b1043a
+# Source0-md5:	31d247df965121f453f1339371cca831
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -83,7 +83,11 @@ Patch16:	rpm-macros.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
+%if %{with efi}
+BuildRequires:	binutils >= 4:2.38
+%else
 BuildRequires:	binutils >= 3:2.22.52.0.1-2
+%endif
 BuildRequires:	bzip2-devel
 %{?with_bpf:BuildRequires:	clang >= 10.0.0}
 # ln --relative
