@@ -1,0 +1,10 @@
+--- systemd-stable-252.5/src/partition/growfs.c.orig	2023-01-26 09:12:21.000000000 +0100
++++ systemd-stable-252.5/src/partition/growfs.c	2023-02-25 20:05:31.824939843 +0100
+@@ -13,6 +13,7 @@
+  * See: https://github.com/systemd/systemd/issues/8507
+  * [0] https://github.com/torvalds/linux/commit/a28135303a669917002f569aecebd5758263e4aa
+  */
++#define _LINUX_MOUNT_H
+ #include <linux/btrfs.h>
+ 
+ #include "sd-device.h"
