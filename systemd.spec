@@ -20,6 +20,7 @@
 %bcond_without	fido2		# FIDO2 support
 %bcond_without	tpm2		# TPM2 support
 %bcond_with	tests		# "make check" (requires systemd already installed)
+%bcond_with	xen		# Xen kexec support
 
 %ifnarch %{ix86} %{x8664} aarch64
 # x32 disabled - maybe it's possible to build x64 EFI, but it requires some hacking (add -m64 to EFI gcc command line?)
@@ -29,14 +30,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	252.5
-Release:	2
+Version:	253.1
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	31d247df965121f453f1339371cca831
+# Source0-md5:	e924b15c1bc32f763b6a45fbe554667a
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -140,7 +141,7 @@ BuildRequires:	pcre2-8-devel
 BuildRequires:	pld-release
 BuildRequires:	pkgconfig >= 1:0.9.0
 BuildRequires:	polkit-devel >= 0.106
-BuildRequires:	python3
+BuildRequires:	python3 >= 1:3.9
 BuildRequires:	python3-jinja2
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel >= 3}
@@ -150,6 +151,7 @@ BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 %{?with_tpm2:BuildRequires:	tpm2-tss-devel >= 3.0.0}
 BuildRequires:	usbutils >= 0.82
+%{?with_xen:BuildRequires:	xen-devel}
 BuildRequires:	xorg-lib-libxkbcommon-devel >= 0.5.0
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
@@ -607,6 +609,19 @@ jednostki systemd na zakończenie podczas rozruchu systemu.
 'systemd-analyze plot' tworzy wykres SVG wizualizujący równoległy
 start jednostek podczas rozruchu.
 
+%package ukify
+Summary:	Tool for combining kernel and initrd into Unified Kernel Image (UKI)
+Summary(pl.UTF-8):	Narzędzie do łączenia jądra oraz initrd w Unified Kernel Image (UKI)
+Group:		Base
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	python3-modules >= 1:3.9
+
+%description ukify
+Tool for combining kernel and initrd into Unified Kernel Image (UKI).
+
+%description ukify -l pl.UTF-8
+Narzędzie do łączenia jądra oraz initrd w Unified Kernel Image (UKI).
+
 %package libs
 Summary:	Shared systemd libraries
 Summary(pl.UTF-8):	Biblioteki współdzielone systemd
@@ -813,6 +828,8 @@ cp -p %{SOURCE2} src/systemd_booted.c
 
 grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash,#!/bin/bash,g'
 
+%{__sed} -i -e '1 s,#!.*env python3,#!%{__python3},' src/ukify/ukify.py
+
 %build
 %meson build \
 	-Dadm-gid=3 \
@@ -870,6 +887,7 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dsysvrcnd-path=/etc/rc.d \
 	-Dtpm2=%{__true_false tpm2} \
 	-Dumount-path=/bin/umount \
+	-Dxenctrl=%{__true_false xen}
 
 %ninja_build -C build
 
@@ -1308,6 +1326,7 @@ fi
 %attr(755,root,root) %{_bindir}/hostnamectl
 %attr(755,root,root) %{_bindir}/kernel-install
 %attr(755,root,root) %{_bindir}/localectl
+%attr(755,root,root) %{_bindir}/systemd-ac-power
 %attr(755,root,root) %{_bindir}/systemd-cat
 %{?with_cryptsetup:%attr(755,root,root) %{_bindir}/systemd-cryptenroll}
 %attr(755,root,root) %{_bindir}/systemd-delta
@@ -1326,7 +1345,6 @@ fi
 /lib/modprobe.d/systemd.conf
 /lib/systemd/resolv.conf
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
-%attr(755,root,root) /lib/systemd/systemd-ac-power
 %attr(755,root,root) /lib/systemd/systemd-backlight
 %attr(755,root,root) /lib/systemd/systemd-binfmt
 %{?with_efi:%attr(755,root,root) /lib/systemd/systemd-bless-boot}
@@ -1405,6 +1423,7 @@ fi
 %dir %{_prefix}/lib/kernel/install.d
 %{_prefix}/lib/kernel/install.d/50-depmod.install
 %{_prefix}/lib/kernel/install.d/90-loaderentry.install
+%{_prefix}/lib/kernel/install.d/90-uki-copy.install
 %if %{with efi}
 %dir %{_prefix}/lib/systemd/boot
 %dir %{_prefix}/lib/systemd/boot/efi
@@ -1428,12 +1447,17 @@ fi
 %lang(be) %{_prefix}/lib/systemd/catalog/systemd.be.catalog
 %lang(be) %{_prefix}/lib/systemd/catalog/systemd.be@latin.catalog
 %lang(bg) %{_prefix}/lib/systemd/catalog/systemd.bg.catalog
+%lang(da) %{_prefix}/lib/systemd/catalog/systemd.da.catalog
 %lang(de) %{_prefix}/lib/systemd/catalog/systemd.de.catalog
 %lang(fr) %{_prefix}/lib/systemd/catalog/systemd.fr.catalog
+%lang(hr) %{_prefix}/lib/systemd/catalog/systemd.hr.catalog
+%lang(hu) %{_prefix}/lib/systemd/catalog/systemd.hu.catalog
 %lang(it) %{_prefix}/lib/systemd/catalog/systemd.it.catalog
+%lang(ko) %{_prefix}/lib/systemd/catalog/systemd.ko.catalog
 %lang(pl) %{_prefix}/lib/systemd/catalog/systemd.pl.catalog
 %lang(pt_BR) %{_prefix}/lib/systemd/catalog/systemd.pt_BR.catalog
 %lang(ru) %{_prefix}/lib/systemd/catalog/systemd.ru.catalog
+%lang(sr) %{_prefix}/lib/systemd/catalog/systemd.sr.catalog
 %lang(zh_CN) %{_prefix}/lib/systemd/catalog/systemd.zh_CN.catalog
 %lang(zh_TW) %{_prefix}/lib/systemd/catalog/systemd.zh_TW.catalog
 %dir %{_prefix}/lib/sysusers.d
@@ -1444,6 +1468,7 @@ fi
 %if %{with microhttpd}
 %{_prefix}/lib/sysusers.d/systemd-remote.conf
 %endif
+%{_prefix}/lib/tmpfiles.d/credstore.conf
 %{_prefix}/lib/tmpfiles.d/etc.conf
 %{_prefix}/lib/tmpfiles.d/home.conf
 %{_prefix}/lib/tmpfiles.d/journal-nocow.conf
@@ -1493,6 +1518,7 @@ fi
 %{_mandir}/man1/localectl.1*
 %{_mandir}/man1/loginctl.1*
 %{_mandir}/man1/systemd.1*
+%{_mandir}/man1/systemd-ac-power.1*
 %{_mandir}/man1/systemd-ask-password.1*
 %{_mandir}/man1/systemd-cat.1*
 %{_mandir}/man1/systemd-creds.1*
@@ -1833,13 +1859,15 @@ fi
 %{systemdunitdir}/systemd-binfmt.service
 %if %{with efi}
 %{systemdunitdir}/systemd-bless-boot.service
-%{systemdunitdir}/systemd-boot-system-token.service
+%{systemdunitdir}/systemd-boot-random-seed.service
 %{systemdunitdir}/systemd-boot-update.service
 %endif
 %{systemdunitdir}/systemd-boot-check-no-failures.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
 %{systemdunitdir}/systemd-fsck@.service
+%{systemdunitdir}/systemd-growfs-root.service
+%{systemdunitdir}/systemd-growfs@.service
 %{systemdunitdir}/systemd-halt.service
 %{systemdunitdir}/systemd-hibernate-resume@.service
 %{systemdunitdir}/systemd-hibernate.service
@@ -1858,6 +1886,9 @@ fi
 %{systemdunitdir}/systemd-modules-load.service
 %{systemdunitdir}/systemd-nspawn@.service
 %if %{with efi} && %{with tpm2}
+%{systemdunitdir}/systemd-pcrfs-root.service
+%{systemdunitdir}/systemd-pcrfs@.service
+%{systemdunitdir}/systemd-pcrmachine.service
 %{systemdunitdir}/systemd-pcrphase-initrd.service
 %{systemdunitdir}/systemd-pcrphase-sysinit.service
 %{systemdunitdir}/systemd-pcrphase.service
@@ -2033,7 +2064,6 @@ fi
 %{systemdunitdir}/rescue.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/sigpwr.target.wants/sigpwr-container-shutdown.service
 %{systemdunitdir}/sockets.target.wants/systemd-initctl.socket
-%{systemdunitdir}/sockets.target.wants/systemd-journald-audit.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald-dev-log.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-control.socket
@@ -2053,7 +2083,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/sys-kernel-tracing.mount
 %{systemdunitdir}/sysinit.target.wants/systemd-ask-password-console.path
 %{systemdunitdir}/sysinit.target.wants/systemd-binfmt.service
-%{?with_efi:%{systemdunitdir}/sysinit.target.wants/systemd-boot-system-token.service}
+%{?with_efi:%{systemdunitdir}/sysinit.target.wants/systemd-boot-random-seed.service}
 %{systemdunitdir}/sysinit.target.wants/systemd-firstboot.service
 %{systemdunitdir}/sysinit.target.wants/systemd-hwdb-update.service
 %{systemdunitdir}/sysinit.target.wants/systemd-journal-catalog-update.service
@@ -2062,6 +2092,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-machine-id-commit.service
 %{systemdunitdir}/sysinit.target.wants/systemd-modules-load.service
 %if %{with efi} && %{with tpm2}
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrmachine.service
 %{systemdunitdir}/sysinit.target.wants/systemd-pcrphase-sysinit.service
 %{systemdunitdir}/sysinit.target.wants/systemd-pcrphase.service
 %endif
@@ -2090,7 +2121,7 @@ fi
 %{_mandir}/man8/systemd-binfmt.service.8*
 %{?with_efi:%{_mandir}/man8/systemd-bless-boot.service.8*}
 %{_mandir}/man8/systemd-boot-check-no-failures.service.8*
-%{?with_efi:%{_mandir}/man8/systemd-boot-system-token.service.8*}
+%{?with_efi:%{_mandir}/man8/systemd-boot-random-seed.service.8*}
 %{_mandir}/man8/systemd-coredump.socket.8*
 %{_mandir}/man8/systemd-coredump@.service.8*
 %if %{with cryptsetup}
@@ -2115,6 +2146,9 @@ fi
 %{_mandir}/man8/systemd-logind.service.8*
 %{_mandir}/man8/systemd-modules-load.service.8*
 %if %{with efi} && %{with tpm2}
+%{_mandir}/man8/systemd-pcrfs-root.service.8*
+%{_mandir}/man8/systemd-pcrfs@.service.8*
+%{_mandir}/man8/systemd-pcrmachine.service.8*
 %{_mandir}/man8/systemd-pcrphase-initrd.service.8*
 %{_mandir}/man8/systemd-pcrphase-sysinit.service.8*
 %{_mandir}/man8/systemd-pcrphase.8*
@@ -2247,6 +2281,7 @@ fi
 %{_prefix}/lib/tmpfiles.d/systemd-network.conf
 /lib/systemd/network/80-6rd-tunnel.network
 /lib/systemd/network/80-container-host0.network
+/lib/systemd/network/80-container-vb.network
 /lib/systemd/network/80-container-ve.network
 /lib/systemd/network/80-container-vz.network
 /lib/systemd/network/80-vm-vt.network
@@ -2380,6 +2415,13 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-analyze
 %{_mandir}/man1/systemd-analyze.1*
 
+%if %{with efi}
+%files ukify
+%defattr(644,root,root,755)
+%attr(755,root,root) /lib/systemd/ukify
+%{_mandir}/man1/ukify.1*
+%endif
+
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) /%{_lib}/libnss_myhostname.so.2
@@ -2431,11 +2473,13 @@ fi
 %{bash_compdir}/systemd-cryptenroll
 %{bash_compdir}/systemd-delta
 %{bash_compdir}/systemd-detect-virt
+%{bash_compdir}/systemd-dissect
 %{bash_compdir}/systemd-id128
 %{bash_compdir}/systemd-nspawn
 %{bash_compdir}/systemd-path
 %{bash_compdir}/systemd-resolve
 %{bash_compdir}/systemd-run
+%{bash_compdir}/systemd-sysext
 %{bash_compdir}/timedatectl
 
 %files -n zsh-completion-systemd
@@ -2554,6 +2598,7 @@ fi
 /lib/udev/rules.d/60-drm.rules
 /lib/udev/rules.d/60-evdev.rules
 /lib/udev/rules.d/60-fido-id.rules
+/lib/udev/rules.d/60-infiniband.rules
 /lib/udev/rules.d/60-input-id.rules
 /lib/udev/rules.d/60-persistent-alsa.rules
 /lib/udev/rules.d/60-persistent-input.rules

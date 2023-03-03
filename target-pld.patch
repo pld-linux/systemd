@@ -58,16 +58,16 @@
 --- systemd-240/src/shared/locale-setup.c.orig	2019-01-13 09:27:36.718995151 +0100
 +++ systemd-240/src/shared/locale-setup.c	2019-01-13 09:29:37.548993771 +0100
 @@ -21,6 +21,7 @@
-                 locale_context_clear(c);
+         locale_context_clear(c);
  
-                 r = proc_cmdline_get_key_many(PROC_CMDLINE_STRIP_RD_PREFIX,
-+                                              "LANG",                     &c->locale[VARIABLE_LANG],
-                                               "locale.LANG",              &c->locale[VARIABLE_LANG],
-                                               "locale.LANGUAGE",          &c->locale[VARIABLE_LANGUAGE],
-                                               "locale.LC_CTYPE",          &c->locale[VARIABLE_LC_CTYPE],
+         r = proc_cmdline_get_key_many(PROC_CMDLINE_STRIP_RD_PREFIX,
++                                      "LANG",                     &c->locale[VARIABLE_LANG],
+                                       "locale.LANG",              &c->locale[VARIABLE_LANG],
+                                       "locale.LANGUAGE",          &c->locale[VARIABLE_LANGUAGE],
+                                       "locale.LC_CTYPE",          &c->locale[VARIABLE_LC_CTYPE],
 @@ -59,6 +60,17 @@
-                 if (r < 0 && errno != ENOENT)
-                         return log_debug_errno(errno, "Failed to stat /etc/locale.conf: %m");
+         if (fstat(fd, &st) < 0)
+                 return log_debug_errno(errno, "Failed to stat /etc/locale.conf: %m");
  
 +        if (r < 0 && stat("/etc/sysconfig/i18n", &st) == 0) {
 +                locale_context_clear(c);
@@ -80,9 +80,9 @@
 +                }
 +        }
 +
-                 if (r >= 0) {
-                         /* If mtime is not changed, then we do not need to re-read the file. */
-                         t = timespec_load(&st.st_mtim);
+         /* If the file is not changed, then we do not need to re-read the file. */
+         if (stat_inode_unmodified(&c->st, &st))
+                 return 0;
 --- systemd-240/src/basic/time-util.c.orig	2019-01-13 09:27:36.718995151 +0100
 +++ systemd-240/src/basic/time-util.c	2019-01-13 09:31:12.275659356 +0100
 @@ -14,6 +14,7 @@
@@ -116,7 +116,7 @@
 +++ systemd-240/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100
 @@ -284,6 +284,17 @@ int main(int argc, char **argv) {
          if (r < 0 && r != -ENOENT)
-                 log_warning_errno(r, "Failed to read /etc/vconsole.conf: %m");
+                 log_warning_errno(r, "Failed to read /etc/vconsole.conf, ignoring: %m");
  
 +        if (r < 0) {
 +                int r1 = parse_env_file(NULL, "/etc/sysconfig/console"
@@ -129,6 +129,6 @@
 +                        log_warning_errno(r1, "Failed to read /etc/sysconfig/console: %m");
 +        } 
 +
-         /* Let the kernel command line override /etc/vconsole.conf */
+         /* Let the kernel command line override /etc/vconsole.conf (highest priority) */
          r = proc_cmdline_get_key_many(
                          PROC_CMDLINE_STRIP_RD_PREFIX,

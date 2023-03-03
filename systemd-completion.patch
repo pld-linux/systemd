@@ -2,9 +2,9 @@ diff -urN systemd-241.orig/shell-completion/bash/meson.build systemd-241/shell-c
 --- systemd-241.orig/shell-completion/bash/meson.build	2019-02-14 11:11:58.000000000 +0100
 +++ systemd-241/shell-completion/bash/meson.build	2019-03-07 01:08:55.312337719 +0100
 @@ -30,7 +30,7 @@
+          ['systemd-path',        ''],
           ['systemd-run',         ''],
           ['udevadm',             ''],
-          ['kernel-install',      'ENABLE_KERNEL_INSTALL'],
 -         ['bootctl',             'HAVE_GNU_EFI'],
 +         ['bootctl',             ''],
           ['coredumpctl',         'ENABLE_COREDUMP'],
