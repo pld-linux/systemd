@@ -30,14 +30,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	253.1
+Version:	253.2
 Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	e924b15c1bc32f763b6a45fbe554667a
+# Source0-md5:	b9b868d3bb86061e7c5c7f43d6974f79
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -1634,10 +1634,12 @@ fi
 %endif
 %{_mandir}/man8/systemd-debug-generator.8*
 %{_mandir}/man8/systemd-fsck.8*
+%{_mandir}/man8/systemd-fsck-usr.service.8*
 %{_mandir}/man8/systemd-fstab-generator.8*
 %{_mandir}/man8/systemd-getty-generator.8*
 %{_mandir}/man8/systemd-gpt-auto-generator.8*
 %{_mandir}/man8/systemd-growfs.8*
+%{_mandir}/man8/systemd-growfs-root.service.8*
 %{_mandir}/man8/systemd-growfs@.service.8*
 %{_mandir}/man8/systemd-hibernate-resume-generator.8*
 %{_mandir}/man8/systemd-hibernate-resume.8*
