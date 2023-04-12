@@ -490,6 +490,7 @@ Summary:	systemd userspace OOM killer service
 Summary(pl.UTF-8):	Usługa systemd zabójcy OOM w przestrzeni użytkownika
 Group:		Base
 Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	uname(release) >= 4.20
 
 %description oomd
 systemd-oomd is a system service which monitors resource contention
