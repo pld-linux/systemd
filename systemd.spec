@@ -22,6 +22,8 @@
 %bcond_with	tests		# "make check" (requires systemd already installed)
 %bcond_with	xen		# Xen kexec support
 
+%define         min_kernel      3.15
+
 %ifnarch %{ix86} %{x8664} aarch64
 # x32 disabled - maybe it's possible to build x64 EFI, but it requires some hacking (add -m64 to EFI gcc command line?)
 %undefine	with_efi
@@ -31,7 +33,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	253.3
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -182,7 +184,7 @@ Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.10.1
 Requires:	udev-core = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 3.15
+Requires:	uname(release) >= %{min_kernel}
 Requires:	util-linux >= 2.30
 Suggests:	%{name}-container = %{epoch}:%{version}-%{release}
 Suggests:	%{name}-sysv-compat = %{epoch}:%{version}-%{release}
@@ -721,7 +723,7 @@ Requires:	libblkid >= 2.24
 Requires:	setup >= 2.10.1
 Requires:	systemd-libs = %{epoch}:%{version}-%{release}
 Requires:	udev-libs = %{epoch}:%{version}-%{release}
-Requires:	uname(release) >= 4.15
+Requires:	uname(release) >= %{min_kernel}
 Obsoletes:	udev-compat < 1:182-1
 Obsoletes:	udev-dbus < 027
 Obsoletes:	udev-digicam < 1:079-2
