@@ -2566,6 +2566,7 @@ fi
 /lib/udev/hwdb.d/70-mouse.hwdb
 /lib/udev/hwdb.d/70-pda.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
+/lib/udev/hwdb.d/70-sound-card.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
 /lib/udev/hwdb.d/80-ieee1394-unit-function.hwdb
 
