@@ -1435,7 +1435,6 @@ fi
 %dir %{_prefix}/lib/kernel
 %dir %{_prefix}/lib/kernel/install.d
 %{_prefix}/lib/kernel/install.d/50-depmod.install
-%{_prefix}/lib/kernel/install.d/60-ukify.install
 %{_prefix}/lib/kernel/install.d/90-loaderentry.install
 %{_prefix}/lib/kernel/install.d/90-uki-copy.install
 %if %{with efi}
@@ -2448,6 +2447,7 @@ fi
 %files ukify
 %defattr(644,root,root,755)
 %attr(755,root,root) /lib/systemd/ukify
+%{_prefix}/lib/kernel/install.d/60-ukify.install
 %{_mandir}/man1/ukify.1*
 %endif
 
