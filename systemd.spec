@@ -881,6 +881,11 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Drc-local=/etc/rc.d/rc.local \
 	-Drootlibdir=/%{_lib} \
 	-Drootprefix="" \
+	-Dsbat-distro="%vendor" \
+	-Dsbat-distro-pkgname="%name" \
+	-Dsbat-distro-summary="%distribution" \
+	-Dsbat-distro-url="https://git.pld-linux.org/?p=packages/systemd.git" \
+	-Dsbat-distro-version="%version-%release" \
 	-Dselinux=%{__true_false selinux} \
 	-Dsetfont-path=/bin/setfont \
 	-Dsplit-bin=true \
