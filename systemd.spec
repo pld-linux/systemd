@@ -1473,9 +1473,6 @@ fi
 %{_prefix}/lib/sysusers.d/systemd-coredump.conf
 %{_prefix}/lib/sysusers.d/systemd-journal.conf
 %{_prefix}/lib/sysusers.d/systemd-timesync.conf
-%if %{with microhttpd}
-%{_prefix}/lib/sysusers.d/systemd-remote.conf
-%endif
 %{_prefix}/lib/tmpfiles.d/credstore.conf
 %{_prefix}/lib/tmpfiles.d/etc.conf
 %{_prefix}/lib/tmpfiles.d/home.conf
@@ -2238,6 +2235,7 @@ fi
 %defattr(644,root,root,755)
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-remote.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/journal-upload.conf
+%{_prefix}/lib/sysusers.d/systemd-remote.conf
 %{systemdunitdir}/systemd-journal-gatewayd.service
 %{systemdunitdir}/systemd-journal-gatewayd.socket
 %{systemdunitdir}/systemd-journal-remote.service
