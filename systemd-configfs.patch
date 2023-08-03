@@ -1,13 +1,13 @@
---- systemd-235/units/meson.build.org	2017-10-21 15:20:03.280741248 +0200
-+++ systemd-235/units/meson.build	2017-10-21 15:20:23.741288778 +0200
-@@ -76,6 +76,7 @@ units = [
-          'sysinit.target.wants/'],
-         ['sys-kernel-config.mount',             '',
-          'sysinit.target.wants/'],
-+        ['sys-kernel-config.service',           ''],
-         ['sys-kernel-debug.mount',              '',
-          'sysinit.target.wants/'],
-         ['sys-kernel-tracing.mount',            '',
+--- systemd-stable-254/units/meson.build.orig	2023-08-03 00:34:19.694943339 +0200
++++ systemd-stable-254/units/meson.build	2023-08-03 00:37:00.467127234 +0200
+@@ -208,6 +208,7 @@
+           'file' : 'sys-kernel-config.mount',
+           'symlinks' : ['sysinit.target.wants/'],
+         },
++        { 'file' : 'sys-kernel-config.service' },
+         {
+           'file' : 'sys-kernel-debug.mount',
+           'symlinks' : ['sysinit.target.wants/'],
 diff -durN -x '*.orig' systemd-208.orig/units/sys-kernel-config.mount systemd-208/units/sys-kernel-config.mount
 --- systemd-208.orig/units/sys-kernel-config.mount	2013-08-13 22:02:52.000000000 +0200
 +++ systemd-208/units/sys-kernel-config.mount	2014-01-10 10:22:04.000000000 +0100

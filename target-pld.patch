@@ -112,23 +112,26 @@
  
          if (!timezone_is_valid(e, LOG_DEBUG))
                  return -EINVAL;
---- systemd-240.orig/src/vconsole/vconsole-setup.c	2013-08-13 22:02:47.000000000 +0200
-+++ systemd-240/src/vconsole/vconsole-setup.c	2014-01-09 15:17:49.000000000 +0100
-@@ -284,6 +284,17 @@ int main(int argc, char **argv) {
-         if (r < 0 && r != -ENOENT)
-                 log_warning_errno(r, "Failed to read /etc/vconsole.conf, ignoring: %m");
- 
-+        if (r < 0) {
-+                int r1 = parse_env_file(NULL, "/etc/sysconfig/console"
-+                                "CONSOLEFONT", &vc_font,
-+                                "CONSOLEMAP", &vc_font_map,
-+                                "CONSOLESCREENFONTMAP", &vc_font_unimap,
-+                                "KEYTABLE", &vc_keymap
-+                                );
-+                if (r1 < 0 && r1 != -ENOENT)
-+                        log_warning_errno(r1, "Failed to read /etc/sysconfig/console: %m");
-+        } 
+--- systemd-stable-254/src/vconsole/vconsole-setup.c.orig	2023-08-02 23:51:41.833676408 +0200
++++ systemd-stable-254/src/vconsole/vconsole-setup.c	2023-08-03 00:00:16.025707038 +0200
+@@ -141,7 +141,19 @@
+         if (r < 0) {
+                 if (r != -ENOENT)
+                         log_warning_errno(r, "Failed to read /etc/vconsole.conf, ignoring: %m");
+-                return r;
 +
-         /* Let the kernel command line override /etc/vconsole.conf (highest priority) */
-         r = proc_cmdline_get_key_many(
-                         PROC_CMDLINE_STRIP_RD_PREFIX,
++                int r1 = parse_env_file(NULL, "/etc/sysconfig/console"
++                                "CONSOLEFONT", &v.config[VC_FONT],
++                                "CONSOLEMAP", &v.config[VC_FONT_MAP],
++                                "CONSOLESCREENFONTMAP", &v.config[VC_FONT_UNIMAP],
++                                "KEYTABLE", &v.config[VC_KEYMAP]
++                                );
++                if (r1 < 0) {
++                        if (r1 != -ENOENT)
++                                log_warning_errno(r1, "Failed to read /etc/sysconfig/console, ignoring: %m");
++                        return r1;
++                }
++
+         }
+ 
+         context_merge_config(c, &v, NULL);

@@ -32,14 +32,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	253.7
-Release:	1
+Version:	254
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	08469f585a4c825957051978df079b1a
+# Source0-md5:	5d72697237ad9b4ece31ed0c558fc125
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -126,14 +126,14 @@ BuildRequires:	libgpg-error-devel >= 1.12
 BuildRequires:	libidn2-devel
 %{?with_microhttpd:BuildRequires:	libmicrohttpd-devel >= 0.9.33}
 BuildRequires:	libmount-devel >= 2.30
-BuildRequires:	libpwquality-devel
+BuildRequires:	libpwquality-devel >= 1.4.1
 BuildRequires:	libseccomp-devel >= 2.4.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
 BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel >= 1:1.3.0
 BuildRequires:	m4
-BuildRequires:	meson >= 0.53.2
+BuildRequires:	meson >= 0.60.0
 BuildRequires:	ninja
 BuildRequires:	openssl-devel
 BuildRequires:	p11-kit-devel >= 0.23.3
@@ -144,6 +144,7 @@ BuildRequires:	pld-release
 BuildRequires:	pkgconfig >= 1:0.9.0
 BuildRequires:	polkit-devel >= 0.106
 BuildRequires:	python3 >= 1:3.9
+%{?with_efi:BuildRequires:	python3-elftools}
 BuildRequires:	python3-jinja2
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel >= 3}
@@ -192,7 +193,7 @@ Suggests:	%{name}-sysv-compat = %{epoch}:%{version}-%{release}
 Suggests:	fsck >= 2.25.0
 %{?with_fido2:Suggests:	libfido2}
 Suggests:	libidn2
-Suggests:	libpwquality
+Suggests:	libpwquality >= 1.4.1
 Suggests:	pcre2-8
 %{?with_qrencode:Suggests:	qrencode-libs >= 3}
 Suggests:	service(klogd)
@@ -831,7 +832,9 @@ cp -p %{SOURCE2} src/systemd_booted.c
 
 grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash,#!/bin/bash,g'
 
-%{__sed} -i -e '1 s,#!.*env python3,#!%{__python3},' src/ukify/ukify.py
+%{__sed} -i -e '1 s,#!.*env python3,#!%{__python3},' \
+	src/ukify/ukify.py \
+	src/kernel-install/60-ukify.install.in
 
 %build
 %meson build \
@@ -1319,6 +1322,7 @@ fi
 %attr(755,root,root) /bin/loginctl
 %attr(755,root,root) /bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
+%attr(755,root,root) /bin/systemd-confext
 %attr(755,root,root) /bin/systemd-creds
 %attr(755,root,root) /bin/systemd-escape
 %attr(755,root,root) /bin/systemd-firstboot
@@ -1354,6 +1358,7 @@ fi
 /lib/systemd/resolv.conf
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
 %attr(755,root,root) /lib/systemd/systemd-backlight
+%attr(755,root,root) /lib/systemd/systemd-battery-check
 %attr(755,root,root) /lib/systemd/systemd-binfmt
 %{?with_efi:%attr(755,root,root) /lib/systemd/systemd-bless-boot}
 %attr(755,root,root) /lib/systemd/systemd-boot-check-no-failures
@@ -1430,24 +1435,25 @@ fi
 %dir %{_prefix}/lib/kernel
 %dir %{_prefix}/lib/kernel/install.d
 %{_prefix}/lib/kernel/install.d/50-depmod.install
+%{_prefix}/lib/kernel/install.d/60-ukify.install
 %{_prefix}/lib/kernel/install.d/90-loaderentry.install
 %{_prefix}/lib/kernel/install.d/90-uki-copy.install
 %if %{with efi}
 %dir %{_prefix}/lib/systemd/boot
 %dir %{_prefix}/lib/systemd/boot/efi
 %ifarch %{ix86}
+%{_prefix}/lib/systemd/boot/efi/addonia32.efi.stub
 %{_prefix}/lib/systemd/boot/efi/linuxia32.efi.stub
-%{_prefix}/lib/systemd/boot/efi/linuxia32.elf.stub
 %{_prefix}/lib/systemd/boot/efi/systemd-bootia32.efi
 %endif
 %ifarch %{x8664} x32
+%{_prefix}/lib/systemd/boot/efi/addonx64.efi.stub
 %{_prefix}/lib/systemd/boot/efi/linuxx64.efi.stub
-%{_prefix}/lib/systemd/boot/efi/linuxx64.elf.stub
 %{_prefix}/lib/systemd/boot/efi/systemd-bootx64.efi
 %endif
 %ifarch aarch64
+%{_prefix}/lib/systemd/boot/efi/addonaa64.efi.stub
 %{_prefix}/lib/systemd/boot/efi/linuxaa64.efi.stub
-%{_prefix}/lib/systemd/boot/efi/linuxaa64.elf.stub
 %{_prefix}/lib/systemd/boot/efi/systemd-bootaa64.efi
 %endif
 %endif
@@ -1515,6 +1521,7 @@ fi
 %{_datadir}/factory/etc/nsswitch.conf
 %{_datadir}/factory/etc/pam.d/other
 %{_datadir}/factory/etc/pam.d/system-auth
+%{_datadir}/factory/etc/vconsole.conf
 %{?with_efi:%{_mandir}/man1/bootctl.1*}
 %{_mandir}/man1/busctl.1*
 %{_mandir}/man1/coredumpctl.1*
@@ -1610,6 +1617,7 @@ fi
 %{_mandir}/man7/systemd-boot.7*
 %{_mandir}/man7/systemd-stub.7*
 %endif
+%{_mandir}/man7/smbios-type-11.7*
 %{_mandir}/man7/systemd.directives.7*
 %{_mandir}/man7/systemd.environment-generator.7*
 %{_mandir}/man7/systemd.generator.7*
@@ -1626,12 +1634,14 @@ fi
 %{_mandir}/man8/nss-myhostname.8*
 %{_mandir}/man8/nss-mymachines.8*
 %{_mandir}/man8/systemd-backlight.8*
+%{_mandir}/man8/systemd-battery-check.8*
 %{_mandir}/man8/systemd-binfmt.8*
 %if %{with efi}
 %{_mandir}/man8/systemd-bless-boot.8*
 %{_mandir}/man8/systemd-bless-boot-generator.8*
 %endif
 %{_mandir}/man8/systemd-boot-check-no-failures.8*
+%{_mandir}/man8/systemd-confext.8*
 %{_mandir}/man8/systemd-coredump.8*
 %if %{with cryptsetup}
 %{_mandir}/man8/systemd-cryptsetup-generator.8*
@@ -1648,7 +1658,7 @@ fi
 %{_mandir}/man8/systemd-growfs@.service.8*
 %{_mandir}/man8/systemd-hibernate-resume-generator.8*
 %{_mandir}/man8/systemd-hibernate-resume.8*
-%{_mandir}/man8/systemd-hibernate-resume@.service.8*
+%{_mandir}/man8/systemd-hibernate-resume.service.8*
 %{_mandir}/man8/systemd-hostnamed.8*
 %{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8*
@@ -1863,6 +1873,7 @@ fi
 %{systemdunitdir}/systemd-ask-password-console.service
 %{systemdunitdir}/systemd-ask-password-wall.service
 %{systemdunitdir}/systemd-backlight@.service
+%{systemdunitdir}/systemd-battery-check.service
 %{systemdunitdir}/systemd-binfmt.service
 %if %{with efi}
 %{systemdunitdir}/systemd-bless-boot.service
@@ -1870,13 +1881,13 @@ fi
 %{systemdunitdir}/systemd-boot-update.service
 %endif
 %{systemdunitdir}/systemd-boot-check-no-failures.service
+%{systemdunitdir}/systemd-confext.service
 %{systemdunitdir}/systemd-firstboot.service
 %{systemdunitdir}/systemd-fsck-root.service
 %{systemdunitdir}/systemd-fsck@.service
 %{systemdunitdir}/systemd-growfs-root.service
 %{systemdunitdir}/systemd-growfs@.service
 %{systemdunitdir}/systemd-halt.service
-%{systemdunitdir}/systemd-hibernate-resume@.service
 %{systemdunitdir}/systemd-hibernate.service
 %{systemdunitdir}/systemd-hostnamed.service
 %{systemdunitdir}/systemd-hwdb-update.service
@@ -1906,6 +1917,7 @@ fi
 %{systemdunitdir}/systemd-reboot.service
 %{systemdunitdir}/systemd-remount-fs.service
 %{systemdunitdir}/systemd-rfkill.service
+%{systemdunitdir}/systemd-soft-reboot.service
 %{systemdunitdir}/systemd-suspend.service
 %{systemdunitdir}/systemd-suspend-then-hibernate.service
 %{systemdunitdir}/systemd-sysctl.service
@@ -1960,6 +1972,7 @@ fi
 %{systemdunitdir}/cryptsetup.target
 %{systemdunitdir}/integritysetup-pre.target
 %{systemdunitdir}/integritysetup.target
+%{systemdunitdir}/system-systemd\x2dveritysetup.slice
 %{systemdunitdir}/veritysetup-pre.target
 %{systemdunitdir}/veritysetup.target
 %endif
@@ -2015,6 +2028,7 @@ fi
 %{systemdunitdir}/slices.target
 %{systemdunitdir}/smartcard.target
 %{systemdunitdir}/sockets.target
+%{systemdunitdir}/soft-reboot.target
 %{systemdunitdir}/sound.target
 %{systemdunitdir}/suspend.target
 %{systemdunitdir}/swap.target
@@ -2056,6 +2070,7 @@ fi
 %endif
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
+%{systemdunitdir}/initrd.target.wants/systemd-battery-check.service
 %if %{with efi} && %{with tpm2}
 %{systemdunitdir}/initrd.target.wants/systemd-pcrphase-initrd.service
 %endif
@@ -2125,10 +2140,12 @@ fi
 %{_mandir}/man8/systemd-ask-password-wall.path.8*
 %{_mandir}/man8/systemd-ask-password-wall.service.8*
 %{_mandir}/man8/systemd-backlight@.service.8*
+%{_mandir}/man8/systemd-battery-check.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
 %{?with_efi:%{_mandir}/man8/systemd-bless-boot.service.8*}
 %{_mandir}/man8/systemd-boot-check-no-failures.service.8*
 %{?with_efi:%{_mandir}/man8/systemd-boot-random-seed.service.8*}
+%{_mandir}/man8/systemd-confext.service.8*
 %{_mandir}/man8/systemd-coredump.socket.8*
 %{_mandir}/man8/systemd-coredump@.service.8*
 %if %{with cryptsetup}
@@ -2167,6 +2184,7 @@ fi
 %{_mandir}/man8/systemd-reboot.service.8*
 %{_mandir}/man8/systemd-remount-fs.service.8*
 %{_mandir}/man8/systemd-rfkill.socket.8*
+%{_mandir}/man8/systemd-soft-reboot.service.8*
 %{_mandir}/man8/systemd-suspend.service.8*
 %{_mandir}/man8/systemd-suspend-then-hibernate.service.8*
 %{_mandir}/man8/systemd-sysctl.service.8*
@@ -2205,6 +2223,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-pull
 %attr(755,root,root) /lib/systemd/systemd-importd
 %attr(755,root,root) %{_bindir}/systemd-dissect
+%attr(755,root,root) /sbin/mount.ddi
 %{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
 %{_datadir}/dbus-1/interfaces/org.freedesktop.import1.*.xml
@@ -2214,8 +2233,10 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.import1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.machine1.policy
 %{_mandir}/man1/machinectl.1*
+%{_mandir}/man1/mount.ddi.1*
 %{_mandir}/man5/org.freedesktop.import1.5*
 %{_mandir}/man5/org.freedesktop.machine1.5*
+%{_mandir}/man7/systemd.image-policy.7*
 %{_mandir}/man8/systemd-importd.8*
 %{_mandir}/man8/systemd-importd.service.8*
 %{_mandir}/man8/systemd-machined.8*
@@ -2455,6 +2476,7 @@ fi
 %{_pkgconfigdir}/libsystemd.pc
 %{_npkgconfigdir}/systemd.pc
 %{_mandir}/man3/SD_*.3*
+%{_mandir}/man3/libsystemd.3*
 %{_mandir}/man3/sd*.3*
 
 %files -n bash-completion-systemd
@@ -2536,6 +2558,7 @@ fi
 %attr(755,root,root) /lib/udev/cdrom_id
 %attr(755,root,root) /lib/udev/dmi_memory_id
 %attr(755,root,root) /lib/udev/fido_id
+%attr(755,root,root) /lib/udev/iocost
 %attr(755,root,root) /lib/udev/mtd_probe
 %attr(755,root,root) /lib/udev/scsi_id
 %attr(755,root,root) /lib/udev/v4l_id
@@ -2586,6 +2609,7 @@ fi
 
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/fbdev-blacklist.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/modprobe.d/udev_blacklist.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/iocost.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/links.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/40-alsa-restore.rules
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/udev/rules.d/70-udev-pld.rules
@@ -2604,6 +2628,7 @@ fi
 /lib/udev/rules.d/60-autosuspend.rules
 /lib/udev/rules.d/60-block.rules
 /lib/udev/rules.d/60-cdrom_id.rules
+/lib/udev/rules.d/60-dmi-id.rules
 /lib/udev/rules.d/60-drm.rules
 /lib/udev/rules.d/60-evdev.rules
 /lib/udev/rules.d/60-fido-id.rules
@@ -2632,8 +2657,10 @@ fi
 /lib/udev/rules.d/80-drivers.rules
 /lib/udev/rules.d/80-net-setup-link.rules
 /lib/udev/rules.d/81-net-dhcp.rules
+/lib/udev/rules.d/90-iocost.rules
 /lib/udev/rules.d/90-vconsole.rules
 
+%{_mandir}/man5/iocost.conf.5*
 %{_mandir}/man5/udev.conf.5*
 %{_mandir}/man7/udev.7*
 %{_mandir}/man7/hwdb.7*

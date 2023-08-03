@@ -1,11 +1,81 @@
---- systemd-242/src/gpt-auto-generator/gpt-auto-generator.c.orig	2019-04-11 19:40:01.816893823 +0200
-+++ systemd-242/src/gpt-auto-generator/gpt-auto-generator.c	2019-04-11 19:42:53.022916795 +0200
-@@ -438,7 +438,7 @@
+--- systemd-stable-254/src/gpt-auto-generator/gpt-auto-generator.c.orig	2023-08-03 00:38:39.944343809 +0200
++++ systemd-stable-254/src/gpt-auto-generator/gpt-auto-generator.c	2023-08-03 12:11:02.082294800 +0200
+@@ -487,6 +487,18 @@
+         return cache;
+ }
  
-                 /* Use /boot as fallback, but only if there's no XBOOTLDR partition */
-                 if (!has_xbootldr) {
--                        esp_path = "/boot";
-+                        esp_path = "/boot/efi";
-                         id = "boot";
-                 }
++static int slash_boot_efi_in_fstab(void) {
++        static int cache = -1;
++
++        if (cache >= 0)
++                return cache;
++
++        cache = fstab_is_mount_point("/boot/efi");
++        if (cache < 0)
++                return log_error_errno(cache, "Failed to parse fstab: %m");
++        return cache;
++}
++
+ static int slash_efi_in_fstab(void) {
+         static int cache = -1;
+ 
+@@ -514,6 +526,21 @@
+         return (cache = false);
+ }
+ 
++static bool slash_boot_efi_exists(void) {
++        static int cache = -1;
++
++        if (cache >= 0)
++                return cache;
++
++        if (access("/boot/efi", F_OK) >= 0)
++                return (cache = true);
++        if (errno != ENOENT)
++                log_error_errno(errno, "Failed to determine whether /boot/efi exists, assuming no: %m");
++        else
++                log_debug_errno(errno, "/boot/efi: %m");
++        return (cache = false);
++}
++
+ static int add_partition_xbootldr(DissectedPartition *p) {
+         _cleanup_free_ char *options = NULL;
+         int r;
+@@ -574,29 +601,29 @@
+                 return 0;
          }
+ 
+-        /* If /boot/ is present, unused, and empty, we'll take that.
++        /* If /boot/efi is present, unused, and empty, we'll take that.
+          * Otherwise, if /efi/ is unused and empty (or missing), we'll take that.
+          * Otherwise, we do nothing.
+          */
+-        if (!has_xbootldr && slash_boot_exists()) {
+-                r = slash_boot_in_fstab();
++        if (!has_xbootldr && slash_boot_efi_exists()) {
++                r = slash_boot_efi_in_fstab();
+                 if (r < 0)
+                         return r;
+                 if (r == 0) {
+-                        r = path_is_busy("/boot");
++                        r = path_is_busy("/boot/efi");
+                         if (r < 0)
+                                 return r;
+                         if (r == 0) {
+-                                esp_path = "/boot";
++                                esp_path = "/boot/efi";
+                                 id = "boot";
+                         }
+                 } else {
+-                        /* Check if the fstab entry for /boot/ is already the ESP. If so, we don't need to
++                        /* Check if the fstab entry for /boot/efi is already the ESP. If so, we don't need to
+                          * check /efi/ or duplicate the mount there. */
+-                        r = fstab_is_mount_point_full("/boot", p->node);
++                        r = fstab_is_mount_point_full("/boot/efi", p->node);
+                         if (r < 0)
+                                 return log_error_errno(r,
+-                                                       "Failed to check if fstab entry for /boot uses the same device as '%s': %m",
++                                                       "Failed to check if fstab entry for /boot/efi uses the same device as '%s': %m",
+                                                        p->node);
+                         if (r > 0)
+                                 return 0;

@@ -9,7 +9,7 @@ diff -ur systemd-245/units.org/systemd-tmpfiles-clean.service systemd-245/units/
 +ExecStart=-systemd-tmpfiles --clean
  SuccessExitStatus=DATAERR
  IOSchedulingClass=idle
- LoadCredential=tmpfiles.extra
+ ImportCredential=tmpfiles.*
 diff -ur systemd-245/units.org/systemd-tmpfiles-setup-dev.service systemd-245/units/systemd-tmpfiles-setup-dev.service
 --- systemd-245/units.org/systemd-tmpfiles-setup-dev.service	2020-03-06 13:38:52.000000000 +0100
 +++ systemd-245/units/systemd-tmpfiles-setup-dev.service	2020-04-03 21:08:42.151365700 +0200
@@ -17,10 +17,10 @@ diff -ur systemd-245/units.org/systemd-tmpfiles-setup-dev.service systemd-245/un
  [Service]
  Type=oneshot
  RemainAfterExit=yes
--ExecStart=systemd-tmpfiles --prefix=/dev --create --boot
-+ExecStart=-systemd-tmpfiles --prefix=/dev --create --boot
+-ExecStart=systemd-tmpfiles --prefix=/dev --create --boot --graceful
++ExecStart=-systemd-tmpfiles --prefix=/dev --create --boot --graceful
  SuccessExitStatus=DATAERR CANTCREAT
- LoadCredential=tmpfiles.extra
+ ImportCredential=tmpfiles.*
 diff -ur systemd-245/units.org/systemd-tmpfiles-setup.service systemd-245/units/systemd-tmpfiles-setup.service
 --- systemd-245/units.org/systemd-tmpfiles-setup.service	2020-03-06 13:38:52.000000000 +0100
 +++ systemd-245/units/systemd-tmpfiles-setup.service	2020-04-03 21:08:42.151365700 +0200
@@ -28,11 +28,11 @@ diff -ur systemd-245/units.org/systemd-tmpfiles-setup.service systemd-245/units/
  [Service]
  Type=oneshot
  RemainAfterExit=yes
--ExecStart=systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
-+ExecStart=-systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
+-ExecStart=systemd-tmpfiles --create --remove --boot
++ExecStart=-systemd-tmpfiles --create --remove --boot
  SuccessExitStatus=DATAERR CANTCREAT
- LoadCredential=tmpfiles.extra
- LoadCredential=login.motd
+ ImportCredential=tmpfiles.*
+ ImportCredential=login.motd
 diff -ur systemd-245/units.org/user/systemd-tmpfiles-clean.service systemd-245/units/user/systemd-tmpfiles-clean.service
 --- systemd-245/units.org/user/systemd-tmpfiles-clean.service	2020-03-06 13:38:52.000000000 +0100
 +++ systemd-245/units/user/systemd-tmpfiles-clean.service	2020-04-03 21:08:42.151365700 +0200
