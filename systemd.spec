@@ -177,6 +177,7 @@ Requires:	dbus >= 1.9.18
 Requires:	elfutils >= 0.177
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
+Requires:	kbd
 Requires:	kmod >= 25-2
 Requires:	libgpg-error >= 1.12
 Requires:	libutempter
