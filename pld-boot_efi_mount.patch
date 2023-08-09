@@ -1,5 +1,5 @@
---- systemd-stable-254/src/gpt-auto-generator/gpt-auto-generator.c.orig	2023-08-03 00:38:39.944343809 +0200
-+++ systemd-stable-254/src/gpt-auto-generator/gpt-auto-generator.c	2023-08-03 12:11:02.082294800 +0200
+--- systemd-stable-254.1/src/gpt-auto-generator/gpt-auto-generator.c.orig	2023-08-09 22:33:59.978475054 +0200
++++ systemd-stable-254.1/src/gpt-auto-generator/gpt-auto-generator.c	2023-08-09 22:41:09.618936068 +0200
 @@ -487,6 +487,18 @@
          return cache;
  }
@@ -16,10 +16,10 @@
 +        return cache;
 +}
 +
- static int slash_efi_in_fstab(void) {
-         static int cache = -1;
- 
-@@ -514,6 +526,21 @@
+ static int add_partition_xbootldr(DissectedPartition *p) {
+         _cleanup_free_ char *options = NULL;
+         int r;
+@@ -562,6 +574,21 @@
          return (cache = false);
  }
  
@@ -38,18 +38,17 @@
 +        return (cache = false);
 +}
 +
- static int add_partition_xbootldr(DissectedPartition *p) {
+ static int add_partition_esp(DissectedPartition *p, bool has_xbootldr) {
+         const char *esp_path = NULL, *id = NULL;
          _cleanup_free_ char *options = NULL;
-         int r;
-@@ -574,29 +601,29 @@
+@@ -582,19 +609,19 @@
+         if (r > 0)
                  return 0;
-         }
  
 -        /* If /boot/ is present, unused, and empty, we'll take that.
 +        /* If /boot/efi is present, unused, and empty, we'll take that.
           * Otherwise, if /efi/ is unused and empty (or missing), we'll take that.
-          * Otherwise, we do nothing.
-          */
+          * Otherwise, we do nothing. */
 -        if (!has_xbootldr && slash_boot_exists()) {
 -                r = slash_boot_in_fstab();
 +        if (!has_xbootldr && slash_boot_efi_exists()) {
@@ -66,16 +65,4 @@
 +                                esp_path = "/boot/efi";
                                  id = "boot";
                          }
-                 } else {
--                        /* Check if the fstab entry for /boot/ is already the ESP. If so, we don't need to
-+                        /* Check if the fstab entry for /boot/efi is already the ESP. If so, we don't need to
-                          * check /efi/ or duplicate the mount there. */
--                        r = fstab_is_mount_point_full("/boot", p->node);
-+                        r = fstab_is_mount_point_full("/boot/efi", p->node);
-                         if (r < 0)
-                                 return log_error_errno(r,
--                                                       "Failed to check if fstab entry for /boot uses the same device as '%s': %m",
-+                                                       "Failed to check if fstab entry for /boot/efi uses the same device as '%s': %m",
-                                                        p->node);
-                         if (r > 0)
-                                 return 0;
+                 }
