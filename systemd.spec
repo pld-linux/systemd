@@ -648,7 +648,7 @@ Biblioteki współdzielone systemd.
 Summary:	Header files for systemd libraries
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
 Group:		Development/Libraries
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	%{name}-units = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-static < 1:205
 
@@ -759,7 +759,7 @@ urządzeniach udev.
 Summary:	Header file for libudev library
 Summary(pl.UTF-8):	Plik nagłówkowy biblioteki libudev
 Group:		Development/Libraries
-Requires:	udev-libs = %{epoch}:%{version}-%{release}
+Requires:	udev-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes:	udev-apidocs < 1:221-1
 Obsoletes:	udev-static < 1:205
 
