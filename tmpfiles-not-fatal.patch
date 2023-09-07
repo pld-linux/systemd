@@ -17,8 +17,8 @@ diff -ur systemd-245/units.org/systemd-tmpfiles-setup-dev.service systemd-245/un
  [Service]
  Type=oneshot
  RemainAfterExit=yes
--ExecStart=systemd-tmpfiles --prefix=/dev --create --boot --graceful
-+ExecStart=-systemd-tmpfiles --prefix=/dev --create --boot --graceful
+-ExecStart=systemd-tmpfiles --prefix=/dev --create --boot
++ExecStart=-systemd-tmpfiles --prefix=/dev --create --boot
  SuccessExitStatus=DATAERR CANTCREAT
  ImportCredential=tmpfiles.*
 diff -ur systemd-245/units.org/systemd-tmpfiles-setup.service systemd-245/units/systemd-tmpfiles-setup.service
@@ -28,8 +28,8 @@ diff -ur systemd-245/units.org/systemd-tmpfiles-setup.service systemd-245/units/
  [Service]
  Type=oneshot
  RemainAfterExit=yes
--ExecStart=systemd-tmpfiles --create --remove --boot
-+ExecStart=-systemd-tmpfiles --create --remove --boot
+-ExecStart=systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
++ExecStart=-systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
  SuccessExitStatus=DATAERR CANTCREAT
  ImportCredential=tmpfiles.*
  ImportCredential=login.motd

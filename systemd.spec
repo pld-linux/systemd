@@ -32,14 +32,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	254.1
+Version:	254.2
 Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	d9eb0fb54745c30822b43148f3fe0fb5
+# Source0-md5:	09fcb2948aef4b6ecd30ceeeb7288e5f
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -1927,6 +1927,7 @@ fi
 %{systemdunitdir}/systemd-timedated.service
 %{systemdunitdir}/systemd-timesyncd.service
 %{systemdunitdir}/systemd-tmpfiles-clean.service
+%{systemdunitdir}/systemd-tmpfiles-setup-dev-early.service
 %{systemdunitdir}/systemd-tmpfiles-setup-dev.service
 %{systemdunitdir}/systemd-tmpfiles-setup.service
 %{systemdunitdir}/systemd-udev-settle.service
@@ -2121,6 +2122,7 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-random-seed.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysctl.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysusers.service
+%{systemdunitdir}/sysinit.target.wants/systemd-tmpfiles-setup-dev-early.service
 %{systemdunitdir}/sysinit.target.wants/systemd-tmpfiles-setup-dev.service
 %{systemdunitdir}/sysinit.target.wants/systemd-tmpfiles-setup.service
 %{systemdunitdir}/sysinit.target.wants/systemd-udevd.service
@@ -2194,6 +2196,7 @@ fi
 %{_mandir}/man8/systemd-tmpfiles-clean.service.8*
 %{_mandir}/man8/systemd-tmpfiles-clean.timer.8*
 %{_mandir}/man8/systemd-tmpfiles-setup.service.8*
+%{_mandir}/man8/systemd-tmpfiles-setup-dev-early.service.8*
 %{_mandir}/man8/systemd-tmpfiles-setup-dev.service.8*
 %{_mandir}/man8/systemd-udev-settle.service.8*
 %{_mandir}/man8/systemd-udevd.service.8*
