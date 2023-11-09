@@ -49,4 +49,4 @@ generated names. Re-apply this old hack to make the renaming less likely to fail
 +out:
          if (r < 0) {
                  if (r == -EBUSY) {
-                         log_device_info(dev, "Network interface '%s' is already up, cannot rename to '%s'.",
+                         log_device_info(event->dev_db_clone,
