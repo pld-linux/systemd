@@ -1262,7 +1262,7 @@ fi
 /bin/udevadm info --convert-db
 
 %post -n udev-core
-/bin/udevadm hwdb --update || :
+/bin/systemd-hwdb update || :
 if [ $1 -gt 1 ]; then
 	if [ ! -x /bin/systemd_booted ] || ! /bin/systemd_booted; then
 		if grep -qs devtmpfs /proc/mounts && [ -n "$(pidof udevd)" ]; then
