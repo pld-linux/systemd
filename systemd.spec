@@ -33,7 +33,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	254.10
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -635,7 +635,7 @@ Requires:	libseccomp >= 2.4.0
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	lz4-libs >= 1:1.3.0
 Requires:	zstd >= 1.4.0
-Suggests:	elfutils >= 0.177
+Suggests:	elfutils-libs >= 0.177
 Obsoletes:	nss_myhostname < 0.4
 
 %description libs
