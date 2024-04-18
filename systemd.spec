@@ -174,7 +174,6 @@ Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.9.18
-Requires:	elfutils >= 0.177
 Requires:	filesystem >= 4.0-39
 Requires:	glibc >= 2.16
 Requires:	kbd
@@ -636,6 +635,7 @@ Requires:	libseccomp >= 2.4.0
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	lz4-libs >= 1:1.3.0
 Requires:	zstd >= 1.4.0
+Suggests:	elfutils >= 0.177
 Obsoletes:	nss_myhostname < 0.4
 
 %description libs
