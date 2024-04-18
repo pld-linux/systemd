@@ -175,7 +175,7 @@ Requires:	SysVinit-tools
 Requires:	agetty
 Requires:	dbus >= 1.9.18
 Requires:	filesystem >= 4.0-39
-Requires:	glibc >= 2.16
+Requires:	glibc >= 6:2.16
 Requires:	kbd
 Requires:	kmod >= 25-2
 Requires:	libgpg-error >= 1.12
