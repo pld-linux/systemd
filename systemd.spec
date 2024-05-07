@@ -33,7 +33,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	254.11
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -912,7 +912,7 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{_rootsbindir} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset,sysupdate.d} \
-	$RPM_BUILD_ROOT%{systemduserunitdir}/sockets.target.wants \
+	$RPM_BUILD_ROOT%{systemduserunitdir}/{basic,sockets}.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
 	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators,sysupdate.d}
@@ -1770,26 +1770,6 @@ fi
 %dir %{_prefix}/lib/systemd/catalog
 %dir %{_prefix}/lib/systemd/system-shutdown
 %dir %{_prefix}/lib/systemd/system-sleep
-%dir %{_prefix}/lib/systemd/user
-%{_prefix}/lib/systemd/user/app.slice
-%{_prefix}/lib/systemd/user/background.slice
-%{_prefix}/lib/systemd/user/basic.target
-%{_prefix}/lib/systemd/user/bluetooth.target
-%{_prefix}/lib/systemd/user/default.target
-%{_prefix}/lib/systemd/user/exit.target
-%{_prefix}/lib/systemd/user/paths.target
-%{_prefix}/lib/systemd/user/printer.target
-%{_prefix}/lib/systemd/user/session.slice
-%{_prefix}/lib/systemd/user/shutdown.target
-%{_prefix}/lib/systemd/user/smartcard.target
-%{_prefix}/lib/systemd/user/sockets.target
-%{_prefix}/lib/systemd/user/sound.target
-%{_prefix}/lib/systemd/user/systemd-tmpfiles-clean.service
-%{_prefix}/lib/systemd/user/systemd-tmpfiles-clean.timer
-%{_prefix}/lib/systemd/user/systemd-tmpfiles-setup.service
-%{_prefix}/lib/systemd/user/timers.target
-%{_prefix}/lib/systemd/user/systemd-exit.service
-%{_prefix}/lib/systemd/user/xdg-desktop-autostart.target
 %dir %{_prefix}/lib/systemd/user-generators
 %attr(755,root,root) %{_prefix}/lib/systemd/user-generators/systemd-xdg-autostart-generator
 %dir %{_prefix}/lib/systemd/user-environment-generators
@@ -1819,7 +1799,6 @@ fi
 %{systemdunitdir}/initrd-root-device.target
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.automount
 %{systemdunitdir}/proc-sys-fs-binfmt_misc.mount
-%{systemdunitdir}/sockets.target.wants/systemd-coredump.socket
 %{systemdunitdir}/sys-fs-fuse-connections.mount
 %{systemdunitdir}/sys-kernel-config.mount
 %{systemdunitdir}/sys-kernel-debug.mount
@@ -2086,6 +2065,7 @@ fi
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
 %{systemdunitdir}/rescue.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/sigpwr.target.wants/sigpwr-container-shutdown.service
+%{systemdunitdir}/sockets.target.wants/systemd-coredump.socket
 %{systemdunitdir}/sockets.target.wants/systemd-initctl.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald-dev-log.socket
 %{systemdunitdir}/sockets.target.wants/systemd-journald.socket
@@ -2130,9 +2110,32 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-update-done.service
 %{systemdunitdir}/sysinit.target.wants/systemd-update-utmp.service
 %{systemdunitdir}/timers.target.wants/systemd-tmpfiles-clean.timer
-%dir %{systemduserunitdir}/sockets.target.wants
-%{systemduserunitdir}/graphical-session-pre.target
+
+%dir %{systemduserunitdir}
+%{systemduserunitdir}/app.slice
+%{systemduserunitdir}/background.slice
+%{systemduserunitdir}/basic.target
+%{systemduserunitdir}/bluetooth.target
+%{systemduserunitdir}/default.target
+%{systemduserunitdir}/exit.target
 %{systemduserunitdir}/graphical-session.target
+%{systemduserunitdir}/graphical-session-pre.target
+%{systemduserunitdir}/paths.target
+%{systemduserunitdir}/printer.target
+%{systemduserunitdir}/session.slice
+%{systemduserunitdir}/shutdown.target
+%{systemduserunitdir}/smartcard.target
+%{systemduserunitdir}/sockets.target
+%{systemduserunitdir}/sound.target
+%{systemduserunitdir}/systemd-exit.service
+%{systemduserunitdir}/systemd-tmpfiles-clean.service
+%{systemduserunitdir}/systemd-tmpfiles-clean.timer
+%{systemduserunitdir}/systemd-tmpfiles-setup.service
+%{systemduserunitdir}/timers.target
+%{systemduserunitdir}/xdg-desktop-autostart.target
+%dir %{systemduserunitdir}/basic.target.wants
+%dir %{systemduserunitdir}/sockets.target.wants
+
 %{_mandir}/man5/user@.service.5*
 %{_mandir}/man5/user-runtime-dir@.service.5*
 %{_mandir}/man8/30-systemd-environment-d-generator.8*
