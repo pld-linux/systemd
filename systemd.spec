@@ -1435,9 +1435,9 @@ fi
 %{_prefix}/lib/environment.d/99-environment.conf
 %dir %{_prefix}/lib/kernel
 %dir %{_prefix}/lib/kernel/install.d
-%{_prefix}/lib/kernel/install.d/50-depmod.install
-%{_prefix}/lib/kernel/install.d/90-loaderentry.install
-%{_prefix}/lib/kernel/install.d/90-uki-copy.install
+%attr(755,root,root) %{_prefix}/lib/kernel/install.d/50-depmod.install
+%attr(755,root,root) %{_prefix}/lib/kernel/install.d/90-loaderentry.install
+%attr(755,root,root) %{_prefix}/lib/kernel/install.d/90-uki-copy.install
 %if %{with efi}
 %dir %{_prefix}/lib/systemd/boot
 %dir %{_prefix}/lib/systemd/boot/efi
