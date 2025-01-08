@@ -82,7 +82,7 @@
 +
          /* If the file is not changed, then we do not need to re-read the file. */
          if (stat_inode_unmodified(&c->st, &st))
-                 return 0;
+                 return 1; /* (already) loaded */
 --- systemd-240/src/basic/time-util.c.orig	2019-01-13 09:27:36.718995151 +0100
 +++ systemd-240/src/basic/time-util.c	2019-01-13 09:31:12.275659356 +0100
 @@ -14,6 +14,7 @@
