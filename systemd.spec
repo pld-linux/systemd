@@ -149,7 +149,7 @@ BuildRequires:	python3-jinja2
 BuildRequires:	python3-lxml
 %{?with_qrencode:BuildRequires:	qrencode-devel >= 3}
 BuildRequires:	rpm-build >= 4.6
-BuildRequires:	rpmbuild(macros) >= 1.752
+BuildRequires:	rpmbuild(macros) >= 2.042
 BuildRequires:	sed >= 4.0
 %{?with_tests:BuildRequires:	systemd}
 %{?with_tpm2:BuildRequires:	tpm2-tss-devel >= 3.0.0}
@@ -838,7 +838,7 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	src/kernel-install/60-ukify.install.in
 
 %build
-%meson build \
+%meson \
 	-Dadm-gid=3 \
 	-Daudio-gid=23 \
 	-Dcdrom-gid=27 \
@@ -901,11 +901,11 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dumount-path=/bin/umount \
 	-Dxenctrl=%{__true_false xen}
 
-%ninja_build -C build
+%meson_build
 
 %{__cc} %{rpmcppflags} %{rpmcflags} -o build/systemd_booted %{rpmldflags} src/systemd_booted.c -Lbuild -lsystemd
 
-%{?with_tests:%ninja_test -C build}
+%{?with_tests:%meson_test}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -917,7 +917,7 @@ install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
 	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators,sysupdate.d}
 
-%ninja_install -C build
+%meson_install
 
 touch $RPM_BUILD_ROOT/var/lib/%{name}/random-seed
 
