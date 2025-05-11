@@ -1030,9 +1030,6 @@ cp -p %{SOURCE19} $RPM_BUILD_ROOT%{systemdunitdir}/prefdm.service
 #	- isn't dbus populated by dbus-systemd only (so to be moved there)?
 install -d $RPM_BUILD_ROOT%{systemdunitdir}/{basic,dbus,halt,initrd,kexec,poweroff,reboot,shutdown,syslog}.target.wants
 
-# Make sure the shutdown/sleep drop-in dirs exist
-install -d $RPM_BUILD_ROOT%{_prefix}/lib/systemd/system-{shutdown,sleep}
-
 # Create new-style configuration files so that we can ghost-own them
 touch $RPM_BUILD_ROOT%{_sysconfdir}/{hostname,locale.conf,machine-id,machine-info,vconsole.conf}
 
@@ -1768,8 +1765,6 @@ fi
 %{_prefix}/lib/sysctl.d/50-default.conf
 %dir %{_prefix}/lib/systemd
 %dir %{_prefix}/lib/systemd/catalog
-%dir %{_prefix}/lib/systemd/system-shutdown
-%dir %{_prefix}/lib/systemd/system-sleep
 %dir %{_prefix}/lib/systemd/user-generators
 %attr(755,root,root) %{_prefix}/lib/systemd/user-generators/systemd-xdg-autostart-generator
 %dir %{_prefix}/lib/systemd/user-environment-generators
@@ -1783,8 +1778,8 @@ fi
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
 /lib/systemd/system-preset/90-systemd.preset
-%dir /lib/systemd/system-sleep
 %dir /lib/systemd/system-shutdown
+%dir /lib/systemd/system-sleep
 %attr(755,root,root) /lib/systemd/systemd-update-helper
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
