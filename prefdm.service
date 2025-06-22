@@ -4,7 +4,7 @@ Conflicts=getty@tty1.service
 After=systemd-user-sessions.service getty@tty1.service plymouth-quit.service livesys-late.service rc-local.service acpid.service
 
 [Service]
-ExecStart=/etc/X11/xinit/prefdm -nodaemon
+ExecStart=/etc/X11/xinit/prefdm
 Restart=always
 RestartSec=0
 IgnoreSIGPIPE=no

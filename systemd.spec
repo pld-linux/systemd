@@ -33,7 +33,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	254.26
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -225,8 +225,8 @@ Conflicts:	mdadm < 4.0-2
 Conflicts:	pam < 1:1.1.5-5
 # ...and sudo hates it
 Conflicts:	sudo < 1:1.7.8p2-4
-# for prefdm script
-Conflicts:	xinitrc-ng < 1.0
+# for prefdm script and service without -nodaemon
+Conflicts:	xinitrc-ng < 1.2
 # systemd scripts use options not present in older versions
 Conflicts:	kpartx < 0.6.1-1
 Conflicts:	multipath-tools < 0.6.1-1
