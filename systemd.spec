@@ -32,14 +32,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	254.26
-Release:	2
+Version:	254.27
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
 Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	0c4a8df7e761298912c40123f7b11fcc
+# Source0-md5:	bd8bbfe343b829b3ae2978b9603facde
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -2595,6 +2595,7 @@ fi
 /lib/udev/hwdb.d/70-mouse.hwdb
 /lib/udev/hwdb.d/70-pda.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
+/lib/udev/hwdb.d/70-software-radio.hwdb
 /lib/udev/hwdb.d/70-sound-card.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
 /lib/udev/hwdb.d/80-ieee1394-unit-function.hwdb
