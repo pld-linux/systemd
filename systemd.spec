@@ -33,7 +33,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	254.27
-Release:	1
+Release:	2
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -1340,7 +1340,6 @@ fi
 %attr(755,root,root) %{_bindir}/systemd-cat
 %{?with_cryptsetup:%attr(755,root,root) %{_bindir}/systemd-cryptenroll}
 %attr(755,root,root) %{_bindir}/systemd-delta
-%attr(755,root,root) %{_bindir}/systemd-detect-virt
 %attr(755,root,root) %{_bindir}/systemd-id128
 %attr(755,root,root) %{_bindir}/systemd-mount
 %attr(755,root,root) %{_bindir}/systemd-nspawn
@@ -1533,7 +1532,6 @@ fi
 %{_mandir}/man1/systemd-creds.1*
 %{?with_cryptsetup:%{_mandir}/man1/systemd-cryptenroll.1*}
 %{_mandir}/man1/systemd-delta.1*
-%{_mandir}/man1/systemd-detect-virt.1*
 %{_mandir}/man1/systemd-dissect.1*
 %{_mandir}/man1/systemd-escape.1*
 %{_mandir}/man1/systemd-firstboot.1*
@@ -1784,7 +1782,9 @@ fi
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %attr(755,root,root) /bin/systemd_booted
+%attr(755,root,root) %{_bindir}/systemd-detect-virt
 %{_mandir}/man1/systemctl.1*
+%{_mandir}/man1/systemd-detect-virt.1*
 %{_mandir}/man5/tmpfiles.d.5*
 %{_mandir}/man5/environment.d.5*
 %{_mandir}/man8/systemd-tmpfiles.8*
