@@ -2,7 +2,7 @@ diff -urN systemd-244.orig/src/test/test-seccomp.c systemd-244/src/test/test-sec
 --- systemd-244.orig/src/test/test-seccomp.c	2019-11-29 17:32:36.000000000 +0100
 +++ systemd-244/src/test/test-seccomp.c	2019-12-02 16:38:04.314771202 +0100
 @@ -558,11 +558,11 @@
-         uint32_t arch;
+         int r, shmid;
  
          SECCOMP_FOREACH_LOCAL_ARCH(arch) {
 -                log_debug("arch %s: SCMP_SYS(mmap) = %d", seccomp_arch_to_string(arch), SCMP_SYS(mmap));
@@ -17,4 +17,4 @@ diff -urN systemd-244.orig/src/test/test-seccomp.c systemd-244/src/test/test-sec
 +                log_debug("arch %s: SCMP_SYS(shmdt) = %lli", seccomp_arch_to_string(arch), (long long int) SCMP_SYS(shmdt));
          }
  
-         if (!is_seccomp_available()) {
+         CHECK_SECCOMP(/* skip_container= */ false);

@@ -8,6 +8,23 @@ generated names. Re-apply this old hack to make the renaming less likely to fail
 
 --- systemd-stable-246.1/src/udev/udev-event.c.orig	2020-08-07 17:09:53.000000000 +0200
 +++ systemd-stable-246.1/src/udev/udev-event.c	2020-08-15 11:04:10.263428290 +0200
+@@ -2,6 +2,8 @@
+ 
+ #include "sd-netlink.h"
+ 
++#include <linux/if.h>
++
+ #include "alloc-util.h"
+ #include "device-internal.h"
+ #include "device-private.h"
+@@ -15,6 +15,7 @@
+ #include "socket-util.h"
+ #include "string-util.h"
+ #include "strv.h"
++#include "strxcpyx.h"
+ #include "time-util.h"
+ #include "udev-event.h"
+ #include "udev-node.h"
 @@ -820,6 +820,8 @@
          const char *s;
          sd_device *dev;

@@ -13,7 +13,7 @@ diff -durN -x '*.orig' systemd-208.orig/units/sys-kernel-config.mount systemd-20
 +++ systemd-208/units/sys-kernel-config.mount	2014-01-10 10:22:04.000000000 +0100
 @@ -10,8 +10,9 @@ Description=Configuration File System
  Documentation=https://docs.kernel.org/filesystems/configfs.html
- Documentation=https://www.freedesktop.org/wiki/Software/systemd/APIFileSystems
+ Documentation=https://systemd.io/API_FILE_SYSTEMS
  DefaultDependencies=no
 -ConditionPathExists=/sys/kernel/config
  ConditionCapability=CAP_SYS_RAWIO

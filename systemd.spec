@@ -32,14 +32,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	254.27
-Release:	2
+Version:	259
+Release:	0.1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
-Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	bd8bbfe343b829b3ae2978b9603facde
+Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
+# Source0-md5:	5c5e5c1c43d4ee5e5648e7ab118ac476
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -74,7 +74,6 @@ Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
 Patch5:		%{name}-split-usr-fix.patch
 Patch6:		net-rename-revert.patch
-Patch7:		%{name}-completion.patch
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -83,7 +82,6 @@ Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-x32.patch
 Patch16:	rpm-macros.patch
-Patch17:	%{name}-glibc.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -317,6 +315,7 @@ Conflicts:	xl2tpd < 1.3.0-2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_rootsbindir	/sbin
+%define		_prefix		/
 
 %description
 systemd is a system and service manager for Linux, compatible with
@@ -809,16 +808,15 @@ RPM macros that define paths and scriptlets related to systemd.
 Makra RPM-a definiujące ścieżki i skryptlety związane z systemd.
 
 %prep
-%setup -q -n systemd-stable-%{version}
+%setup -q
 %patch -P0 -p1
 %patch -P1 -p1
 %patch -P2 -p1
 %patch -P3 -p1
 %patch -P4 -p1
-%patch -P5 -p1
+#patch -P5 -p1
 # rejected upstream (do not disable!)
 %patch -P6 -p1
-%patch -P7 -p1
 %patch -P8 -p1
 %patch -P9 -p1
 %patch -P10 -p1
@@ -827,7 +825,6 @@ Makra RPM-a definiujące ścieżki i skryptlety związane z systemd.
 %patch -P14 -p1
 %patch -P15 -p1
 %patch -P16 -p1
-%patch -P17 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
@@ -836,6 +833,8 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 %{__sed} -i -e '1 s,#!.*env python3,#!%{__python3},' \
 	src/ukify/ukify.py \
 	src/kernel-install/60-ukify.install.in
+
+%{__mv} test/fuzz/fuzz-unit-file/dm-back{\\x2d,-}slash.swap
 
 %build
 %meson \
@@ -883,8 +882,6 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dquotacheck-path=/sbin/quotacheck \
 	-Dquotaon-path=/sbin/quotaon \
 	-Drc-local=/etc/rc.d/rc.local \
-	-Drootlibdir=/%{_lib} \
-	-Drootprefix="" \
 	-Dsbat-distro="%vendor" \
 	-Dsbat-distro-pkgname="%name" \
 	-Dsbat-distro-summary="%distribution" \
@@ -893,7 +890,6 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dselinux=%{__true_false selinux} \
 	-Dsetfont-path=/bin/setfont \
 	-Dsplit-bin=true \
-	-Dsplit-usr=true \
 	-Dsulogin-path=/sbin/sulogin \
 	-Dsysvinit-path=/etc/rc.d/init.d \
 	-Dsysvrcnd-path=/etc/rc.d \
@@ -909,13 +905,14 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
-	$RPM_BUILD_ROOT%{_rootsbindir} \
-	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset,sysupdate.d} \
-	$RPM_BUILD_ROOT%{systemduserunitdir}/{basic,sockets}.target.wants \
-	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
-	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
-	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators,sysupdate.d}
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,systemd/{system,user}-preset}
+#install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
+#	$RPM_BUILD_ROOT%{_rootsbindir} \
+#	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset,sysupdate.d} \
+#	$RPM_BUILD_ROOT%{systemduserunitdir}/{basic,sockets}.target.wants \
+#	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
+#	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
+#	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators,sysupdate.d}
 
 %meson_install
 
@@ -925,19 +922,19 @@ install -p -m755 build/systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
 
 # target-pld.patch supplements
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/sysinit.target.wants/sys-kernel-config.mount
-ln -s %{systemdunitdir}/prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/graphical.target.wants/display-manager.service
-ln -s prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/display-manager.service
+#ln -s %{systemdunitdir}/prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/graphical.target.wants/display-manager.service
+#ln -s prefdm.service $RPM_BUILD_ROOT%{systemdunitdir}/display-manager.service
 ln -s rescue.service $RPM_BUILD_ROOT%{systemdunitdir}/single.service
 ln -s %{systemdunitdir}/rc-local.service $RPM_BUILD_ROOT%{systemdunitdir}/multi-user.target.wants/rc-local.service
 
 # compatibility symlinks to udevd binary
-mv $RPM_BUILD_ROOT/lib/{systemd/systemd-,udev/}udevd
+%{__mv} $RPM_BUILD_ROOT/lib/{systemd/systemd-,udev/}udevd
 ln -s /lib/udev/udevd $RPM_BUILD_ROOT/lib/systemd/systemd-udevd
 ln -s /lib/udev/udevd $RPM_BUILD_ROOT%{_rootsbindir}/udevd
 
 # compat symlinks for "/ merged into /usr" programs
 ln -s ../bin/udevadm $RPM_BUILD_ROOT%{_rootsbindir}
-ln -s /lib/udev $RPM_BUILD_ROOT%{_prefix}/lib
+#ln -s /lib/udev $RPM_BUILD_ROOT%{_prefix}/lib
 
 # install custom udev rules from pld package
 cp -a %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/udev/rules.d/40-alsa-restore.rules

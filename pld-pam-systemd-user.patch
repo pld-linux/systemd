@@ -1,14 +1,13 @@
 --- systemd-stable-249/src/login/systemd-user.in.orig	2021-07-07 19:41:29.000000000 +0200
 +++ systemd-stable-249/src/login/systemd-user.in	2021-07-07 22:39:21.502935327 +0200
-@@ -2,21 +2,11 @@
+@@ -2,20 +2,11 @@
  #
  # Used by systemd --user instances.
  
 -{% if ENABLE_HOMED %}
---account sufficient pam_systemd_home.so
+--account [success=done authtok_expired=bad new_authtok_reqd=bad maxtries=bad acct_expired=bad default=ignore] pam_systemd_home.so
 -{% endif %}
--account  sufficient pam_unix.so no_pass_expiry
--account  required   pam_permit.so
+-account  required   pam_unix.so no_pass_expiry
 -
 +account		include		system-auth
  {% if HAVE_SELINUX %}

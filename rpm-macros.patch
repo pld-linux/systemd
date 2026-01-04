@@ -53,11 +53,11 @@
 +# %preun
 +# %systemd_user_preun %{name}.service
  
- %_systemd_util_dir {{ROOTLIBEXECDIR}}
+ %_systemd_util_dir {{LIBEXECDIR}}
  %_unitdir {{SYSTEM_DATA_UNIT_DIR}}
 @@ -173,3 +221,34 @@
  %{expand:%%{?__systemd_someargs_%#:%%__systemd_someargs_%# binfmt_apply}} \
- [ -x {{ROOTLIBEXECDIR}}/systemd-binfmt ] && {{ROOTLIBEXECDIR}}/systemd-binfmt %{?*} || : \
+ [ -x {{LIBEXECDIR}}/systemd-binfmt ] && {{LIBEXECDIR}}/systemd-binfmt %{?*} || : \
  %{nil}
 +
 +# PLD macros
