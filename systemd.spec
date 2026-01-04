@@ -905,7 +905,8 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,systemd/{system,user}-preset}
+install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,systemd/{system,user}-preset}
 #install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
 #	$RPM_BUILD_ROOT%{_rootsbindir} \
 #	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset,sysupdate.d} \
@@ -1281,18 +1282,18 @@ fi
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc docs/{AUTOMATIC_BOOT_ASSESSMENT,BLOCK_DEVICE_LOCKING,BOOT_LOADER_INTERFACE,BOOT_LOADER_SPECIFICATION,DISTRO_PORTING,ENVIRONMENT,GROUP_RECORD,PREDICTABLE_INTERFACE_NAMES,TRANSIENT-SETTINGS,UIDS-GIDS,USER_GROUP_API,USER_RECORD}.md NEWS README TODO
-%{_datadir}/dbus-1/interfaces/org.freedesktop.LogControl1.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.login1.*.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
-%{_datadir}/dbus-1/interfaces/org.freedesktop.timedate1.xml
-%{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
-%{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
-%{_datadir}/dbus-1/system.d/org.freedesktop.login1.conf
-%{_datadir}/dbus-1/system.d/org.freedesktop.systemd1.conf
-%{_datadir}/dbus-1/system.d/org.freedesktop.timedate1.conf
-%{_datadir}/dbus-1/system.d/org.freedesktop.timesync1.conf
+#%{_datadir}/dbus-1/interfaces/org.freedesktop.LogControl1.xml
+#%{_datadir}/dbus-1/interfaces/org.freedesktop.hostname1.xml
+#%{_datadir}/dbus-1/interfaces/org.freedesktop.locale1.xml
+#%{_datadir}/dbus-1/interfaces/org.freedesktop.login1.*.xml
+#%{_datadir}/dbus-1/interfaces/org.freedesktop.systemd1.*.xml
+#%{_datadir}/dbus-1/interfaces/org.freedesktop.timedate1.xml
+#%{_datadir}/dbus-1/system.d/org.freedesktop.hostname1.conf
+#%{_datadir}/dbus-1/system.d/org.freedesktop.locale1.conf
+#%{_datadir}/dbus-1/system.d/org.freedesktop.login1.conf
+#%{_datadir}/dbus-1/system.d/org.freedesktop.systemd1.conf
+#%{_datadir}/dbus-1/system.d/org.freedesktop.timedate1.conf
+#%{_datadir}/dbus-1/system.d/org.freedesktop.timesync1.conf
 %attr(755,root,root) %{_sysconfdir}/X11/xinit/xinitrc.d/50-systemd-user.sh
 %attr(444,root,root) %ghost %config(noreplace) %{_sysconfdir}/machine-id
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/hostname
@@ -1311,7 +1312,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/user.conf
 %dir %{_sysconfdir}/systemd/user
 
-%config(noreplace) %verify(not md5 mtime size) /usr/lib/pam.d/systemd-user
+%config(noreplace) %verify(not md5 mtime size) /lib/pam.d/systemd-user
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
 %attr(755,root,root) /bin/loginctl
@@ -1356,7 +1357,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-binfmt
 %{?with_efi:%attr(755,root,root) /lib/systemd/systemd-bless-boot}
 %attr(755,root,root) /lib/systemd/systemd-boot-check-no-failures
-%attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %if %{with cryptsetup}
 %attr(755,root,root) /lib/systemd/systemd-cryptsetup
@@ -1369,7 +1369,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-growfs
 %attr(755,root,root) /lib/systemd/systemd-hibernate-resume
 %attr(755,root,root) /lib/systemd/systemd-hostnamed
-%attr(755,root,root) /lib/systemd/systemd-initctl
 %attr(755,root,root) /lib/systemd/systemd-journald
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
@@ -1379,7 +1378,7 @@ fi
 %endif
 %attr(755,root,root) /lib/systemd/systemd-modules-load
 %if %{with efi} && %{with tpm2}
-%attr(755,root,root) /lib/systemd/systemd-pcrphase
+#%attr(755,root,root) /lib/systemd/systemd-pcrphase
 %endif
 %attr(755,root,root) /lib/systemd/systemd-pstore
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
@@ -1492,13 +1491,13 @@ fi
 %ifarch %{x8664} aarch64
 %{_prefix}/lib/sysctl.d/50-pid-max.conf
 %endif
-%{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
-%{_datadir}/dbus-1/system-services/org.freedesktop.timesync1.service
+#%{_datadir}/dbus-1/services/org.freedesktop.systemd1.service
+#%{_datadir}/dbus-1/system-services/org.freedesktop.hostname1.service
+#%{_datadir}/dbus-1/system-services/org.freedesktop.locale1.service
+#%{_datadir}/dbus-1/system-services/org.freedesktop.login1.service
+#%{_datadir}/dbus-1/system-services/org.freedesktop.systemd1.service
+#%{_datadir}/dbus-1/system-services/org.freedesktop.timedate1.service
+#%{_datadir}/dbus-1/system-services/org.freedesktop.timesync1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.hostname1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.locale1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.login1.policy
@@ -1652,7 +1651,6 @@ fi
 %{_mandir}/man8/systemd-hibernate-resume.8*
 %{_mandir}/man8/systemd-hibernate-resume.service.8*
 %{_mandir}/man8/systemd-hostnamed.8*
-%{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8*
 %{_mandir}/man8/systemd-journald-varlink@.socket.8*
 %{_mandir}/man8/systemd-journald.8*
@@ -1720,9 +1718,7 @@ fi
 %attr(755,root,root) /sbin/init
 %attr(755,root,root) /sbin/poweroff
 %attr(755,root,root) /sbin/reboot
-%attr(755,root,root) /sbin/runlevel
 %attr(755,root,root) /sbin/shutdown
-%attr(755,root,root) /sbin/telinit
 %{_mandir}/man1/init.1*
 %if %{with cryptsetup}
 %{_mandir}/man5/crypttab.5*
@@ -1732,9 +1728,7 @@ fi
 %{_mandir}/man8/halt.8*
 %{_mandir}/man8/poweroff.8*
 %{_mandir}/man8/reboot.8*
-%{_mandir}/man8/runlevel.8*
 %{_mandir}/man8/shutdown.8*
-%{_mandir}/man8/telinit.8*
 
 %files sysv-compat
 %defattr(644,root,root,755)
