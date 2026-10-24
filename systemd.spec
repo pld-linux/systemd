@@ -33,7 +33,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	254.27
-Release:	2
+Release:	3
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -159,7 +159,7 @@ BuildRequires:	xorg-lib-libxkbcommon-devel >= 0.5.0
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
 BuildRequires:	zstd-devel >= 1.4.0
-Requires(post,postun):	%{name}-units = %{epoch}:%{version}-%{release}
+Requires(post,postun):	%{name}-units%{?_isa} = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
 Requires(post):	/bin/setfacl
@@ -167,9 +167,9 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
-Requires:	%{name}-units = %{epoch}:%{version}-%{release}
-Requires:	%{name}-tools = %{epoch}:%{version}-%{release}
+Requires:	%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:	%{name}-units%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:	%{name}-tools%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	/etc/os-release
 Requires:	SysVinit-tools
 Requires:	agetty
@@ -183,8 +183,8 @@ Requires:	libutempter
 Requires:	polkit >= 0.106
 Requires:	rc-scripts >= 0.4.5.3-7
 Requires:	setup >= 2.10.1
-Requires:	udev-core = %{epoch}:%{version}-%{release}
-Requires:	udev-libs = %{epoch}:%{version}-%{release}
+Requires:	udev-core%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:	udev-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= %{min_kernel}
 Requires:	util-linux >= 2.30
 Suggests:	%{name}-container = %{epoch}:%{version}-%{release}
@@ -399,7 +399,7 @@ poprzez katalog %{_sysconfdir}/systemd/system.
 Summary:	Tools that work with and without systemd started
 Summary(pl.UTF-8):	Narzędzia działające przy uruchomionym jak i bez systemd
 Group:		Base
-Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
+Requires:	%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description tools
 Tools that work with and without systemd started.
@@ -412,7 +412,7 @@ Summary:	Tools for container/VM management
 Summary(pl.UTF-8):	Narzędzia do zarządzania kontenerami/wirtualnymi maszynami
 License:	LGPL v2.1+
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	curl-libs >= 7.32.0
 
 %description container
@@ -426,7 +426,7 @@ Summary:	Tools for sending and receiving remote journal logs
 Summary(pl.UTF-8):	Narzędzia do wysyłania i odbierania zdarzeń dziennika po sieci
 License:	LGPL v2.1+
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
 Requires(pre):	/bin/id
@@ -455,7 +455,7 @@ Narzędzia do wysyłania i odbierania zdarzeń dziennika po sieci.
 Summary:	systemd home area/user account manager
 Summary(pl.UTF-8):	Zarządca obszarów domowych/kont użytkownika dla systemd
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	libfdisk >= 2.32
 
 %description homed
@@ -473,7 +473,7 @@ systemami plików, opcjonalnie szyfrowanymi).
 Summary:	systemd network manager
 Summary(pl.UTF-8):	Zarządca sieci systemd
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Suggests:	%{name}-resolved = %{epoch}:%{version}-%{release}
 
 %description networkd
@@ -490,7 +490,7 @@ wirtualne urządzenia sieciowe.
 Summary:	systemd userspace OOM killer service
 Summary(pl.UTF-8):	Usługa systemd zabójcy OOM w przestrzeni użytkownika
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= 4.20
 
 %description oomd
@@ -509,7 +509,7 @@ pamięci lub przestrzeni wymiany jest powyżej skonfigurowanych limitów.
 Summary:	systemd portable service images service
 Summary(pl.UTF-8):	Usługa systemd do obrazów usług przenośnych
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description portabled
 systemd-portabled is a system service that may be used to attach,
@@ -523,7 +523,7 @@ odłączania i badania obrazów usług przenośnych.
 Summary:	systemd service to automatically grow and add partitions
 Summary(pl.UTF-8):	Usługa systemd do automatycznego powiększania lub dodawania partycji
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	libfdisk >= 2.32
 
 %description repart
@@ -538,7 +538,7 @@ oparciu o pliki konfiguracyjne.
 Summary:	systemd network name resolution manager
 Summary(pl.UTF-8):	Zarządca rozwiązywania nazw sieciowych systemd
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	gnutls-libs >= 3.6.0
 
 %description resolved
@@ -561,7 +561,7 @@ który można użyć do dowiązania symbolicznego z /etc/resolv.conf.
 Summary:	systemd service for automatic system update
 Summary(pl.UTF-8):	Usługa systemd do automatycznych aktualizacji systemu
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description sysupdate
 systemd service for automatic system update.
@@ -573,7 +573,7 @@ Usługa systemd do automatycznych aktualizacji systemu.
 Summary:	Native inet service support for systemd via socket activation
 Summary(pl.UTF-8):	Natywna obsługa usług inet dla systemd
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	rc-inetd
 Provides:	inetdaemon
 Obsoletes:	inetd
@@ -599,7 +599,7 @@ aktywację usług przez gniazda.
 Summary:	Tool for processing systemd profiling information
 Summary(pl.UTF-8):	Narzędzie do przetwarzania informacji profilujących systemd
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts:	systemd < 44-3
 
 %description analyze
@@ -617,7 +617,7 @@ start jednostek podczas rozruchu.
 Summary:	Tool for combining kernel and initrd into Unified Kernel Image (UKI)
 Summary(pl.UTF-8):	Narzędzie do łączenia jądra oraz initrd w Unified Kernel Image (UKI)
 Group:		Base
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	python3-modules >= 1:3.9
 
 %description ukify
@@ -649,7 +649,7 @@ Summary:	Header files for systemd libraries
 Summary(pl.UTF-8):	Pliki nagłówkowe bibliotek systemd
 Group:		Development/Libraries
 Requires:	%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
-Requires:	%{name}-units = %{epoch}:%{version}-%{release}
+Requires:	%{name}-units%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes:	systemd-static < 1:205
 
 %description devel
@@ -691,7 +691,7 @@ Uzupełnianie parametrów w zsh dla poleceń systemd.
 Summary:	Device manager for the Linux 2.6 kernel series
 Summary(pl.UTF-8):	Zarządca urządzeń dla Linuksa 2.6
 Group:		Base
-Requires:	udev-core = %{epoch}:%{version}-%{release}
+Requires:	udev-core%{?_isa} = %{epoch}:%{version}-%{release}
 Provides:	dev = 3.5.0
 Obsoletes:	dev < 3.5
 Obsoletes:	hotplug < 2005
@@ -724,8 +724,8 @@ Requires:	kmod >= 15
 Requires:	libblkid >= 2.24
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	setup >= 2.10.1
-Requires:	systemd-libs = %{epoch}:%{version}-%{release}
-Requires:	udev-libs = %{epoch}:%{version}-%{release}
+Requires:	systemd-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:	udev-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	uname(release) >= %{min_kernel}
 Obsoletes:	udev-compat < 1:182-1
 Obsoletes:	udev-dbus < 027
