@@ -1471,7 +1471,6 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-backlight
 %attr(755,root,root) /lib/systemd/systemd-battery-check
 %attr(755,root,root) /lib/systemd/systemd-binfmt
-%{?with_efi:%attr(755,root,root) /lib/systemd/systemd-bless-boot}
 %attr(755,root,root) /lib/systemd/systemd-boot-check-no-failures
 %attr(755,root,root) /lib/systemd/systemd-coredump
 %attr(755,root,root) /lib/systemd/systemd-executor
@@ -1482,32 +1481,23 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-mountwork
 %attr(755,root,root) /lib/systemd/systemd-nsresourced
 %attr(755,root,root) /lib/systemd/systemd-nsresourcework
-%attr(755,root,root) /lib/systemd/systemd-pcrlock
 %attr(755,root,root) /lib/systemd/systemd-sbsign
 %attr(755,root,root) /lib/systemd/systemd-ssh-issue
 %attr(755,root,root) /lib/systemd/systemd-ssh-proxy
 %attr(755,root,root) /lib/systemd/systemd-storagetm
-%attr(755,root,root) /lib/systemd/systemd-tpm2-clear
-%attr(755,root,root) /lib/systemd/systemd-tpm2-setup
 %attr(755,root,root) /lib/systemd/systemd-validatefs
 %attr(755,root,root) /lib/systemd/system-generators/systemd-factory-reset-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-ssh-generator
-%attr(755,root,root) /lib/systemd/system-generators/systemd-tpm2-generator
 %dir /lib/systemd/profile.d
 /lib/systemd/profile.d/70-systemd-shell-extra.sh
 /lib/systemd/profile.d/80-systemd-osc-context.sh
 %dir /lib/systemd/ssh_config.d
 /lib/systemd/ssh_config.d/20-systemd-ssh-proxy.conf
-%dir /lib/nvpcr
-/lib/nvpcr/cryptsetup.nvpcr
-/lib/nvpcr/hardware.nvpcr
 %config(noreplace) %verify(not md5 mtime size) /etc/profile.d/70-systemd-shell-extra.sh
 %config(noreplace) %verify(not md5 mtime size) /etc/profile.d/80-systemd-osc-context.sh
 %config(noreplace) %verify(not md5 mtime size) /etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf
 %config(noreplace) %verify(not md5 mtime size) /usr/lib/pam.d/systemd-run0
 %{_prefix}/lib/kernel/install.conf
-%{_prefix}/lib/kernel/uki.conf
-%{_prefix}/lib/pcrlock.d
 %{_datadir}/mime/packages/io.systemd.xml
 %if %{with cryptsetup}
 %attr(755,root,root) /bin/systemd-cryptsetup
@@ -1526,13 +1516,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-localed
 %attr(755,root,root) /lib/systemd/systemd-logind
 %attr(755,root,root) /lib/systemd/systemd-makefs
-%if %{with efi} && %{with tpm2}
-%attr(755,root,root) /lib/systemd/systemd-measure
-%endif
 %attr(755,root,root) /lib/systemd/systemd-modules-load
-%if %{with efi} && %{with tpm2}
-%attr(755,root,root) /lib/systemd/systemd-pcrextend
-%endif
 %attr(755,root,root) /lib/systemd/systemd-pstore
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
 %attr(755,root,root) /lib/systemd/systemd-random-seed
@@ -1564,7 +1548,6 @@ fi
 %attr(755,root,root) /lib/systemd/system-generators/systemd-cryptsetup-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-integritysetup-generator
 %endif
-%{?with_efi:%attr(755,root,root) /lib/systemd/system-generators/systemd-bless-boot-generator}
 %attr(755,root,root) /lib/systemd/system-generators/systemd-debug-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-fstab-generator
 %attr(755,root,root) /lib/systemd/system-generators/systemd-getty-generator
@@ -1583,25 +1566,6 @@ fi
 %attr(755,root,root) %{_prefix}/lib/kernel/install.d/50-depmod.install
 %attr(755,root,root) %{_prefix}/lib/kernel/install.d/90-loaderentry.install
 %attr(755,root,root) %{_prefix}/lib/kernel/install.d/90-uki-copy.install
-%if %{with efi}
-%dir %{_prefix}/lib/systemd/boot
-%dir %{_prefix}/lib/systemd/boot/efi
-%ifarch %{ix86} %{x8664}
-%{_prefix}/lib/systemd/boot/efi/addonia32.efi.stub
-%{_prefix}/lib/systemd/boot/efi/linuxia32.efi.stub
-%{_prefix}/lib/systemd/boot/efi/systemd-bootia32.efi
-%endif
-%ifarch %{x8664} x32
-%{_prefix}/lib/systemd/boot/efi/addonx64.efi.stub
-%{_prefix}/lib/systemd/boot/efi/linuxx64.efi.stub
-%{_prefix}/lib/systemd/boot/efi/systemd-bootx64.efi
-%endif
-%ifarch aarch64
-%{_prefix}/lib/systemd/boot/efi/addonaa64.efi.stub
-%{_prefix}/lib/systemd/boot/efi/linuxaa64.efi.stub
-%{_prefix}/lib/systemd/boot/efi/systemd-bootaa64.efi
-%endif
-%endif
 %{_prefix}/lib/systemd/catalog/systemd.catalog
 %lang(be) %{_prefix}/lib/systemd/catalog/systemd.be.catalog
 %lang(be) %{_prefix}/lib/systemd/catalog/systemd.be@latin.catalog
@@ -1642,7 +1606,6 @@ fi
 %{_prefix}/lib/tmpfiles.d/20-systemd-osc-context.conf
 %{_prefix}/lib/tmpfiles.d/20-systemd-shell-extra.conf
 %{_prefix}/lib/tmpfiles.d/20-systemd-ssh-generator.conf
-%{_prefix}/lib/tmpfiles.d/20-systemd-stub.conf
 %{_prefix}/lib/tmpfiles.d/tmp.conf
 %{_prefix}/lib/tmpfiles.d/var.conf
 %{_prefix}/lib/tmpfiles.d/x11.conf
@@ -1701,9 +1664,6 @@ fi
 %{_mandir}/man1/systemd-id128.1*
 %{_mandir}/man1/systemd-inhibit.1*
 %{_mandir}/man1/systemd-machine-id-setup.1*
-%if %{with efi} && %{with tpm2}
-%{_mandir}/man1/systemd-measure.1*
-%endif
 %{_mandir}/man1/systemd-mount.1*
 %{_mandir}/man1/systemd-notify.1*
 %{_mandir}/man1/systemd-nspawn.1*
@@ -1733,7 +1693,6 @@ fi
 %{_mandir}/man5/sysext.conf.5*
 %{_mandir}/man5/sysext.conf.d.5*
 %{_mandir}/man7/systemd.v.7*
-%{_mandir}/man8/systemd-boot-clear-sysfail.service.8*
 %{_mandir}/man8/systemd-bsod.8*
 %{_mandir}/man8/systemd-bsod.service.8*
 %{_mandir}/man8/systemd-confext-initrd.service.8*
@@ -1749,27 +1708,10 @@ fi
 %{_mandir}/man8/systemd-mountfsd.service.8*
 %{_mandir}/man8/systemd-nsresourced.8*
 %{_mandir}/man8/systemd-nsresourced.service.8*
-%{_mandir}/man8/systemd-pcrlock.8*
-%{_mandir}/man8/systemd-pcrlock-file-system.service.8*
-%{_mandir}/man8/systemd-pcrlock-firmware-code.service.8*
-%{_mandir}/man8/systemd-pcrlock-firmware-config.service.8*
-%{_mandir}/man8/systemd-pcrlock-machine-id.service.8*
-%{_mandir}/man8/systemd-pcrlock-make-policy.service.8*
-%{_mandir}/man8/systemd-pcrlock-secureboot-authority.service.8*
-%{_mandir}/man8/systemd-pcrlock-secureboot-policy.service.8*
-%{_mandir}/man8/systemd-pcrnvdone.service.8*
-%{_mandir}/man8/systemd-pcrphase-factory-reset.service.8*
-%{_mandir}/man8/systemd-pcrphase-storage-target-mode.service.8*
-%{_mandir}/man8/systemd-pcrproduct.service.8*
 %{_mandir}/man8/systemd-ssh-generator.8*
 %{_mandir}/man8/systemd-storagetm.8*
 %{_mandir}/man8/systemd-storagetm.service.8*
 %{_mandir}/man8/systemd-sysext-initrd.service.8*
-%{_mandir}/man8/systemd-tpm2-clear.service.8*
-%{_mandir}/man8/systemd-tpm2-generator.8*
-%{_mandir}/man8/systemd-tpm2-setup.8*
-%{_mandir}/man8/systemd-tpm2-setup-early.service.8*
-%{_mandir}/man8/systemd-tpm2-setup.service.8*
 %{_mandir}/man8/systemd-validatefs@.service.8*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/coredump.conf.5*
@@ -1779,7 +1721,6 @@ fi
 %{_mandir}/man5/hostname.5*
 %{_mandir}/man5/initrd-release.5*
 %{_mandir}/man5/journald@.conf.5*
-%{?with_efi:%{_mandir}/man5/loader.conf.5*}
 %{_mandir}/man5/journald.conf.5*
 %{_mandir}/man5/journald.conf.d.5*
 %{_mandir}/man5/locale.conf.5*
@@ -1815,15 +1756,6 @@ fi
 %{_mandir}/man7/daemon.7*
 %{_mandir}/man7/file-hierarchy.7*
 %{_mandir}/man7/kernel-command-line.7*
-%if %{with efi}
-%{_mandir}/man7/linuxaa64.efi.stub.7*
-%{_mandir}/man7/linuxia32.efi.stub.7*
-%{_mandir}/man7/linuxx64.efi.stub.7*
-%{_mandir}/man7/sd-boot.7*
-%{_mandir}/man7/sd-stub.7*
-%{_mandir}/man7/systemd-boot.7*
-%{_mandir}/man7/systemd-stub.7*
-%endif
 %{_mandir}/man7/smbios-type-11.7*
 %{_mandir}/man7/systemd.directives.7*
 %{_mandir}/man7/systemd.environment-generator.7*
@@ -1843,10 +1775,6 @@ fi
 %{_mandir}/man8/systemd-backlight.8*
 %{_mandir}/man8/systemd-battery-check.8*
 %{_mandir}/man8/systemd-binfmt.8*
-%if %{with efi}
-%{_mandir}/man8/systemd-bless-boot.8*
-%{_mandir}/man8/systemd-bless-boot-generator.8*
-%endif
 %{_mandir}/man8/systemd-boot-check-no-failures.8*
 %{_mandir}/man8/systemd-confext.8*
 %{_mandir}/man8/systemd-coredump.8*
@@ -1928,6 +1856,72 @@ fi
 %attr(755,root,root) /%{_lib}/security/pam_systemd_loadkey.so
 %{_mandir}/man8/pam_systemd_loadkey.8*
 %{_mandir}/man8/pam_systemd.8*
+%endif
+%if %{with efi}
+%attr(755,root,root) /lib/systemd/systemd-bless-boot
+%{_prefix}/lib/kernel/uki.conf
+%attr(755,root,root) /lib/systemd/system-generators/systemd-bless-boot-generator
+%dir %{_prefix}/lib/systemd/boot
+%dir %{_prefix}/lib/systemd/boot/efi
+%ifarch %{ix86} %{x8664}
+%{_prefix}/lib/systemd/boot/efi/addonia32.efi.stub
+%{_prefix}/lib/systemd/boot/efi/linuxia32.efi.stub
+%{_prefix}/lib/systemd/boot/efi/systemd-bootia32.efi
+%endif
+%ifarch %{x8664} x32
+%{_prefix}/lib/systemd/boot/efi/addonx64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/linuxx64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/systemd-bootx64.efi
+%endif
+%ifarch aarch64
+%{_prefix}/lib/systemd/boot/efi/addonaa64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/linuxaa64.efi.stub
+%{_prefix}/lib/systemd/boot/efi/systemd-bootaa64.efi
+%endif
+%{_prefix}/lib/tmpfiles.d/20-systemd-stub.conf
+%{_mandir}/man8/systemd-boot-clear-sysfail.service.8*
+%{_mandir}/man8/systemd-tpm2-clear.service.8*
+%{_mandir}/man8/systemd-tpm2-generator.8*
+%{_mandir}/man8/systemd-tpm2-setup.8*
+%{_mandir}/man8/systemd-tpm2-setup-early.service.8*
+%{_mandir}/man8/systemd-tpm2-setup.service.8*
+%{_mandir}/man5/loader.conf.5*
+%{_mandir}/man7/linuxaa64.efi.stub.7*
+%{_mandir}/man7/linuxia32.efi.stub.7*
+%{_mandir}/man7/linuxx64.efi.stub.7*
+%{_mandir}/man7/sd-boot.7*
+%{_mandir}/man7/sd-stub.7*
+%{_mandir}/man7/systemd-boot.7*
+%{_mandir}/man7/systemd-stub.7*
+%{_mandir}/man8/systemd-bless-boot.8*
+%{_mandir}/man8/systemd-bless-boot-generator.8*
+%if %{with tpm2}
+%attr(755,root,root) /lib/systemd/systemd-tpm2-clear
+%attr(755,root,root) /lib/systemd/systemd-tpm2-setup
+%attr(755,root,root) /lib/systemd/system-generators/systemd-tpm2-generator
+%dir /lib/nvpcr
+/lib/nvpcr/cryptsetup.nvpcr
+/lib/nvpcr/hardware.nvpcr
+%attr(755,root,root) /lib/systemd/systemd-pcrextend
+%{_mandir}/man8/systemd-pcrlock.8*
+%{_mandir}/man8/systemd-pcrlock-file-system.service.8*
+%{_mandir}/man8/systemd-pcrlock-firmware-code.service.8*
+%{_mandir}/man8/systemd-pcrlock-firmware-config.service.8*
+%{_mandir}/man8/systemd-pcrlock-machine-id.service.8*
+%{_mandir}/man8/systemd-pcrlock-make-policy.service.8*
+%{_mandir}/man8/systemd-pcrlock-secureboot-authority.service.8*
+%{_mandir}/man8/systemd-pcrlock-secureboot-policy.service.8*
+%{_mandir}/man8/systemd-pcrnvdone.service.8*
+%{_mandir}/man8/systemd-pcrphase-factory-reset.service.8*
+%{_mandir}/man8/systemd-pcrphase-storage-target-mode.service.8*
+%{_mandir}/man8/systemd-pcrproduct.service.8*
+%endif
+%endif
+%if %{with tpm2}
+%attr(755,root,root) /lib/systemd/systemd-measure
+%attr(755,root,root) /lib/systemd/systemd-pcrlock
+%{_prefix}/lib/pcrlock.d
+%{_mandir}/man1/systemd-measure.1*
 %endif
 
 %files init
@@ -2065,11 +2059,6 @@ fi
 %{systemdunitdir}/systemd-backlight@.service
 %{systemdunitdir}/systemd-battery-check.service
 %{systemdunitdir}/systemd-binfmt.service
-%if %{with efi}
-%{systemdunitdir}/systemd-bless-boot.service
-%{systemdunitdir}/systemd-boot-random-seed.service
-%{systemdunitdir}/systemd-boot-update.service
-%endif
 %{systemdunitdir}/systemd-boot-check-no-failures.service
 %{systemdunitdir}/systemd-confext.service
 %{systemdunitdir}/systemd-firstboot.service
@@ -2095,9 +2084,6 @@ fi
 %{systemdunitdir}/system-systemd\x2dmute\x2dconsole.slice
 %{systemdunitdir}/systemd-ask-password.socket
 %{systemdunitdir}/systemd-ask-password@.service
-%{systemdunitdir}/systemd-boot-clear-sysfail.service
-%{systemdunitdir}/systemd-bootctl.socket
-%{systemdunitdir}/systemd-bootctl@.service
 %{systemdunitdir}/systemd-bsod.service
 %{systemdunitdir}/systemd-confext-initrd.service
 %{systemdunitdir}/systemd-creds.socket
@@ -2107,7 +2093,6 @@ fi
 %{systemdunitdir}/systemd-factory-reset-request.service
 %{systemdunitdir}/systemd-factory-reset.socket
 %{systemdunitdir}/systemd-factory-reset@.service
-%{systemdunitdir}/systemd-hibernate-clear.service
 %{systemdunitdir}/systemd-hibernate-resume.service
 %{systemdunitdir}/systemd-hostnamed.socket
 %{systemdunitdir}/systemd-journald-sync@.service
@@ -2119,56 +2104,27 @@ fi
 %{systemdunitdir}/systemd-mute-console@.service
 %{systemdunitdir}/systemd-nsresourced.service
 %{systemdunitdir}/systemd-nsresourced.socket
-%{systemdunitdir}/systemd-pcrextend.socket
-%{systemdunitdir}/systemd-pcrextend@.service
-%{systemdunitdir}/systemd-pcrlock-file-system.service
-%{systemdunitdir}/systemd-pcrlock-firmware-code.service
-%{systemdunitdir}/systemd-pcrlock-firmware-config.service
-%{systemdunitdir}/systemd-pcrlock-machine-id.service
-%{systemdunitdir}/systemd-pcrlock-make-policy.service
-%{systemdunitdir}/systemd-pcrlock-secureboot-authority.service
-%{systemdunitdir}/systemd-pcrlock-secureboot-policy.service
-%{systemdunitdir}/systemd-pcrlock.socket
-%{systemdunitdir}/systemd-pcrlock@.service
-%{systemdunitdir}/systemd-pcrnvdone.service
-%{systemdunitdir}/systemd-pcrphase-factory-reset.service
-%{systemdunitdir}/systemd-pcrphase-storage-target-mode.service
-%{systemdunitdir}/systemd-pcrproduct.service
 %{systemdunitdir}/systemd-storagetm.service
 %{systemdunitdir}/systemd-sysext-initrd.service
 %{systemdunitdir}/systemd-sysext.socket
 %{systemdunitdir}/systemd-sysext@.service
-%{systemdunitdir}/systemd-tpm2-clear.service
-%{systemdunitdir}/systemd-tpm2-setup-early.service
-%{systemdunitdir}/systemd-tpm2-setup.service
 %{systemdunitdir}/systemd-userdb-load-credentials.service
 %{systemdunitdir}/systemd-validatefs@.service
 %{systemdunitdir}/tpm2.target
 %dir %{systemdunitdir}/factory-reset.target.wants
 %{systemdunitdir}/factory-reset.target.wants/systemd-factory-reset-request.service
-%{systemdunitdir}/factory-reset.target.wants/systemd-pcrphase-factory-reset.service
-%dir %{systemdunitdir}/storage-target-mode.target.wants
-%{systemdunitdir}/storage-target-mode.target.wants/systemd-pcrphase-storage-target-mode.service
 %{systemdunitdir}/initrd-root-device.target.wants/remote-integritysetup.target
 %{systemdunitdir}/initrd.target.wants/systemd-bsod.service
 %{systemdunitdir}/initrd.target.wants/systemd-confext-initrd.service
 %{systemdunitdir}/initrd.target.wants/systemd-sysext-initrd.service
 %{systemdunitdir}/sockets.target.wants/systemd-ask-password.socket
-%{systemdunitdir}/sockets.target.wants/systemd-bootctl.socket
 %{systemdunitdir}/sockets.target.wants/systemd-creds.socket
 %{systemdunitdir}/sockets.target.wants/systemd-factory-reset.socket
 %{systemdunitdir}/sockets.target.wants/systemd-hostnamed.socket
 %{systemdunitdir}/sockets.target.wants/systemd-logind-varlink.socket
 %{systemdunitdir}/sockets.target.wants/systemd-mute-console.socket
-%{systemdunitdir}/sockets.target.wants/systemd-pcrextend.socket
-%{systemdunitdir}/sockets.target.wants/systemd-pcrlock.socket
 %{systemdunitdir}/sockets.target.wants/systemd-sysext.socket
 %{systemdunitdir}/sysinit.target.wants/imports.target
-%{systemdunitdir}/sysinit.target.wants/systemd-hibernate-clear.service
-%{systemdunitdir}/sysinit.target.wants/systemd-pcrnvdone.service
-%{systemdunitdir}/sysinit.target.wants/systemd-pcrproduct.service
-%{systemdunitdir}/sysinit.target.wants/systemd-tpm2-setup-early.service
-%{systemdunitdir}/sysinit.target.wants/systemd-tpm2-setup.service
 %{systemduserunitdir}/capsule@.target
 %{systemduserunitdir}/systemd-ask-password.socket
 %{systemduserunitdir}/systemd-ask-password@.service
@@ -2186,14 +2142,6 @@ fi
 %{systemdunitdir}/systemd-machine-id-commit.service
 %{systemdunitdir}/systemd-modules-load.service
 %{systemdunitdir}/systemd-nspawn@.service
-%if %{with efi} && %{with tpm2}
-%{systemdunitdir}/systemd-pcrfs-root.service
-%{systemdunitdir}/systemd-pcrfs@.service
-%{systemdunitdir}/systemd-pcrmachine.service
-%{systemdunitdir}/systemd-pcrphase-initrd.service
-%{systemdunitdir}/systemd-pcrphase-sysinit.service
-%{systemdunitdir}/systemd-pcrphase.service
-%endif
 %{systemdunitdir}/systemd-poweroff.service
 %{systemdunitdir}/systemd-quotacheck-root.service
 %{systemdunitdir}/systemd-quotacheck@.service
@@ -2356,9 +2304,6 @@ fi
 %endif
 %{systemdunitdir}/graphical.target.wants/display-manager.service
 %{systemdunitdir}/initrd.target.wants/systemd-battery-check.service
-%if %{with efi} && %{with tpm2}
-%{systemdunitdir}/initrd.target.wants/systemd-pcrphase-initrd.service
-%endif
 %{systemdunitdir}/local-fs.target.wants/pld-clean-tmp.service
 %{systemdunitdir}/local-fs.target.wants/var-lock.mount
 %{systemdunitdir}/local-fs.target.wants/var-run.mount
@@ -2390,7 +2335,6 @@ fi
 %{systemdunitdir}/sysinit.target.wants/sys-kernel-tracing.mount
 %{systemdunitdir}/sysinit.target.wants/systemd-ask-password-console.path
 %{systemdunitdir}/sysinit.target.wants/systemd-binfmt.service
-%{?with_efi:%{systemdunitdir}/sysinit.target.wants/systemd-boot-random-seed.service}
 %{systemdunitdir}/sysinit.target.wants/systemd-firstboot.service
 %{systemdunitdir}/sysinit.target.wants/systemd-hwdb-update.service
 %{systemdunitdir}/sysinit.target.wants/systemd-journal-catalog-update.service
@@ -2398,11 +2342,6 @@ fi
 %{systemdunitdir}/sysinit.target.wants/systemd-journal-flush.service
 %{systemdunitdir}/sysinit.target.wants/systemd-machine-id-commit.service
 %{systemdunitdir}/sysinit.target.wants/systemd-modules-load.service
-%if %{with efi} && %{with tpm2}
-%{systemdunitdir}/sysinit.target.wants/systemd-pcrmachine.service
-%{systemdunitdir}/sysinit.target.wants/systemd-pcrphase-sysinit.service
-%{systemdunitdir}/sysinit.target.wants/systemd-pcrphase.service
-%endif
 %{systemdunitdir}/sysinit.target.wants/systemd-random-seed.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysctl.service
 %{systemdunitdir}/sysinit.target.wants/systemd-sysusers.service
@@ -2451,9 +2390,7 @@ fi
 %{_mandir}/man8/systemd-backlight@.service.8*
 %{_mandir}/man8/systemd-battery-check.service.8*
 %{_mandir}/man8/systemd-binfmt.service.8*
-%{?with_efi:%{_mandir}/man8/systemd-bless-boot.service.8*}
 %{_mandir}/man8/systemd-boot-check-no-failures.service.8*
-%{?with_efi:%{_mandir}/man8/systemd-boot-random-seed.service.8*}
 %{_mandir}/man8/systemd-confext.service.8*
 %{_mandir}/man8/systemd-coredump.socket.8*
 %{_mandir}/man8/systemd-coredump@.service.8*
@@ -2476,15 +2413,6 @@ fi
 %{_mandir}/man8/systemd-localed.service.8*
 %{_mandir}/man8/systemd-logind.service.8*
 %{_mandir}/man8/systemd-modules-load.service.8*
-%if %{with efi} && %{with tpm2}
-%{_mandir}/man8/systemd-pcrfs-root.service.8*
-%{_mandir}/man8/systemd-pcrfs@.service.8*
-%{_mandir}/man8/systemd-pcrmachine.service.8*
-%{_mandir}/man8/systemd-pcrphase-initrd.service.8*
-%{_mandir}/man8/systemd-pcrphase-sysinit.service.8*
-%{_mandir}/man8/systemd-pcrextend.8*
-%{_mandir}/man8/systemd-pcrphase.service.8*
-%endif
 %{_mandir}/man8/systemd-poweroff.service.8*
 %{_mandir}/man8/systemd-quotacheck-root.service.8*
 %{_mandir}/man8/systemd-quotacheck@.service.8*
@@ -2513,6 +2441,66 @@ fi
 %{_mandir}/man8/systemd-user-sessions.service.8*
 %{_mandir}/man8/systemd-userdbd.service.8*
 %{_mandir}/man8/systemd-vconsole-setup.service.8*
+%if %{with efi}
+%{systemdunitdir}/systemd-bless-boot.service
+%{systemdunitdir}/systemd-boot-random-seed.service
+%{systemdunitdir}/systemd-boot-update.service
+%{systemdunitdir}/systemd-boot-clear-sysfail.service
+%{systemdunitdir}/systemd-bootctl.socket
+%{systemdunitdir}/systemd-bootctl@.service
+%{systemdunitdir}/systemd-hibernate-clear.service
+%{systemdunitdir}/sockets.target.wants/systemd-bootctl.socket
+%{systemdunitdir}/sysinit.target.wants/systemd-hibernate-clear.service
+%{systemdunitdir}/sysinit.target.wants/systemd-boot-random-seed.service
+%{_mandir}/man8/systemd-bless-boot.service.8*
+%{_mandir}/man8/systemd-boot-random-seed.service.8*
+%if %{with tpm2}
+%{systemdunitdir}/systemd-pcrextend.socket
+%{systemdunitdir}/systemd-pcrextend@.service
+%{systemdunitdir}/systemd-pcrlock-file-system.service
+%{systemdunitdir}/systemd-pcrlock-firmware-code.service
+%{systemdunitdir}/systemd-pcrlock-firmware-config.service
+%{systemdunitdir}/systemd-pcrlock-machine-id.service
+%{systemdunitdir}/systemd-pcrlock-make-policy.service
+%{systemdunitdir}/systemd-pcrlock-secureboot-authority.service
+%{systemdunitdir}/systemd-pcrlock-secureboot-policy.service
+%{systemdunitdir}/systemd-pcrlock.socket
+%{systemdunitdir}/systemd-pcrlock@.service
+%{systemdunitdir}/systemd-pcrnvdone.service
+%{systemdunitdir}/systemd-pcrphase-factory-reset.service
+%{systemdunitdir}/systemd-pcrphase-storage-target-mode.service
+%{systemdunitdir}/systemd-pcrproduct.service
+%{systemdunitdir}/systemd-tpm2-clear.service
+%{systemdunitdir}/systemd-tpm2-setup-early.service
+%{systemdunitdir}/systemd-tpm2-setup.service
+%{systemdunitdir}/factory-reset.target.wants/systemd-pcrphase-factory-reset.service
+%dir %{systemdunitdir}/storage-target-mode.target.wants
+%{systemdunitdir}/storage-target-mode.target.wants/systemd-pcrphase-storage-target-mode.service
+%{systemdunitdir}/sockets.target.wants/systemd-pcrextend.socket
+%{systemdunitdir}/sockets.target.wants/systemd-pcrlock.socket
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrnvdone.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrproduct.service
+%{systemdunitdir}/sysinit.target.wants/systemd-tpm2-setup-early.service
+%{systemdunitdir}/sysinit.target.wants/systemd-tpm2-setup.service
+%{systemdunitdir}/systemd-pcrfs-root.service
+%{systemdunitdir}/systemd-pcrfs@.service
+%{systemdunitdir}/systemd-pcrmachine.service
+%{systemdunitdir}/systemd-pcrphase-initrd.service
+%{systemdunitdir}/systemd-pcrphase-sysinit.service
+%{systemdunitdir}/systemd-pcrphase.service
+%{systemdunitdir}/initrd.target.wants/systemd-pcrphase-initrd.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrmachine.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrphase-sysinit.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrphase.service
+%{_mandir}/man8/systemd-pcrfs-root.service.8*
+%{_mandir}/man8/systemd-pcrfs@.service.8*
+%{_mandir}/man8/systemd-pcrmachine.service.8*
+%{_mandir}/man8/systemd-pcrphase-initrd.service.8*
+%{_mandir}/man8/systemd-pcrphase-sysinit.service.8*
+%{_mandir}/man8/systemd-pcrextend.8*
+%{_mandir}/man8/systemd-pcrphase.service.8*
+%endif
+%endif
 
 %files tools
 %defattr(644,root,root,755)
