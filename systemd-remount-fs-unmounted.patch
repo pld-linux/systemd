@@ -1,0 +1,26 @@
+remount-fs: skip API file systems that are not mounted; an fstab entry for efivarfs
+failed the unit on every non-EFI boot ("mount point does not exist")
+
+--- a/src/remount-fs/remount-fs.c
++++ b/src/remount-fs/remount-fs.c
+@@ -14,6 +14,7 @@
+ #include "log.h"
+ #include "main-func.h"
+ #include "mount-setup.h"
++#include "mountpoint-util.h"
+ #include "path-util.h"
+ #include "process-util.h"
+ #include "signal-util.h"
+@@ -105,6 +106,12 @@
+                         has_root = true;
+                 else if (!path_equal(target, "/usr") && !mount_point_is_api(target))
+                         continue;
++                else if (mount_point_is_api(target) && path_is_mount_point(target) <= 0) {
++                        /* PID 1 mounts some API file systems only conditionally (efivarfs only on
++                         * EFI boots), an fstab entry for one that is not mounted has nothing to remount */
++                        log_debug("%s is not mounted, not remounting.", target);
++                        continue;
++                }
+ 
+                 r = do_remount(target, /* force_rw= */ false, &pids);
+                 if (r < 0)

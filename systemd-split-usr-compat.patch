@@ -1,0 +1,259 @@
+Restore what upstream dropped with split-usr support (v255) for PLD's unmerged /usr:
+config lookup in /lib (udev rules, .link, presets), /sbin:/bin in $PATH, ProtectSystem= and
+ProtectKernelModules= covering /bin /sbin /lib /lib64 /lib/modules, /lib/kbd keymaps.
+
+ meson.build                      |  2 ++
+ src/basic/constants.h            | 14 ++++++++++--
+ src/basic/path-util.c            |  5 ++++-
+ src/core/namespace.c             | 19 ++++++++++++++++
+ src/delta/delta.c                | 38 ++++++++++++++++++++++++++++++++
+ src/libsystemd/sd-path/sd-path.c |  9 ++++++++
+ src/shared/install.c             |  5 +++++
+ src/shared/kbd-util.c            |  9 +++++++-
+ 8 files changed, 97 insertions(+), 4 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 7d3c6fd..5fddaeb 100644
+--- a/meson.build
++++ b/meson.build
+@@ -279,6 +279,8 @@ conf.set_quoted('POLKIT_RULES_DIR',                           polkitrulesdir)
+ conf.set_quoted('PREFIX',                                     prefixdir)
+ conf.set_quoted('PREFIX_NOSLASH',                             prefixdir_noslash)
+ conf.set_quoted('USR_PREFIX',                                 usrprefixdir)
++conf.set_quoted('USR_LIBDIR',                                 usrprefixdir / fs.name(libdir))
++conf.set10('HAVE_SPLIT_USR',                                  prefixdir == '/')
+ conf.set_quoted('RANDOM_SEED',                                randomseeddir / 'random-seed')
+ conf.set_quoted('RANDOM_SEED_DIR',                            randomseeddir)
+ conf.set_quoted('SSHCONFDIR',                                 sshconfdir)
+diff --git a/src/basic/constants.h b/src/basic/constants.h
+index a26cff4..0429107 100644
+--- a/src/basic/constants.h
++++ b/src/basic/constants.h
+@@ -34,19 +34,29 @@
+ #define NOTIFY_FD_MAX 768
+ #define NOTIFY_BUFFER_MAX PIPE_BUF
+ 
++#if HAVE_SPLIT_USR
++#  define _CONF_PATHS_SPLIT_USR_NULSTR(n) "/lib/" n "\0"
++#  define _CONF_PATHS_SPLIT_USR(n) , "/lib/" n
++#else
++#  define _CONF_PATHS_SPLIT_USR_NULSTR(n)
++#  define _CONF_PATHS_SPLIT_USR(n)
++#endif
++
+ /* Return a nulstr for a standard cascade of configuration paths, suitable to pass to
+  * conf_files_list_nulstr() to implement drop-in directories for extending configuration files. */
+ #define CONF_PATHS_NULSTR(n)                    \
+         "/etc/" n "\0"                          \
+         "/run/" n "\0"                          \
+         "/usr/local/lib/" n "\0"                \
+-        "/usr/lib/" n "\0"
++        "/usr/lib/" n "\0"                      \
++        _CONF_PATHS_SPLIT_USR_NULSTR(n)
+ 
+ #define CONF_PATHS(n)                           \
+         "/etc/" n,                              \
+         "/run/" n,                              \
+         "/usr/local/lib/" n,                    \
+-        "/usr/lib/" n
++        "/usr/lib/" n                           \
++        _CONF_PATHS_SPLIT_USR(n)
+ 
+ #define CONF_PATHS_STRV(n)                      \
+         STRV_MAKE(CONF_PATHS(n))
+diff --git a/src/basic/path-util.c b/src/basic/path-util.c
+index cf01964..d112e0d 100644
+--- a/src/basic/path-util.c
++++ b/src/basic/path-util.c
+@@ -1533,7 +1533,10 @@ static bool dir_is_split(const char *a, const char *b) {
+ #endif
+ 
+ const char* default_PATH(void) {
+-#if HAVE_SPLIT_BIN
++#if HAVE_SPLIT_USR
++        /* /bin and /sbin are separate directories, not symlinks into /usr */
++        return DEFAULT_PATH_COMPAT;
++#elif HAVE_SPLIT_BIN
+         static const char *default_path = NULL;
+ 
+         /* Return one of the three sets of paths:
+diff --git a/src/core/namespace.c b/src/core/namespace.c
+index 6fc2f09..71b3a00 100644
+--- a/src/core/namespace.c
++++ b/src/core/namespace.c
+@@ -180,6 +180,9 @@ static const MountEntry private_bpf_no_table[] = {
+ 
+ /* ProtectKernelModules= option */
+ static const MountEntry protect_kernel_modules_table[] = {
++#if HAVE_SPLIT_USR
++        { "/lib/modules",        MOUNT_INACCESSIBLE, true  },
++#endif
+         { "/usr/lib/modules",    MOUNT_INACCESSIBLE, true  },
+ };
+ 
+@@ -237,6 +240,14 @@ static const MountEntry protect_system_yes_table[] = {
+         { "/usr",                MOUNT_READ_ONLY,     false },
+         { "/boot",               MOUNT_READ_ONLY,     true  },
+         { "/efi",                MOUNT_READ_ONLY,     true  },
++#if HAVE_SPLIT_USR
++        { "/lib",                MOUNT_READ_ONLY,     true  },
++        { "/lib64",              MOUNT_READ_ONLY,     true  },
++        { "/bin",                MOUNT_READ_ONLY,     true  },
++#  if HAVE_SPLIT_BIN
++        { "/sbin",               MOUNT_READ_ONLY,     true  },
++#  endif
++#endif
+ };
+ 
+ /* ProtectSystem=full includes ProtectSystem=yes */
+@@ -245,6 +256,14 @@ static const MountEntry protect_system_full_table[] = {
+         { "/boot",               MOUNT_READ_ONLY,     true  },
+         { "/efi",                MOUNT_READ_ONLY,     true  },
+         { "/etc",                MOUNT_READ_ONLY,     false },
++#if HAVE_SPLIT_USR
++        { "/lib",                MOUNT_READ_ONLY,     true  },
++        { "/lib64",              MOUNT_READ_ONLY,     true  },
++        { "/bin",                MOUNT_READ_ONLY,     true  },
++#  if HAVE_SPLIT_BIN
++        { "/sbin",               MOUNT_READ_ONLY,     true  },
++#  endif
++#endif
+ };
+ 
+ /* ProtectSystem=strict. In this strict mode, we mount everything read-only, except for /proc, /dev, and
+diff --git a/src/delta/delta.c b/src/delta/delta.c
+index 7eb9d91..d5fbc94 100644
+--- a/src/delta/delta.c
++++ b/src/delta/delta.c
+@@ -32,6 +32,9 @@ static const char prefixes[] =
+         "/usr/local/share\0"
+         "/usr/lib\0"
+         "/usr/share\0"
++#if HAVE_SPLIT_USR
++        "/lib\0"
++#endif
+         ;
+ 
+ static const char suffixes[] =
+@@ -365,6 +368,38 @@ static int enumerate_dir(
+         return 0;
+ }
+ 
++static int should_skip_path(const char *prefix, const char *suffix) {
++#if HAVE_SPLIT_USR
++        _cleanup_free_ char *target = NULL, *dirname = NULL;
++
++        /* With /lib and /usr/lib both in prefixes, a directory that is a symlink to its counterpart
++         * would show every file as overriding itself. */
++        dirname = path_join(prefix, suffix);
++        if (!dirname)
++                return -ENOMEM;
++
++        if (chase(dirname, NULL, 0, &target, NULL) < 0)
++                return false;
++
++        NULSTR_FOREACH(p, prefixes) {
++                _cleanup_free_ char *tmp = NULL;
++
++                if (path_startswith(dirname, p))
++                        continue;
++
++                tmp = path_join(p, suffix);
++                if (!tmp)
++                        return -ENOMEM;
++
++                if (path_equal(target, tmp)) {
++                        log_debug("%s redirects to %s, skipping.", dirname, target);
++                        return true;
++                }
++        }
++#endif
++        return false;
++}
++
+ static int process_suffix(const char *suffix, const char *onlyprefix) {
+         int r, ret = 0;
+ 
+@@ -378,6 +413,9 @@ static int process_suffix(const char *suffix, const char *onlyprefix) {
+         NULSTR_FOREACH(p, prefixes) {
+                 _cleanup_free_ char *t = NULL;
+ 
++                if (should_skip_path(p, suffix) > 0)
++                        continue;
++
+                 t = path_join(p, suffix);
+                 if (!t)
+                         return -ENOMEM;
+diff --git a/src/libsystemd/sd-path/sd-path.c b/src/libsystemd/sd-path/sd-path.c
+index ace5ff7..b1ec7ac 100644
+--- a/src/libsystemd/sd-path/sd-path.c
++++ b/src/libsystemd/sd-path/sd-path.c
+@@ -535,6 +535,9 @@ static int get_search(uint64_t type, char ***ret) {
+                                                true,
+                                                ARRAY_SBIN_BIN("/usr/local/"),
+                                                ARRAY_SBIN_BIN("/usr/"),
++#if HAVE_SPLIT_USR
++                                               ARRAY_SBIN_BIN("/"),
++#endif
+                                                NULL);
+ 
+         case SD_PATH_SEARCH_LIBRARY_PRIVATE:
+@@ -545,6 +548,9 @@ static int get_search(uint64_t type, char ***ret) {
+                                                false,
+                                                "/usr/local/lib",
+                                                "/usr/lib",
++#if HAVE_SPLIT_USR
++                                               "/lib",
++#endif
+                                                NULL);
+ 
+         case SD_PATH_SEARCH_LIBRARY_ARCH:
+@@ -554,6 +560,9 @@ static int get_search(uint64_t type, char ***ret) {
+                                                "LD_LIBRARY_PATH",
+                                                true,
+                                                LIBDIR,
++#if HAVE_SPLIT_USR
++                                               USR_LIBDIR,
++#endif
+                                                NULL);
+ 
+         case SD_PATH_SEARCH_SHARED:
+diff --git a/src/shared/install.c b/src/shared/install.c
+index 4bbbd99..79ef610 100644
+--- a/src/shared/install.c
++++ b/src/shared/install.c
+@@ -269,6 +269,11 @@ static int path_is_vendor_or_generator(const LookupPaths *lp, const char *path)
+         if (path_startswith(rpath, "/usr"))
+                 return true;
+ 
++#if HAVE_SPLIT_USR
++        if (path_startswith(rpath, "/lib"))
++                return true;
++#endif
++
+         /* The lookup paths are root prefixed, so we have to pass in a root prefixed path. */
+         r = path_is_generator(lp, path);
+         if (r != 0)
+diff --git a/src/shared/kbd-util.c b/src/shared/kbd-util.c
+index 4f608ce..b27ad50 100644
+--- a/src/shared/kbd-util.c
++++ b/src/shared/kbd-util.c
+@@ -12,10 +12,17 @@
+ #include "strv.h"
+ #include "utf8.h"
+ 
++#if HAVE_SPLIT_USR
++#  define _KBD_KEYMAP_DIRS_SPLIT_USR , "/lib/kbd/keymaps/"
++#else
++#  define _KBD_KEYMAP_DIRS_SPLIT_USR
++#endif
++
+ #define KBD_KEYMAP_DIRS                         \
+         "/usr/share/keymaps/",                  \
+         "/usr/share/kbd/keymaps/",              \
+-        "/usr/lib/kbd/keymaps/"
++        "/usr/lib/kbd/keymaps/"                 \
++        _KBD_KEYMAP_DIRS_SPLIT_USR
+ 
+ int keymap_directories(char ***ret) {
+         assert(ret);

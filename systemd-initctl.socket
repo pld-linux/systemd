@@ -1,0 +1,9 @@
+[Unit]
+Description=initctl Compatibility Named Pipe
+DefaultDependencies=no
+Before=sockets.target
+
+[Socket]
+ListenFIFO=/run/initctl
+Symlinks=/dev/initctl
+SocketMode=0600

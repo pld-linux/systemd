@@ -1,0 +1,8 @@
+[Unit]
+Description=initctl Compatibility Daemon
+DefaultDependencies=no
+
+[Service]
+ExecStart=/lib/systemd/systemd-initctl
+NoNewPrivileges=yes
+SystemCallArchitectures=native

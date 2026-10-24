@@ -15,11 +15,11 @@ diff -dur -x '*.orig' systemd-218.orig/src/sysv-generator/sysv-generator.c syste
 --- systemd-218.orig/src/sysv-generator/sysv-generator.c	2014-12-05 01:26:51.000000000 +0100
 +++ systemd-218/src/sysv-generator/sysv-generator.c	2015-04-03 15:02:21.000000000 +0200
 @@ -325,6 +325,15 @@
+ 
                  line++;
  
-                 t = strstrip(l);
 +                // PLD specific ugly hack to detect SysV services requiring network
-+                if (startswith_no_case(t, ". /etc/sysconfig/network")) {
++                if (startswith_no_case(l, ". /etc/sysconfig/network")) {
 +                        r = strv_extend(&s->wants, "network.target");
 +                        if (r < 0)
 +                                 log_error("[%s:%u] Failed to add dependency on network.target, ignoring: %s", s->path, line, strerror(-r));
@@ -27,6 +27,6 @@ diff -dur -x '*.orig' systemd-218.orig/src/sysv-generator/sysv-generator.c syste
 +                        if (r < 0)
 +                                 log_error("[%s:%u] Failed to add dependency on network.target, ignoring: %s", s->path, line, strerror(-r));
 +                }
-                 if (*t != '#') {
+                 if (l[0] != '#') {
                          /* Try to figure out whether this init script supports
                           * the reload operation. This heuristic looks for

@@ -22,7 +22,7 @@
 %bcond_with	tests		# "make check" (requires systemd already installed)
 %bcond_with	xen		# Xen kexec support
 
-%define         min_kernel      3.15
+%define         min_kernel      5.4
 
 %ifnarch %{ix86} %{x8664} aarch64
 # x32 disabled - maybe it's possible to build x64 EFI, but it requires some hacking (add -m64 to EFI gcc command line?)
@@ -32,14 +32,14 @@ Summary:	A System and Service Manager
 Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
-Version:	254.27
-Release:	4
+Version:	259.10
+Release:	1
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
 #Source0Download: https://github.com/systemd/systemd/releases
-Source0:	https://github.com/systemd/systemd-stable/archive/v%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	bd8bbfe343b829b3ae2978b9603facde
+Source0:	https://github.com/systemd/systemd/archive/v%{version}/%{name}-%{version}.tar.gz
+# Source0-md5:	a7ad87e7deebffa72b1efb4fb4bb2910
 Source1:	%{name}-sysv-convert
 Source2:	%{name}_booted.c
 Source3:	network.service
@@ -52,6 +52,13 @@ Source17:	rc-inetd.service
 Source18:	default.preset
 Source19:	prefdm.service
 Source20:	sigpwr-container-shutdown.service
+# /run/initctl for SysVinit's shutdown/halt/reboot/telinit, systemd >= 258 has none
+Source21:	%{name}-initctl.c
+Source22:	%{name}-initctl.service
+Source23:	%{name}-initctl.socket
+# systemd >= 258 has no telinit/runlevel
+Source24:	%{name}-telinit.sh
+Source25:	%{name}-runlevel.sh
 
 # rules
 Source101:	udev-alsa.rules
@@ -72,9 +79,9 @@ Patch1:		config-pld.patch
 Patch2:		pld-sysv-network.patch
 Patch3:		tmpfiles-not-fatal.patch
 Patch4:		udev-ploop-rules.patch
-Patch5:		%{name}-split-usr-fix.patch
+Patch5:		%{name}-pld-layout.patch
 Patch6:		net-rename-revert.patch
-Patch7:		%{name}-completion.patch
+Patch7:		%{name}-split-usr-compat.patch
 Patch8:		proc-hidepid.patch
 Patch9:		%{name}-configfs.patch
 Patch10:	pld-boot_efi_mount.patch
@@ -83,17 +90,10 @@ Patch13:	sysctl.patch
 Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-x32.patch
 Patch16:	rpm-macros.patch
-Patch17:	%{name}-glibc.patch
-Patch18:	%{name}-CVE-2026-29111.patch
-Patch19:	%{name}-CVE-2026-40225.patch
-Patch20:	%{name}-GHSA-m8q3-73v4-wvg7.patch
-Patch21:	%{name}-CVE-2026-40226.patch
-Patch22:	%{name}-CVE-2026-16742.patch
-Patch23:	%{name}-CVE-2026-15059.patch
-Patch24:	%{name}-GHSA-5rm9-cc37-35gq.patch
-Patch25:	%{name}-GHSA-3jgj-3phh-hx5j.patch
-Patch26:	%{name}-CVE-2026-4105.patch
-Patch27:	%{name}-errno-list-kernel7.patch
+# runlevel[0-6].target as aliases, existing default.target links and runlevelN.target.wants keep working
+# https://src.fedoraproject.org/rpms/systemd/blob/f44/f/0001-Revert-units-drop-runlevel-0-6-.target.patch
+Patch17:	%{name}-runlevel-targets.patch
+Patch18:	%{name}-remount-fs-unmounted.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -113,22 +113,18 @@ BuildRequires:	docbook-dtd42-xml
 BuildRequires:	docbook-dtd45-xml
 BuildRequires:	docbook-style-xsl-nons
 BuildRequires:	elfutils-devel >= 0.177
-BuildRequires:	gcc >= 6:4.9
+BuildRequires:	gcc >= 6:8.4
 BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 1:2.22.0
 BuildRequires:	glibc-misc
-%{?with_efi:BuildRequires:	gnu-efi}
 BuildRequires:	gnutls-devel >= 3.6.0
 BuildRequires:	gperf
-BuildRequires:	intltool >= 0.40.0
-# pkgconfig(libiptc)
-BuildRequires:	iptables-devel
 %{?with_bpf:BuildRequires:	kernel-tools >= 5.13.0}
 BuildRequires:	kmod-devel >= 15
 BuildRequires:	libapparmor-devel >= 1:2.13
+BuildRequires:	libarchive-devel >= 3.0
 BuildRequires:	libblkid-devel >= 2.24
 %{?with_bpf:BuildRequires:	libbpf-devel >= 0.1.0}
-BuildRequires:	libcap-devel
 BuildRequires:	libfdisk-devel >= 2.32
 %{?with_fido2:BuildRequires:	libfido2-devel}
 BuildRequires:	libgcrypt-devel >= 1.4.5
@@ -139,15 +135,13 @@ BuildRequires:	libmount-devel >= 2.30
 BuildRequires:	libpwquality-devel >= 1.4.1
 BuildRequires:	libseccomp-devel >= 2.4.0
 %{?with_selinux:BuildRequires:	libselinux-devel >= 2.6}
-BuildRequires:	libtool >= 2:2.2
 BuildRequires:	libxslt-progs
 BuildRequires:	lz4-devel >= 1:1.3.0
-BuildRequires:	m4
-BuildRequires:	meson >= 0.60.0
+BuildRequires:	meson >= 0.62.0
 BuildRequires:	ninja
 BuildRequires:	openssl-devel
 BuildRequires:	p11-kit-devel >= 0.23.3
-%{?with_pam:BuildRequires:	pam-devel >= 1.1.2}
+%{?with_pam:BuildRequires:	pam-devel >= 1:1.1.2}
 BuildRequires:	pcre2-8-devel
 # for sbat-distro* in src/boot/efi/meson.build
 BuildRequires:	pld-release
@@ -173,6 +167,7 @@ Requires(post,postun):	%{name}-units%{?_isa} = %{epoch}:%{version}-%{release}
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
 Requires(post):	/bin/setfacl
+Requires(post):	/bin/stat
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
@@ -424,6 +419,8 @@ License:	LGPL v2.1+
 Group:		Base
 Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	curl-libs >= 7.32.0
+# dlopen()ed for tar import/export/pull and systemd-dissect --make-archive; built with archive_entry_hardlink_is_set (3.7.5)
+Requires:	libarchive >= 3.7.5
 
 %description container
 Tools for container/VM management.
@@ -629,6 +626,7 @@ Summary(pl.UTF-8):	Narzędzie do łączenia jądra oraz initrd w Unified Kernel 
 Group:		Base
 Requires:	%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:	python3-modules >= 1:3.9
+Requires:	python3-pefile
 
 %description ukify
 Tool for combining kernel and initrd into Unified Kernel Image (UKI).
@@ -640,10 +638,20 @@ Narzędzie do łączenia jądra oraz initrd w Unified Kernel Image (UKI).
 Summary:	Shared systemd libraries
 Summary(pl.UTF-8):	Biblioteki współdzielone systemd
 Group:		Libraries
+# libsystemd-shared dlopen()s these (systemd-analyze dlopen-metadata), rpm generates no dependencies
+Requires:	acl
+%{?with_audit:Requires:	audit-libs}
+Requires:	kmod-libs >= 15
+Requires:	libapparmor >= 1:2.13
+Requires:	libblkid >= 2.24
 Requires:	libgcrypt >= 1.4.5
+Requires:	libmount >= 2.30
 Requires:	libseccomp >= 2.4.0
 %{?with_selinux:Requires:	libselinux >= 2.6}
 Requires:	lz4-libs >= 1:1.3.0
+Requires:	p11-kit >= 0.23.3
+%{?with_pam:Requires:	pam-libs >= 1:1.1.2}
+Requires:	xz-libs
 Requires:	zstd >= 1.4.0
 Suggests:	elfutils-libs >= 0.177
 Obsoletes:	nss_myhostname < 0.4
@@ -819,7 +827,7 @@ RPM macros that define paths and scriptlets related to systemd.
 Makra RPM-a definiujące ścieżki i skryptlety związane z systemd.
 
 %prep
-%setup -q -n systemd-stable-%{version}
+%setup -q
 %patch -P0 -p1
 %patch -P1 -p1
 %patch -P2 -p1
@@ -839,17 +847,9 @@ Makra RPM-a definiujące ścieżki i skryptlety związane z systemd.
 %patch -P16 -p1
 %patch -P17 -p1
 %patch -P18 -p1
-%patch -P19 -p1
-%patch -P20 -p1
-%patch -P21 -p1
-%patch -P22 -p1
-%patch -P23 -p1
-%patch -P24 -p1
-%patch -P25 -p1
-%patch -P26 -p1
-%patch -P27 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
+cp -p %{SOURCE21} src/systemd-initctl.c
 
 grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash,#!/bin/bash,g'
 
@@ -858,7 +858,24 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	src/kernel-install/60-ukify.install.in
 
 %build
+# /bin, /sbin, /lib, /%{_lib} on the root fs as before (unmerged /usr); systemd-pld-layout.patch
+# keeps everything that does not need to be there below /usr.
+# sshd_config includes sshd_config.d first and sshd keeps the first value, so systemd's
+# AuthorizedKeysCommand drop-in would override ssh-ldap-wrapper: sshdconfdir=no.
+# tty-mode 0620 (upstream 0600) keeps write(1)/wall(1) working for other users.
+# mode=release: developer mode makes a failed assert_return() abort, PID 1 included.
+# net-naming-scheme v253 is what 254 used ("v254" is a later addition, SR-IOV representor names).
+# vmlinux-h=auto would generate vmlinux.h from the build host's running kernel BTF.
 %meson \
+	--prefix=/ \
+	--bindir=/bin \
+	--libdir=/%{_lib} \
+	--includedir=%{_includedir} \
+	--datadir=%{_datadir} \
+	--mandir=%{_mandir} \
+	--infodir=%{_infodir} \
+	-Dpkgconfiglibdir=%{_pkgconfigdir} \
+	-Dpkgconfigdatadir=%{_npkgconfigdir} \
 	-Dadm-gid=3 \
 	-Daudio-gid=23 \
 	-Dcdrom-gid=27 \
@@ -880,68 +897,100 @@ grep -rlZ -0 '#!/usr/bin/env bash' . | xargs -0 sed -i -e 's,#!/usr/bin/env bash
 	-Dsystemd-timesync-uid=318 \
 	-Dnobody-user="nobody" \
 	-Dnobody-group="nogroup" \
-	-Daudit=%{__true_false audit} \
-	-Dbpf-framework=%{__true_false bpf} \
+	-Daudit=%{__enabled_disabled audit} \
+	-Dbpf-framework=%{__enabled_disabled bpf} \
 	-Ddefault-kill-user-processes=false \
+	-Ddefault-net-naming-scheme=v253 \
 	%{?debug:--buildtype=debug} \
 	-Defi=%{__true_false efi} \
-	-Dlibfido2=%{__true_false fido2} \
+	-Dlibfido2=%{__enabled_disabled fido2} \
+	-Dagetty-path=/sbin/agetty \
 	-Dkexec-path=/sbin/kexec \
 	-Dkmod-path=/sbin/kmod \
-	-Dlibcryptsetup=%{__true_false cryptsetup} \
+	-Dlibcryptsetup=%{__enabled_disabled cryptsetup} \
 	-Dlibcryptsetup-plugins-dir=/usr/%{_lib}/cryptsetup \
-	-Dlibidn2=true \
+	-Dlibidn2=enabled \
 	-Dloadkeys-path=/usr/bin/loadkeys \
-	-Dlz4=true \
-	-Dman=true \
-	-Dmicrohttpd=%{__true_false microhttpd} \
+	-Dlz4=enabled \
+	-Dman=enabled \
+	-Dmicrohttpd=%{__enabled_disabled microhttpd} \
+	-Dmode=release \
 	-Dmount-path=/bin/mount \
 	-Dntp-servers='0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org' \
-	-Dpam=%{__true_false pam} \
-	-Dqrencode=%{__true_false qrencode} \
+	-Dpam=%{__enabled_disabled pam} \
+	-Dqrencode=%{__enabled_disabled qrencode} \
 	-Dquotacheck=true \
 	-Dquotacheck-path=/sbin/quotacheck \
 	-Dquotaon-path=/sbin/quotaon \
 	-Drc-local=/etc/rc.d/rc.local \
-	-Drootlibdir=/%{_lib} \
-	-Drootprefix="" \
 	-Dsbat-distro="%vendor" \
 	-Dsbat-distro-pkgname="%name" \
 	-Dsbat-distro-summary="%distribution" \
 	-Dsbat-distro-url="https://git.pld-linux.org/?p=packages/systemd.git" \
 	-Dsbat-distro-version="%version-%release" \
-	-Dselinux=%{__true_false selinux} \
+	-Dselinux=%{__enabled_disabled selinux} \
 	-Dsetfont-path=/bin/setfont \
 	-Dsplit-bin=true \
-	-Dsplit-usr=true \
+	-Dsshdprivsepdir=/usr/share/empty \
+	-Dstatus-unit-format-default=name \
+	-Dsshdconfdir=no \
 	-Dsulogin-path=/sbin/sulogin \
+	-Dswapoff-path=/sbin/swapoff \
+	-Dswapon-path=/sbin/swapon \
 	-Dsysvinit-path=/etc/rc.d/init.d \
 	-Dsysvrcnd-path=/etc/rc.d \
-	-Dtpm2=%{__true_false tpm2} \
+	-Dtpm2=%{__enabled_disabled tpm2} \
+	-Dtty-mode=0620 \
+	-Dukify=%{__enabled_disabled efi} \
 	-Dumount-path=/bin/umount \
-	-Dxenctrl=%{__true_false xen}
+	-Dvmlinux-h=disabled \
+	-Dxenctrl=%{__enabled_disabled xen}
 
 %meson_build
 
 %{__cc} %{rpmcppflags} %{rpmcflags} -o build/systemd_booted %{rpmldflags} src/systemd_booted.c -Lbuild -lsystemd
+%{__cc} %{rpmcppflags} %{rpmcflags} -o build/systemd-initctl %{rpmldflags} src/systemd-initctl.c -Lbuild -lsystemd
 
 %{?with_tests:%meson_test}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/var/lib/{%{name}/{catalog,coredump},machines} \
-	$RPM_BUILD_ROOT%{_rootsbindir} \
+	$RPM_BUILD_ROOT{%{_bindir},%{_rootsbindir}} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{modprobe.d,repart.d,systemd/{system,user}-preset,sysupdate.d} \
 	$RPM_BUILD_ROOT%{systemduserunitdir}/{basic,sockets}.target.wants \
-	$RPM_BUILD_ROOT%{systemdunitdir}/{final,sound,system-update}.target.wants \
+	$RPM_BUILD_ROOT%{systemdunitdir}/{final,graphical,rescue,sound,system-update}.target.wants \
 	$RPM_BUILD_ROOT%{systemdunitdir}/systemd-udevd.service.d \
 	$RPM_BUILD_ROOT%{_prefix}/lib/{repart.d,systemd/system-environment-generators,sysupdate.d}
 
 %meson_install
 
+# meson has one bindir (/bin); these were in /usr/bin before, keep those paths as symlinks
+for f in bootctl busctl coredumpctl homectl hostnamectl kernel-install localectl oomctl \
+	resolvectl run0 systemd-ac-power systemd-analyze systemd-cat systemd-cgls systemd-cgtop \
+	%{?with_cryptsetup:systemd-cryptenroll} systemd-delta systemd-detect-virt systemd-dissect \
+	systemd-id128 systemd-mount systemd-nspawn systemd-path systemd-resolve systemd-run \
+	systemd-socket-activate systemd-stdio-bridge systemd-umount timedatectl %{?with_efi:ukify} \
+	userdbctl; do
+	ln -s ../../bin/$f $RPM_BUILD_ROOT%{_bindir}/$f
+done
+ln -sf ../bin/systemd-dissect $RPM_BUILD_ROOT/sbin/mount.ddi
+ln -sf ../bin/resolvectl $RPM_BUILD_ROOT/sbin/resolvconf
+# BINDIR/systemd-home-fallback-shell is compiled into homed
+ln -sf homectl $RPM_BUILD_ROOT/bin/systemd-home-fallback-shell
+%if %{with efi}
+ln -sf ../../bin/ukify $RPM_BUILD_ROOT/lib/systemd/ukify
+%endif
+
 touch $RPM_BUILD_ROOT/var/lib/%{name}/random-seed
 
 install -p -m755 build/systemd_booted $RPM_BUILD_ROOT/bin/systemd_booted
+install -p -m755 build/systemd-initctl $RPM_BUILD_ROOT/lib/systemd/systemd-initctl
+cp -p %{SOURCE22} $RPM_BUILD_ROOT%{systemdunitdir}/systemd-initctl.service
+cp -p %{SOURCE23} $RPM_BUILD_ROOT%{systemdunitdir}/systemd-initctl.socket
+ln -s ../systemd-initctl.socket $RPM_BUILD_ROOT%{systemdunitdir}/sockets.target.wants
+install -p %{SOURCE24} $RPM_BUILD_ROOT/sbin/telinit
+install -p %{SOURCE25} $RPM_BUILD_ROOT/sbin/runlevel
 
 # target-pld.patch supplements
 %{__rm} $RPM_BUILD_ROOT%{systemdunitdir}/sysinit.target.wants/sys-kernel-config.mount
@@ -1064,6 +1113,14 @@ install -d $RPM_BUILD_ROOT/var/log
 :> $RPM_BUILD_ROOT/var/log/wtmp
 
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
+# config dir READMEs as in the old layout; /etc/rc.d/init.d belongs to rc-scripts
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/README \
+	$RPM_BUILD_ROOT/lib/modprobe.d/README \
+	$RPM_BUILD_ROOT/lib/udev/{hwdb.d,rules.d}/README \
+	$RPM_BUILD_ROOT%{_prefix}/lib/{sysctl.d,sysusers.d,tmpfiles.d}/README
+
+# header-only catalogs without a single translated message, find-lang skips them
+%{__rm} -r $RPM_BUILD_ROOT%{_localedir}/{kn,kw}
 
 %find_lang %{name}
 
@@ -1086,7 +1143,17 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /bin/systemd-machine-id-setup || :
 /lib/systemd/systemd-random-seed save || :
-/bin/systemctl --system daemon-reexec || :
+# 259 PID 1 freezes on a cgroup v1/hybrid hierarchy, so no reexec there
+if [ -d /run/systemd/system ]; then
+	case "$(/bin/stat -fc %%T /sys/fs/cgroup/ 2>/dev/null)" in
+	cgroup2fs|sysfs|"")
+		/bin/systemctl --system daemon-reexec || :
+		;;
+	*)
+		echo >&2 "systemd: cgroup v1 (legacy/hybrid) hierarchy, PID 1 was not reexecuted and new user sessions will fail until reboot. Remove systemd.unified_cgroup_hierarchy=0 and systemd.legacy_systemd_cgroup_controller from the kernel command line and reboot."
+		;;
+	esac
+fi
 /bin/journalctl --update-catalog || :
 /bin/systemd-sysusers || :
 
@@ -1338,9 +1405,9 @@ fi
 /etc/xdg/systemd
 %attr(755,root,root) /bin/journalctl
 %attr(755,root,root) /bin/loginctl
-%attr(755,root,root) /bin/systemd
+/bin/systemd
 %attr(755,root,root) /bin/systemd-ask-password
-%attr(755,root,root) /bin/systemd-confext
+/bin/systemd-confext
 %attr(755,root,root) /bin/systemd-creds
 %attr(755,root,root) /bin/systemd-escape
 %attr(755,root,root) /bin/systemd-firstboot
@@ -1348,29 +1415,56 @@ fi
 %attr(755,root,root) /bin/systemd-machine-id-setup
 %attr(755,root,root) /bin/systemd-notify
 %attr(755,root,root) /bin/systemd-sysext
+%attr(755,root,root) /bin/systemd-mute-console
+%attr(755,root,root) /bin/systemd-pty-forward
+%attr(755,root,root) /bin/systemd-vpick
+%attr(755,root,root) /bin/varlinkctl
+/bin/run0
+%{_bindir}/run0
 %attr(755,root,root) /bin/systemd-sysusers
 %attr(755,root,root) /bin/systemd-tty-ask-password-agent
-%{?with_efi:%attr(755,root,root) %{_bindir}/bootctl}
-%attr(755,root,root) %{_bindir}/busctl
-%attr(755,root,root) %{_bindir}/coredumpctl
-%attr(755,root,root) %{_bindir}/hostnamectl
-%attr(755,root,root) %{_bindir}/kernel-install
-%attr(755,root,root) %{_bindir}/localectl
-%attr(755,root,root) %{_bindir}/systemd-ac-power
-%attr(755,root,root) %{_bindir}/systemd-cat
-%{?with_cryptsetup:%attr(755,root,root) %{_bindir}/systemd-cryptenroll}
-%attr(755,root,root) %{_bindir}/systemd-delta
-%attr(755,root,root) %{_bindir}/systemd-id128
-%attr(755,root,root) %{_bindir}/systemd-mount
-%attr(755,root,root) %{_bindir}/systemd-nspawn
-%attr(755,root,root) %{_bindir}/systemd-path
-%attr(755,root,root) %{_bindir}/systemd-resolve
-%attr(755,root,root) %{_bindir}/systemd-run
-%attr(755,root,root) %{_bindir}/systemd-socket-activate
-%attr(755,root,root) %{_bindir}/systemd-stdio-bridge
-%attr(755,root,root) %{_bindir}/systemd-umount
-%attr(755,root,root) %{_bindir}/timedatectl
-%attr(755,root,root) %{_bindir}/userdbctl
+%attr(755,root,root) /bin/bootctl
+%{_bindir}/bootctl
+%attr(755,root,root) /bin/busctl
+%{_bindir}/busctl
+%attr(755,root,root) /bin/coredumpctl
+%{_bindir}/coredumpctl
+%attr(755,root,root) /bin/hostnamectl
+%{_bindir}/hostnamectl
+%attr(755,root,root) /bin/kernel-install
+%{_bindir}/kernel-install
+%attr(755,root,root) /bin/localectl
+%{_bindir}/localectl
+%attr(755,root,root) /bin/systemd-ac-power
+%{_bindir}/systemd-ac-power
+%attr(755,root,root) /bin/systemd-cat
+%{_bindir}/systemd-cat
+%{?with_cryptsetup:%attr(755,root,root) /bin/systemd-cryptenroll}
+%{?with_cryptsetup:%{_bindir}/systemd-cryptenroll}
+%attr(755,root,root) /bin/systemd-delta
+%{_bindir}/systemd-delta
+%attr(755,root,root) /bin/systemd-id128
+%{_bindir}/systemd-id128
+%attr(755,root,root) /bin/systemd-mount
+%{_bindir}/systemd-mount
+%attr(755,root,root) /bin/systemd-nspawn
+%{_bindir}/systemd-nspawn
+%attr(755,root,root) /bin/systemd-path
+%{_bindir}/systemd-path
+/bin/systemd-resolve
+%{_bindir}/systemd-resolve
+%attr(755,root,root) /bin/systemd-run
+%{_bindir}/systemd-run
+%attr(755,root,root) /bin/systemd-socket-activate
+%{_bindir}/systemd-socket-activate
+%attr(755,root,root) /bin/systemd-stdio-bridge
+%{_bindir}/systemd-stdio-bridge
+/bin/systemd-umount
+%{_bindir}/systemd-umount
+%attr(755,root,root) /bin/timedatectl
+%{_bindir}/timedatectl
+%attr(755,root,root) /bin/userdbctl
+%{_bindir}/userdbctl
 /lib/modprobe.d/systemd.conf
 /lib/systemd/resolv.conf
 %attr(755,root,root) /lib/systemd/pld-clean-tmp
@@ -1379,10 +1473,45 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-binfmt
 %{?with_efi:%attr(755,root,root) /lib/systemd/systemd-bless-boot}
 %attr(755,root,root) /lib/systemd/systemd-boot-check-no-failures
-%attr(755,root,root) /lib/systemd/systemd-cgroups-agent
 %attr(755,root,root) /lib/systemd/systemd-coredump
+%attr(755,root,root) /lib/systemd/systemd-executor
+%attr(755,root,root) /lib/systemd/systemd-factory-reset
+%attr(755,root,root) /lib/systemd/systemd-bsod
+%attr(755,root,root) /lib/systemd/systemd-keyutil
+%attr(755,root,root) /lib/systemd/systemd-mountfsd
+%attr(755,root,root) /lib/systemd/systemd-mountwork
+%attr(755,root,root) /lib/systemd/systemd-nsresourced
+%attr(755,root,root) /lib/systemd/systemd-nsresourcework
+%attr(755,root,root) /lib/systemd/systemd-pcrlock
+%attr(755,root,root) /lib/systemd/systemd-sbsign
+%attr(755,root,root) /lib/systemd/systemd-ssh-issue
+%attr(755,root,root) /lib/systemd/systemd-ssh-proxy
+%attr(755,root,root) /lib/systemd/systemd-storagetm
+%attr(755,root,root) /lib/systemd/systemd-tpm2-clear
+%attr(755,root,root) /lib/systemd/systemd-tpm2-setup
+%attr(755,root,root) /lib/systemd/systemd-validatefs
+%attr(755,root,root) /lib/systemd/system-generators/systemd-factory-reset-generator
+%attr(755,root,root) /lib/systemd/system-generators/systemd-ssh-generator
+%attr(755,root,root) /lib/systemd/system-generators/systemd-tpm2-generator
+%dir /lib/systemd/profile.d
+/lib/systemd/profile.d/70-systemd-shell-extra.sh
+/lib/systemd/profile.d/80-systemd-osc-context.sh
+%dir /lib/systemd/ssh_config.d
+/lib/systemd/ssh_config.d/20-systemd-ssh-proxy.conf
+%dir /lib/nvpcr
+/lib/nvpcr/cryptsetup.nvpcr
+/lib/nvpcr/hardware.nvpcr
+%config(noreplace) %verify(not md5 mtime size) /etc/profile.d/70-systemd-shell-extra.sh
+%config(noreplace) %verify(not md5 mtime size) /etc/profile.d/80-systemd-osc-context.sh
+%config(noreplace) %verify(not md5 mtime size) /etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf
+%config(noreplace) %verify(not md5 mtime size) /usr/lib/pam.d/systemd-run0
+%{_prefix}/lib/kernel/install.conf
+%{_prefix}/lib/kernel/uki.conf
+%{_prefix}/lib/pcrlock.d
+%{_datadir}/mime/packages/io.systemd.xml
 %if %{with cryptsetup}
-%attr(755,root,root) /lib/systemd/systemd-cryptsetup
+%attr(755,root,root) /bin/systemd-cryptsetup
+/lib/systemd/systemd-cryptsetup
 %attr(755,root,root) /lib/systemd/systemd-integritysetup
 %{?with_fido2:%attr(755,root,root) /usr/%{_lib}/cryptsetup/libcryptsetup-token-systemd-fido2.so}
 %attr(755,root,root) /usr/%{_lib}/cryptsetup/libcryptsetup-token-systemd-pkcs11.so
@@ -1402,7 +1531,7 @@ fi
 %endif
 %attr(755,root,root) /lib/systemd/systemd-modules-load
 %if %{with efi} && %{with tpm2}
-%attr(755,root,root) /lib/systemd/systemd-pcrphase
+%attr(755,root,root) /lib/systemd/systemd-pcrextend
 %endif
 %attr(755,root,root) /lib/systemd/systemd-pstore
 %attr(755,root,root) /lib/systemd/systemd-quotacheck
@@ -1415,11 +1544,11 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-socket-proxyd
 %attr(755,root,root) /lib/systemd/systemd-sulogin-shell
 %attr(755,root,root) /lib/systemd/systemd-sysctl
-%attr(755,root,root) /lib/systemd/systemd-sysroot-fstab-check
+/lib/systemd/systemd-sysroot-fstab-check
 %attr(755,root,root) /lib/systemd/systemd-time-wait-sync
 %attr(755,root,root) /lib/systemd/systemd-timedated
 %attr(755,root,root) /lib/systemd/systemd-timesyncd
-%attr(755,root,root) /lib/systemd/systemd-udevd
+/lib/systemd/systemd-udevd
 %attr(755,root,root) /lib/systemd/systemd-update-utmp
 %attr(755,root,root) /lib/systemd/systemd-update-done
 %attr(755,root,root) /lib/systemd/systemd-user-runtime-dir
@@ -1457,7 +1586,7 @@ fi
 %if %{with efi}
 %dir %{_prefix}/lib/systemd/boot
 %dir %{_prefix}/lib/systemd/boot/efi
-%ifarch %{ix86}
+%ifarch %{ix86} %{x8664}
 %{_prefix}/lib/systemd/boot/efi/addonia32.efi.stub
 %{_prefix}/lib/systemd/boot/efi/linuxia32.efi.stub
 %{_prefix}/lib/systemd/boot/efi/systemd-bootia32.efi
@@ -1496,6 +1625,9 @@ fi
 %{_prefix}/lib/sysusers.d/systemd-journal.conf
 %{_prefix}/lib/sysusers.d/systemd-timesync.conf
 %{_prefix}/lib/tmpfiles.d/credstore.conf
+%dir %attr(700,root,root) %{_sysconfdir}/credstore
+%dir %attr(700,root,root) %{_sysconfdir}/credstore.encrypted
+%dir %{_prefix}/lib/credstore
 %{_prefix}/lib/tmpfiles.d/etc.conf
 %{_prefix}/lib/tmpfiles.d/home.conf
 %{_prefix}/lib/tmpfiles.d/journal-nocow.conf
@@ -1507,6 +1639,10 @@ fi
 %{_prefix}/lib/tmpfiles.d/systemd-nspawn.conf
 %{_prefix}/lib/tmpfiles.d/systemd-pstore.conf
 %{_prefix}/lib/tmpfiles.d/systemd-tmp.conf
+%{_prefix}/lib/tmpfiles.d/20-systemd-osc-context.conf
+%{_prefix}/lib/tmpfiles.d/20-systemd-shell-extra.conf
+%{_prefix}/lib/tmpfiles.d/20-systemd-ssh-generator.conf
+%{_prefix}/lib/tmpfiles.d/20-systemd-stub.conf
 %{_prefix}/lib/tmpfiles.d/tmp.conf
 %{_prefix}/lib/tmpfiles.d/var.conf
 %{_prefix}/lib/tmpfiles.d/x11.conf
@@ -1528,6 +1664,12 @@ fi
 %{_datadir}/polkit-1/actions/org.freedesktop.systemd1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.timedate1.policy
 %{_datadir}/polkit-1/actions/org.freedesktop.timesync1.policy
+%{_datadir}/polkit-1/actions/io.systemd.ask-password.policy
+%{_datadir}/polkit-1/actions/io.systemd.credentials.policy
+%{_datadir}/polkit-1/actions/io.systemd.mount-file-system.policy
+%{_datadir}/polkit-1/actions/io.systemd.namespace-resource.policy
+%{_datadir}/polkit-1/rules.d/10-systemd-logind-root-ignore-inhibitors.rules.example
+%{_datadir}/polkit-1/rules.d/empower.rules
 %{_datadir}/polkit-1/rules.d/systemd-networkd.rules
 %dir %{_datadir}/systemd
 %{_datadir}/systemd/kbd-model-map
@@ -1538,7 +1680,7 @@ fi
 %{_datadir}/factory/etc/pam.d/other
 %{_datadir}/factory/etc/pam.d/system-auth
 %{_datadir}/factory/etc/vconsole.conf
-%{?with_efi:%{_mandir}/man1/bootctl.1*}
+%{_mandir}/man1/bootctl.1*
 %{_mandir}/man1/busctl.1*
 %{_mandir}/man1/coredumpctl.1*
 %{_mandir}/man1/hostnamectl.1*
@@ -1573,6 +1715,62 @@ fi
 %{_mandir}/man1/systemd-umount.1*
 %{_mandir}/man1/timedatectl.1*
 %{_mandir}/man1/userdbctl.1*
+%{_mandir}/man1/run0.1*
+%{_mandir}/man1/systemd-keyutil.1*
+%{_mandir}/man1/systemd-mute-console.1*
+%{_mandir}/man1/systemd-mute-console.socket.1*
+%{_mandir}/man1/systemd-mute-console@.service.1*
+%{_mandir}/man1/systemd-pty-forward.1*
+%{_mandir}/man1/systemd-sbsign.1*
+%{_mandir}/man1/systemd-ssh-issue.1*
+%{_mandir}/man1/systemd-ssh-proxy.1*
+%{_mandir}/man1/systemd-vpick.1*
+%{_mandir}/man1/varlinkctl.1*
+%{_mandir}/man5/capsule@.service.5*
+%{_mandir}/man5/confext.conf.5*
+%{_mandir}/man5/confext.conf.d.5*
+%{_mandir}/man5/org.freedesktop.timesync1.5*
+%{_mandir}/man5/sysext.conf.5*
+%{_mandir}/man5/sysext.conf.d.5*
+%{_mandir}/man7/systemd.v.7*
+%{_mandir}/man8/systemd-boot-clear-sysfail.service.8*
+%{_mandir}/man8/systemd-bsod.8*
+%{_mandir}/man8/systemd-bsod.service.8*
+%{_mandir}/man8/systemd-confext-initrd.service.8*
+%{_mandir}/man8/systemd-factory-reset.8*
+%{_mandir}/man8/systemd-factory-reset-complete.service.8*
+%{_mandir}/man8/systemd-factory-reset-generator.8*
+%{_mandir}/man8/systemd-factory-reset-request.service.8*
+%{_mandir}/man8/systemd-factory-reset.socket.8*
+%{_mandir}/man8/systemd-factory-reset@.service.8*
+%{_mandir}/man8/systemd-hibernate-clear.service.8*
+%{_mandir}/man8/systemd-loop@.service.8*
+%{_mandir}/man8/systemd-mountfsd.8*
+%{_mandir}/man8/systemd-mountfsd.service.8*
+%{_mandir}/man8/systemd-nsresourced.8*
+%{_mandir}/man8/systemd-nsresourced.service.8*
+%{_mandir}/man8/systemd-pcrlock.8*
+%{_mandir}/man8/systemd-pcrlock-file-system.service.8*
+%{_mandir}/man8/systemd-pcrlock-firmware-code.service.8*
+%{_mandir}/man8/systemd-pcrlock-firmware-config.service.8*
+%{_mandir}/man8/systemd-pcrlock-machine-id.service.8*
+%{_mandir}/man8/systemd-pcrlock-make-policy.service.8*
+%{_mandir}/man8/systemd-pcrlock-secureboot-authority.service.8*
+%{_mandir}/man8/systemd-pcrlock-secureboot-policy.service.8*
+%{_mandir}/man8/systemd-pcrnvdone.service.8*
+%{_mandir}/man8/systemd-pcrphase-factory-reset.service.8*
+%{_mandir}/man8/systemd-pcrphase-storage-target-mode.service.8*
+%{_mandir}/man8/systemd-pcrproduct.service.8*
+%{_mandir}/man8/systemd-ssh-generator.8*
+%{_mandir}/man8/systemd-storagetm.8*
+%{_mandir}/man8/systemd-storagetm.service.8*
+%{_mandir}/man8/systemd-sysext-initrd.service.8*
+%{_mandir}/man8/systemd-tpm2-clear.service.8*
+%{_mandir}/man8/systemd-tpm2-generator.8*
+%{_mandir}/man8/systemd-tpm2-setup.8*
+%{_mandir}/man8/systemd-tpm2-setup-early.service.8*
+%{_mandir}/man8/systemd-tpm2-setup.service.8*
+%{_mandir}/man8/systemd-validatefs@.service.8*
 %{_mandir}/man5/binfmt.d.5*
 %{_mandir}/man5/coredump.conf.5*
 %{_mandir}/man5/coredump.conf.d.5*
@@ -1618,15 +1816,9 @@ fi
 %{_mandir}/man7/file-hierarchy.7*
 %{_mandir}/man7/kernel-command-line.7*
 %if %{with efi}
-%ifarch %{ix86}
-%{_mandir}/man7/linuxia32.efi.stub.7*
-%endif
-%ifarch %{x8664}
-%{_mandir}/man7/linuxx64.efi.stub.7*
-%endif
-%ifarch aarch64
 %{_mandir}/man7/linuxaa64.efi.stub.7*
-%endif
+%{_mandir}/man7/linuxia32.efi.stub.7*
+%{_mandir}/man7/linuxx64.efi.stub.7*
 %{_mandir}/man7/sd-boot.7*
 %{_mandir}/man7/sd-stub.7*
 %{_mandir}/man7/systemd-boot.7*
@@ -1675,7 +1867,6 @@ fi
 %{_mandir}/man8/systemd-hibernate-resume.8*
 %{_mandir}/man8/systemd-hibernate-resume.service.8*
 %{_mandir}/man8/systemd-hostnamed.8*
-%{_mandir}/man8/systemd-initctl.8*
 %{_mandir}/man8/systemd-journald-dev-log.socket.8*
 %{_mandir}/man8/systemd-journald-varlink@.socket.8*
 %{_mandir}/man8/systemd-journald.8*
@@ -1734,17 +1925,19 @@ fi
 
 %if %{with pam}
 %attr(755,root,root) /%{_lib}/security/pam_systemd.so
+%attr(755,root,root) /%{_lib}/security/pam_systemd_loadkey.so
+%{_mandir}/man8/pam_systemd_loadkey.8*
 %{_mandir}/man8/pam_systemd.8*
 %endif
 
 %files init
 %defattr(644,root,root,755)
-%attr(755,root,root) /sbin/halt
-%attr(755,root,root) /sbin/init
-%attr(755,root,root) /sbin/poweroff
-%attr(755,root,root) /sbin/reboot
+/sbin/halt
+/sbin/init
+/sbin/poweroff
+/sbin/reboot
 %attr(755,root,root) /sbin/runlevel
-%attr(755,root,root) /sbin/shutdown
+/sbin/shutdown
 %attr(755,root,root) /sbin/telinit
 %{_mandir}/man1/init.1*
 %if %{with cryptsetup}
@@ -1755,9 +1948,7 @@ fi
 %{_mandir}/man8/halt.8*
 %{_mandir}/man8/poweroff.8*
 %{_mandir}/man8/reboot.8*
-%{_mandir}/man8/runlevel.8*
 %{_mandir}/man8/shutdown.8*
-%{_mandir}/man8/telinit.8*
 
 %files sysv-compat
 %defattr(644,root,root,755)
@@ -1795,6 +1986,9 @@ fi
 %dir /lib/systemd/pld-helpers.d
 %dir /lib/systemd/system-generators
 %dir /lib/systemd/system-preset
+%dir /lib/systemd/initrd-preset
+/lib/systemd/initrd-preset/90-systemd.preset
+/lib/systemd/initrd-preset/99-default.preset
 /lib/systemd/system-preset/90-systemd.preset
 %dir /lib/systemd/system-shutdown
 %dir /lib/systemd/system-sleep
@@ -1802,7 +1996,8 @@ fi
 %attr(755,root,root) /bin/systemctl
 %attr(755,root,root) /bin/systemd-tmpfiles
 %attr(755,root,root) /bin/systemd_booted
-%attr(755,root,root) %{_bindir}/systemd-detect-virt
+%attr(755,root,root) /bin/systemd-detect-virt
+%{_bindir}/systemd-detect-virt
 %{_mandir}/man1/systemctl.1*
 %{_mandir}/man1/systemd-detect-virt.1*
 %{_mandir}/man5/tmpfiles.d.5*
@@ -1854,7 +2049,8 @@ fi
 %{systemdunitdir}/network.service
 %{systemdunitdir}/pld-clean-tmp.service
 %{systemdunitdir}/prefdm.service
-%{systemdunitdir}/quotaon.service
+%{systemdunitdir}/quotaon-root.service
+%{systemdunitdir}/quotaon@.service
 %{systemdunitdir}/random.service
 %{systemdunitdir}/rescue.service
 %{systemdunitdir}/serial-getty@.service
@@ -1884,6 +2080,99 @@ fi
 %{systemdunitdir}/systemd-halt.service
 %{systemdunitdir}/systemd-hibernate.service
 %{systemdunitdir}/systemd-hostnamed.service
+%{systemdunitdir}/breakpoint-pre-basic.service
+%{systemdunitdir}/breakpoint-pre-mount.service
+%{systemdunitdir}/breakpoint-pre-switch-root.service
+%{systemdunitdir}/breakpoint-pre-udev.service
+%{systemdunitdir}/capsule.slice
+%{systemdunitdir}/capsule@.service
+%{systemdunitdir}/factory-reset-now.target
+%{systemdunitdir}/imports-pre.target
+%{systemdunitdir}/imports.target
+%{systemdunitdir}/remote-integritysetup.target
+%{systemdunitdir}/ssh-access.target
+%{systemdunitdir}/storage-target-mode.target
+%{systemdunitdir}/system-systemd\x2dmute\x2dconsole.slice
+%{systemdunitdir}/systemd-ask-password.socket
+%{systemdunitdir}/systemd-ask-password@.service
+%{systemdunitdir}/systemd-boot-clear-sysfail.service
+%{systemdunitdir}/systemd-bootctl.socket
+%{systemdunitdir}/systemd-bootctl@.service
+%{systemdunitdir}/systemd-bsod.service
+%{systemdunitdir}/systemd-confext-initrd.service
+%{systemdunitdir}/systemd-creds.socket
+%{systemdunitdir}/systemd-creds@.service
+%{systemdunitdir}/systemd-factory-reset-complete.service
+%{systemdunitdir}/systemd-factory-reset-reboot.service
+%{systemdunitdir}/systemd-factory-reset-request.service
+%{systemdunitdir}/systemd-factory-reset.socket
+%{systemdunitdir}/systemd-factory-reset@.service
+%{systemdunitdir}/systemd-hibernate-clear.service
+%{systemdunitdir}/systemd-hibernate-resume.service
+%{systemdunitdir}/systemd-hostnamed.socket
+%{systemdunitdir}/systemd-journald-sync@.service
+%{systemdunitdir}/systemd-logind-varlink.socket
+%{systemdunitdir}/systemd-loop@.service
+%{systemdunitdir}/systemd-mountfsd.service
+%{systemdunitdir}/systemd-mountfsd.socket
+%{systemdunitdir}/systemd-mute-console.socket
+%{systemdunitdir}/systemd-mute-console@.service
+%{systemdunitdir}/systemd-nsresourced.service
+%{systemdunitdir}/systemd-nsresourced.socket
+%{systemdunitdir}/systemd-pcrextend.socket
+%{systemdunitdir}/systemd-pcrextend@.service
+%{systemdunitdir}/systemd-pcrlock-file-system.service
+%{systemdunitdir}/systemd-pcrlock-firmware-code.service
+%{systemdunitdir}/systemd-pcrlock-firmware-config.service
+%{systemdunitdir}/systemd-pcrlock-machine-id.service
+%{systemdunitdir}/systemd-pcrlock-make-policy.service
+%{systemdunitdir}/systemd-pcrlock-secureboot-authority.service
+%{systemdunitdir}/systemd-pcrlock-secureboot-policy.service
+%{systemdunitdir}/systemd-pcrlock.socket
+%{systemdunitdir}/systemd-pcrlock@.service
+%{systemdunitdir}/systemd-pcrnvdone.service
+%{systemdunitdir}/systemd-pcrphase-factory-reset.service
+%{systemdunitdir}/systemd-pcrphase-storage-target-mode.service
+%{systemdunitdir}/systemd-pcrproduct.service
+%{systemdunitdir}/systemd-storagetm.service
+%{systemdunitdir}/systemd-sysext-initrd.service
+%{systemdunitdir}/systemd-sysext.socket
+%{systemdunitdir}/systemd-sysext@.service
+%{systemdunitdir}/systemd-tpm2-clear.service
+%{systemdunitdir}/systemd-tpm2-setup-early.service
+%{systemdunitdir}/systemd-tpm2-setup.service
+%{systemdunitdir}/systemd-userdb-load-credentials.service
+%{systemdunitdir}/systemd-validatefs@.service
+%{systemdunitdir}/tpm2.target
+%dir %{systemdunitdir}/factory-reset.target.wants
+%{systemdunitdir}/factory-reset.target.wants/systemd-factory-reset-request.service
+%{systemdunitdir}/factory-reset.target.wants/systemd-pcrphase-factory-reset.service
+%dir %{systemdunitdir}/storage-target-mode.target.wants
+%{systemdunitdir}/storage-target-mode.target.wants/systemd-pcrphase-storage-target-mode.service
+%{systemdunitdir}/initrd-root-device.target.wants/remote-integritysetup.target
+%{systemdunitdir}/initrd.target.wants/systemd-bsod.service
+%{systemdunitdir}/initrd.target.wants/systemd-confext-initrd.service
+%{systemdunitdir}/initrd.target.wants/systemd-sysext-initrd.service
+%{systemdunitdir}/sockets.target.wants/systemd-ask-password.socket
+%{systemdunitdir}/sockets.target.wants/systemd-bootctl.socket
+%{systemdunitdir}/sockets.target.wants/systemd-creds.socket
+%{systemdunitdir}/sockets.target.wants/systemd-factory-reset.socket
+%{systemdunitdir}/sockets.target.wants/systemd-hostnamed.socket
+%{systemdunitdir}/sockets.target.wants/systemd-logind-varlink.socket
+%{systemdunitdir}/sockets.target.wants/systemd-mute-console.socket
+%{systemdunitdir}/sockets.target.wants/systemd-pcrextend.socket
+%{systemdunitdir}/sockets.target.wants/systemd-pcrlock.socket
+%{systemdunitdir}/sockets.target.wants/systemd-sysext.socket
+%{systemdunitdir}/sysinit.target.wants/imports.target
+%{systemdunitdir}/sysinit.target.wants/systemd-hibernate-clear.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrnvdone.service
+%{systemdunitdir}/sysinit.target.wants/systemd-pcrproduct.service
+%{systemdunitdir}/sysinit.target.wants/systemd-tpm2-setup-early.service
+%{systemdunitdir}/sysinit.target.wants/systemd-tpm2-setup.service
+%{systemduserunitdir}/capsule@.target
+%{systemduserunitdir}/systemd-ask-password.socket
+%{systemduserunitdir}/systemd-ask-password@.service
+%{systemduserunitdir}/sockets.target.wants/systemd-ask-password.socket
 %{systemdunitdir}/systemd-hwdb-update.service
 %{systemdunitdir}/systemd-hybrid-sleep.service
 %{systemdunitdir}/systemd-initctl.service
@@ -1906,7 +2195,8 @@ fi
 %{systemdunitdir}/systemd-pcrphase.service
 %endif
 %{systemdunitdir}/systemd-poweroff.service
-%{systemdunitdir}/systemd-quotacheck.service
+%{systemdunitdir}/systemd-quotacheck-root.service
+%{systemdunitdir}/systemd-quotacheck@.service
 %{systemdunitdir}/systemd-random-seed.service
 %{systemdunitdir}/systemd-reboot.service
 %{systemdunitdir}/systemd-remount-fs.service
@@ -1929,7 +2219,6 @@ fi
 %{systemdunitdir}/systemd-udevd.service
 %dir %{systemdunitdir}/systemd-udevd.service.d
 %{systemdunitdir}/systemd-update-done.service
-%{systemdunitdir}/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/systemd-update-utmp.service
 %{systemdunitdir}/systemd-user-sessions.service
 %{systemdunitdir}/systemd-userdbd.service
@@ -1958,6 +2247,8 @@ fi
 %{systemdunitdir}/systemd-journald@.socket
 %{systemdunitdir}/systemd-udevd-control.socket
 %{systemdunitdir}/systemd-udevd-kernel.socket
+%{systemdunitdir}/systemd-udev-load-credentials.service
+%{systemdunitdir}/systemd-udevd-varlink.socket
 %{systemdunitdir}/basic.target
 %{systemdunitdir}/blockdev@.target
 %{systemdunitdir}/bluetooth.target
@@ -2064,7 +2355,6 @@ fi
 %{systemdunitdir}/initrd-root-device.target.wants/remote-veritysetup.target
 %endif
 %{systemdunitdir}/graphical.target.wants/display-manager.service
-%{systemdunitdir}/graphical.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/initrd.target.wants/systemd-battery-check.service
 %if %{with efi} && %{with tpm2}
 %{systemdunitdir}/initrd.target.wants/systemd-pcrphase-initrd.service
@@ -2076,9 +2366,7 @@ fi
 %{systemdunitdir}/multi-user.target.wants/rc-local.service
 %{systemdunitdir}/multi-user.target.wants/systemd-ask-password-wall.path
 %{systemdunitdir}/multi-user.target.wants/systemd-logind.service
-%{systemdunitdir}/multi-user.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/multi-user.target.wants/systemd-user-sessions.service
-%{systemdunitdir}/rescue.target.wants/systemd-update-utmp-runlevel.service
 %{systemdunitdir}/sigpwr.target.wants/sigpwr-container-shutdown.service
 %{systemdunitdir}/sockets.target.wants/systemd-coredump.socket
 %{systemdunitdir}/sockets.target.wants/systemd-initctl.socket
@@ -2086,6 +2374,7 @@ fi
 %{systemdunitdir}/sockets.target.wants/systemd-journald.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-control.socket
 %{systemdunitdir}/sockets.target.wants/systemd-udevd-kernel.socket
+%{systemdunitdir}/sockets.target.wants/systemd-udevd-varlink.socket
 %if %{with cryptsetup}
 %{systemdunitdir}/sysinit.target.wants/cryptsetup.target
 %{systemdunitdir}/sysinit.target.wants/integritysetup.target
@@ -2180,8 +2469,6 @@ fi
 %{_mandir}/man8/systemd-hibernate.service.8*
 %{_mandir}/man8/systemd-hostnamed.service.8*
 %{_mandir}/man8/systemd-hybrid-sleep.service.8*
-%{_mandir}/man8/systemd-initctl.service.8*
-%{_mandir}/man8/systemd-initctl.socket.8*
 %{_mandir}/man8/systemd-journald.service.8*
 %{_mandir}/man8/systemd-journald.socket.8*
 %{_mandir}/man8/systemd-journald-audit.socket.8*
@@ -2195,11 +2482,12 @@ fi
 %{_mandir}/man8/systemd-pcrmachine.service.8*
 %{_mandir}/man8/systemd-pcrphase-initrd.service.8*
 %{_mandir}/man8/systemd-pcrphase-sysinit.service.8*
-%{_mandir}/man8/systemd-pcrphase.8*
+%{_mandir}/man8/systemd-pcrextend.8*
 %{_mandir}/man8/systemd-pcrphase.service.8*
 %endif
 %{_mandir}/man8/systemd-poweroff.service.8*
-%{_mandir}/man8/systemd-quotacheck.service.8*
+%{_mandir}/man8/systemd-quotacheck-root.service.8*
+%{_mandir}/man8/systemd-quotacheck@.service.8*
 %{_mandir}/man8/systemd-random-seed.service.8*
 %{_mandir}/man8/systemd-reboot.service.8*
 %{_mandir}/man8/systemd-remount-fs.service.8*
@@ -2220,7 +2508,7 @@ fi
 %{_mandir}/man8/systemd-udevd.service.8*
 %{_mandir}/man8/systemd-udevd-control.socket.8*
 %{_mandir}/man8/systemd-udevd-kernel.socket.8*
-%{_mandir}/man8/systemd-update-utmp-runlevel.service.8*
+%{_mandir}/man8/systemd-udevd-varlink.socket.8*
 %{_mandir}/man8/systemd-update-utmp.service.8*
 %{_mandir}/man8/systemd-user-sessions.service.8*
 %{_mandir}/man8/systemd-userdbd.service.8*
@@ -2228,23 +2516,32 @@ fi
 
 %files tools
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/systemd-cgls
-%attr(755,root,root) %{_bindir}/systemd-cgtop
+%attr(755,root,root) /bin/systemd-cgls
+%{_bindir}/systemd-cgls
+%attr(755,root,root) /bin/systemd-cgtop
+%{_bindir}/systemd-cgtop
 %{_mandir}/man1/systemd-cgls.1*
 %{_mandir}/man1/systemd-cgtop.1*
 
 %files container
 %defattr(644,root,root,755)
 %attr(755,root,root) /bin/machinectl
-/lib/systemd/import-pubring.gpg
+/lib/systemd/import-pubring.pgp
 %attr(755,root,root) /lib/systemd/systemd-export
 %attr(755,root,root) /lib/systemd/systemd-import
 %attr(755,root,root) /lib/systemd/systemd-import-fs
 %attr(755,root,root) /lib/systemd/systemd-machined
 %attr(755,root,root) /lib/systemd/systemd-pull
 %attr(755,root,root) /lib/systemd/systemd-importd
-%attr(755,root,root) %{_bindir}/systemd-dissect
-%attr(755,root,root) /sbin/mount.ddi
+%attr(755,root,root) /bin/importctl
+%attr(755,root,root) /lib/systemd/system-generators/systemd-import-generator
+%{_datadir}/dbus-1/services/org.freedesktop.import1.service
+%{_datadir}/dbus-1/services/org.freedesktop.machine1.service
+%{_mandir}/man1/importctl.1*
+%{_mandir}/man8/systemd-import-generator.8*
+%attr(755,root,root) /bin/systemd-dissect
+%{_bindir}/systemd-dissect
+/sbin/mount.ddi
 %{_datadir}/dbus-1/system-services/org.freedesktop.import1.service
 %{_datadir}/dbus-1/system-services/org.freedesktop.machine1.service
 %{_datadir}/dbus-1/interfaces/org.freedesktop.import1.*.xml
@@ -2258,6 +2555,7 @@ fi
 %{_mandir}/man5/org.freedesktop.import1.5*
 %{_mandir}/man5/org.freedesktop.machine1.5*
 %{_mandir}/man7/systemd.image-policy.7*
+%{_mandir}/man7/systemd.image-filter.7*
 %{_mandir}/man8/systemd-importd.8*
 %{_mandir}/man8/systemd-importd.service.8*
 %{_mandir}/man8/systemd-machined.8*
@@ -2271,6 +2569,21 @@ fi
 %{systemdunitdir}/var-lib-machines.mount
 %{systemdunitdir}/systemd-importd.service
 %{systemdunitdir}/systemd-machined.service
+%{systemdunitdir}/systemd-importd.socket
+%{systemdunitdir}/systemd-machined.socket
+%{systemdunitdir}/sockets.target.wants/systemd-importd.socket
+%{systemdunitdir}/sockets.target.wants/systemd-machined.socket
+%{systemduserunitdir}/dbus-org.freedesktop.import1.service
+%{systemduserunitdir}/dbus-org.freedesktop.machine1.service
+%{systemduserunitdir}/machine.slice
+%{systemduserunitdir}/machines.target
+%{systemduserunitdir}/systemd-importd.service
+%{systemduserunitdir}/systemd-importd.socket
+%{systemduserunitdir}/systemd-machined.service
+%{systemduserunitdir}/systemd-machined.socket
+%{systemduserunitdir}/systemd-nspawn@.service
+%{systemduserunitdir}/sockets.target.wants/systemd-importd.socket
+%{systemduserunitdir}/sockets.target.wants/systemd-machined.socket
 
 %if %{with microhttpd}
 %files journal-remote
@@ -2303,18 +2616,22 @@ fi
 
 %files homed
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/homectl
+%attr(755,root,root) /bin/homectl
+%{_bindir}/homectl
+/bin/systemd-home-fallback-shell
 %attr(755,root,root) /lib/systemd/systemd-homed
 %attr(755,root,root) /lib/systemd/systemd-homework
 %attr(755,root,root) /%{_lib}/security/pam_systemd_home.so
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/homed.conf
 %{systemdunitdir}/systemd-homed.service
 %{systemdunitdir}/systemd-homed-activate.service
+%{systemdunitdir}/systemd-homed-firstboot.service
 %{_datadir}/dbus-1/interfaces/org.freedesktop.home1.*.xml
 %{_datadir}/dbus-1/system-services/org.freedesktop.home1.service
 %{_datadir}/dbus-1/system.d/org.freedesktop.home1.conf
 %{_datadir}/polkit-1/actions/org.freedesktop.home1.policy
 %{_mandir}/man1/homectl.1*
+%{_mandir}/man1/systemd-homed-firstboot.service.1*
 %{_mandir}/man5/homed.conf.5*
 %{_mandir}/man5/homed.conf.d.5*
 %{_mandir}/man5/org.freedesktop.home1.5*
@@ -2336,12 +2653,29 @@ fi
 /lib/systemd/network/80-container-vz.network
 /lib/systemd/network/80-vm-vt.network
 /lib/systemd/network/80-wifi-adhoc.network
+/lib/systemd/network/80-6rd-tunnel.link
+/lib/systemd/network/80-auto-link-local.network.example
+/lib/systemd/network/80-container-host0-tun.network
+/lib/systemd/network/80-container-vb.link
+/lib/systemd/network/80-container-ve.link
+/lib/systemd/network/80-container-vz.link
+/lib/systemd/network/80-namespace-ns-tun.link
+/lib/systemd/network/80-namespace-ns-tun.network
+/lib/systemd/network/80-namespace-ns.link
+/lib/systemd/network/80-namespace-ns.network
+/lib/systemd/network/80-vm-vt.link
+/lib/systemd/network/80-wifi-ap.network.example
+/lib/systemd/network/80-wifi-station.network.example
+/lib/systemd/network/89-ethernet.network.example
 %{_prefix}/lib/sysusers.d/systemd-network.conf
 %{systemdunitdir}/systemd-network-generator.service
 %{systemdunitdir}/systemd-networkd-wait-online.service
 %{systemdunitdir}/systemd-networkd-wait-online@.service
 %{systemdunitdir}/systemd-networkd.service
 %{systemdunitdir}/systemd-networkd.socket
+%{systemdunitdir}/systemd-networkd-persistent-storage.service
+%{systemdunitdir}/systemd-networkd-resolve-hook.socket
+%{systemdunitdir}/systemd-networkd-varlink.socket
 %{_datadir}/dbus-1/system-services/org.freedesktop.network1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.network1.policy
 %attr(755,root,root) /bin/networkctl
@@ -2363,7 +2697,8 @@ fi
 
 %files oomd
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/oomctl
+%attr(755,root,root) /bin/oomctl
+%{_bindir}/oomctl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/systemd/oomd.conf
 %attr(755,root,root) /lib/systemd/systemd-oomd
 %{_prefix}/lib/sysusers.d/systemd-oom.conf
@@ -2411,9 +2746,13 @@ fi
 %dir %{_sysconfdir}/repart.d
 %attr(755,root,root) /bin/systemd-repart
 %{systemdunitdir}/systemd-repart.service
+%{systemdunitdir}/systemd-repart.socket
+%{systemdunitdir}/systemd-repart@.service
+%{systemdunitdir}/sockets.target.wants/systemd-repart.socket
 %{systemdunitdir}/initrd-root-fs.target.wants/systemd-repart.service
 %{systemdunitdir}/sysinit.target.wants/systemd-repart.service
 %dir %{_prefix}/lib/repart.d
+/lib/systemd/repart
 %{_mandir}/man5/repart.d.5*
 %{_mandir}/man8/systemd-repart.8*
 %{_mandir}/man8/systemd-repart.service.8*
@@ -2428,8 +2767,11 @@ fi
 %{_datadir}/dbus-1/system-services/org.freedesktop.resolve1.service
 %{_datadir}/polkit-1/actions/org.freedesktop.resolve1.policy
 %{systemdunitdir}/systemd-resolved.service
-%attr(755,root,root) /sbin/resolvconf
-%attr(755,root,root) %{_bindir}/resolvectl
+%{systemdunitdir}/systemd-resolved-monitor.socket
+%{systemdunitdir}/systemd-resolved-varlink.socket
+/sbin/resolvconf
+%attr(755,root,root) /bin/resolvectl
+%{_bindir}/resolvectl
 %attr(755,root,root) /lib/systemd/systemd-resolved
 %{_mandir}/man1/resolvconf.1*
 %{_mandir}/man1/resolvectl.1*
@@ -2449,6 +2791,7 @@ fi
 %attr(755,root,root) /lib/systemd/systemd-sysupdate
 %dir %{_prefix}/lib/sysupdate.d
 %{_mandir}/man5/sysupdate.d.5*
+%{_mandir}/man5/sysupdate.features.5*
 %{_mandir}/man8/systemd-sysupdate.8*
 %{_mandir}/man8/systemd-sysupdate.service.8*
 %{_mandir}/man8/systemd-sysupdate.timer.8*
@@ -2462,13 +2805,16 @@ fi
 
 %files analyze
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/systemd-analyze
+%attr(755,root,root) /bin/systemd-analyze
+%{_bindir}/systemd-analyze
 %{_mandir}/man1/systemd-analyze.1*
 
 %if %{with efi}
 %files ukify
 %defattr(644,root,root,755)
-%attr(755,root,root) /lib/systemd/ukify
+%attr(755,root,root) /bin/ukify
+%{_bindir}/ukify
+/lib/systemd/ukify
 %{_prefix}/lib/kernel/install.d/60-ukify.install
 %{_mandir}/man1/ukify.1*
 %endif
@@ -2479,8 +2825,8 @@ fi
 %attr(755,root,root) /%{_lib}/libnss_mymachines.so.2
 %attr(755,root,root) /%{_lib}/libnss_resolve.so.2
 %attr(755,root,root) /%{_lib}/libnss_systemd.so.2
-%attr(755,root,root) /%{_lib}/libsystemd.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libsystemd.so.0
+/%{_lib}/libsystemd.so.*.*.*
+%ghost /%{_lib}/libsystemd.so.0
 %if "%{_lib}" != "lib"
 %dir /%{_lib}/systemd
 %endif
@@ -2493,7 +2839,7 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root) /%{_lib}/libsystemd.so
+/%{_lib}/libsystemd.so
 %{_includedir}/%{name}
 %{_pkgconfigdir}/libsystemd.pc
 %{_npkgconfigdir}/systemd.pc
@@ -2508,6 +2854,7 @@ fi
 %{bash_compdir}/coredumpctl
 %{bash_compdir}/homectl
 %{bash_compdir}/hostnamectl
+%{bash_compdir}/importctl
 %{bash_compdir}/journalctl
 %{bash_compdir}/kernel-install
 %{bash_compdir}/localectl
@@ -2517,11 +2864,14 @@ fi
 %{bash_compdir}/oomctl
 %{bash_compdir}/portablectl
 %{bash_compdir}/resolvectl
+%{bash_compdir}/run0
 %{bash_compdir}/systemctl
 %{bash_compdir}/systemd-analyze
 %{bash_compdir}/systemd-cat
 %{bash_compdir}/systemd-cgls
 %{bash_compdir}/systemd-cgtop
+%{bash_compdir}/systemd-confext
+%{bash_compdir}/systemd-creds
 %{bash_compdir}/systemd-cryptenroll
 %{bash_compdir}/systemd-delta
 %{bash_compdir}/systemd-detect-virt
@@ -2532,7 +2882,10 @@ fi
 %{bash_compdir}/systemd-resolve
 %{bash_compdir}/systemd-run
 %{bash_compdir}/systemd-sysext
+%{bash_compdir}/systemd-vpick
 %{bash_compdir}/timedatectl
+%{bash_compdir}/userdbctl
+%{bash_compdir}/varlinkctl
 
 %files -n zsh-completion-systemd
 %defattr(644,root,root,755)
@@ -2548,6 +2901,8 @@ fi
 %{zsh_compdir}/_networkctl
 %{zsh_compdir}/_oomctl
 %{zsh_compdir}/_resolvectl
+%{zsh_compdir}/_run0
+%{zsh_compdir}/_sd_bus_address
 %{zsh_compdir}/_sd_hosts_or_user_at_host
 %{zsh_compdir}/_sd_machines
 %{zsh_compdir}/_sd_outputmodes
@@ -2556,12 +2911,15 @@ fi
 %{zsh_compdir}/_systemd
 %{zsh_compdir}/_systemd-analyze
 %{zsh_compdir}/_systemd-delta
+%{zsh_compdir}/_systemd-id128
 %{zsh_compdir}/_systemd-inhibit
 %{zsh_compdir}/_systemd-nspawn
 %{zsh_compdir}/_systemd-path
 %{zsh_compdir}/_systemd-run
 %{zsh_compdir}/_systemd-tmpfiles
 %{zsh_compdir}/_timedatectl
+%{zsh_compdir}/_userdbctl
+%{zsh_compdir}/_varlinkctl
 
 %files -n udev
 %defattr(644,root,root,755)
@@ -2585,7 +2943,7 @@ fi
 %attr(755,root,root) /lib/udev/scsi_id
 %attr(755,root,root) /lib/udev/v4l_id
 
-%attr(755,root,root) /lib/udev/udevd
+/lib/udev/udevd
 
 /lib/udev/hwdb.d/20-acpi-vendor.hwdb
 /lib/udev/hwdb.d/20-bluetooth-vendor-product.hwdb
@@ -2612,6 +2970,7 @@ fi
 /lib/udev/hwdb.d/70-cameras.hwdb
 /lib/udev/hwdb.d/70-hardware-wallets.hwdb
 /lib/udev/hwdb.d/70-joystick.hwdb
+/lib/udev/hwdb.d/70-maker-tools.hwdb
 /lib/udev/hwdb.d/70-mouse.hwdb
 /lib/udev/hwdb.d/70-pda.hwdb
 /lib/udev/hwdb.d/70-pointingstick.hwdb
@@ -2619,10 +2978,11 @@ fi
 /lib/udev/hwdb.d/70-sound-card.hwdb
 /lib/udev/hwdb.d/70-touchpad.hwdb
 /lib/udev/hwdb.d/80-ieee1394-unit-function.hwdb
+/lib/udev/hwdb.d/82-net-auto-link-local.hwdb
 
 %attr(755,root,root) %{_rootsbindir}/start_udev
-%attr(755,root,root) %{_rootsbindir}/udevd
-%attr(755,root,root) %{_rootsbindir}/udevadm
+%{_rootsbindir}/udevd
+%{_rootsbindir}/udevadm
 %attr(755,root,root) /bin/systemd-hwdb
 %attr(755,root,root) /bin/udevadm
 
@@ -2656,11 +3016,14 @@ fi
 /lib/udev/rules.d/60-drm.rules
 /lib/udev/rules.d/60-evdev.rules
 /lib/udev/rules.d/60-fido-id.rules
+/lib/udev/rules.d/60-gpiochip.rules
 /lib/udev/rules.d/60-infiniband.rules
 /lib/udev/rules.d/60-input-id.rules
 /lib/udev/rules.d/60-persistent-alsa.rules
+/lib/udev/rules.d/60-persistent-hidraw.rules
 /lib/udev/rules.d/60-persistent-input.rules
 /lib/udev/rules.d/60-persistent-storage.rules
+/lib/udev/rules.d/60-persistent-storage-mtd.rules
 /lib/udev/rules.d/60-persistent-storage-tape.rules
 /lib/udev/rules.d/60-persistent-v4l.rules
 /lib/udev/rules.d/60-sensor.rules
@@ -2681,11 +3044,15 @@ fi
 /lib/udev/rules.d/80-drivers.rules
 /lib/udev/rules.d/80-net-setup-link.rules
 /lib/udev/rules.d/81-net-dhcp.rules
+/lib/udev/rules.d/81-net-bridge.rules
+/lib/udev/rules.d/82-net-auto-link-local.rules
+/lib/udev/rules.d/90-image-dissect.rules
 /lib/udev/rules.d/90-iocost.rules
 /lib/udev/rules.d/90-vconsole.rules
 
 %{_mandir}/man5/iocost.conf.5*
 %{_mandir}/man5/udev.conf.5*
+%{_mandir}/man5/udev.conf.d.5*
 %{_mandir}/man7/udev.7*
 %{_mandir}/man7/hwdb.7*
 %{_mandir}/man8/systemd-hwdb.8*
@@ -2694,12 +3061,12 @@ fi
 
 %files -n udev-libs
 %defattr(644,root,root,755)
-%attr(755,root,root) /%{_lib}/libudev.so.*.*.*
-%attr(755,root,root) %ghost /%{_lib}/libudev.so.1
+/%{_lib}/libudev.so.*.*.*
+%ghost /%{_lib}/libudev.so.1
 
 %files -n udev-devel
 %defattr(644,root,root,755)
-%attr(755,root,root) /%{_lib}/libudev.so
+/%{_lib}/libudev.so
 %{_includedir}/libudev.h
 %{_pkgconfigdir}/libudev.pc
 %{_npkgconfigdir}/udev.pc
@@ -2709,10 +3076,12 @@ fi
 %files -n bash-completion-udev
 %defattr(644,root,root,755)
 %{bash_compdir}/udevadm
+%{bash_compdir}/systemd-hwdb
 
 %files -n zsh-completion-udev
 %defattr(644,root,root,755)
 %{zsh_compdir}/_udevadm
+%{zsh_compdir}/_systemd-hwdb
 
 %files -n rpm-macros-systemd
 %defattr(644,root,root,755)

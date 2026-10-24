@@ -1,0 +1,239 @@
+PLD installs systemd into / with a separate /usr (prefix=/): keep in /usr what the 254
+split-usr layout kept there (tmpfiles.d, sysusers.d, sysctl.d, user units, catalog, ...) and
+export the same paths in systemd.pc, libsystemd.pc, libudev.pc and sd-path.
+
+ meson.build                      | 51 +++++++++++++++++++-------------
+ src/core/systemd.pc.in           | 16 +++++-----
+ src/libsystemd/libsystemd.pc.in  |  4 +--
+ src/libsystemd/sd-path/sd-path.c | 10 +++----
+ src/libudev/libudev.pc.in        |  4 +--
+ 5 files changed, 47 insertions(+), 38 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index ce6898f..7d3c6fd 100644
+--- a/meson.build
++++ b/meson.build
+@@ -125,6 +125,14 @@ if not prefixdir.startswith('/')
+ endif
+ 
+ prefixdir_noslash = '/' + prefixdir.strip('/')
++# PLD keeps /usr unmerged: with prefix=/ the files that do not need to be on the
++# root fs (as in the old split-usr layout) still go below /usr
++if prefixdir == '/'
++        prefixdir_noslash = ''
++        usrprefixdir = '/usr'
++else
++        usrprefixdir = prefixdir
++endif
+ bindir = prefixdir / get_option('bindir')
+ sbindir = prefixdir / (split_bin ? 'sbin' : 'bin')
+ sbin_to_bin = split_bin ? '../bin/' : ''
+@@ -149,27 +157,27 @@ polkitpkladir = localstatedir / 'lib/polkit-1/localauthority/10-vendor.d'
+ xinitrcdir = get_option('xinitrcdir') != '' ? get_option('xinitrcdir') : sysconfdir / 'X11/xinit/xinitrc.d'
+ rpmmacrosdir = get_option('rpmmacrosdir')
+ if rpmmacrosdir != 'no'
+-        rpmmacrosdir = prefixdir / rpmmacrosdir
++        rpmmacrosdir = usrprefixdir / rpmmacrosdir
+ endif
+ modprobedir = prefixdir / 'lib/modprobe.d'
+ 
+ # Our own paths
+ pkgdatadir = datadir / 'systemd'
+-environmentdir = prefixdir / 'lib/environment.d'
++environmentdir = usrprefixdir / 'lib/environment.d'
+ pkgsysconfdir = sysconfdir / 'systemd'
+-userunitdir = prefixdir / 'lib/systemd/user'
+-userpresetdir = prefixdir / 'lib/systemd/user-preset'
+-tmpfilesdir = prefixdir / 'lib/tmpfiles.d'
+-usertmpfilesdir = prefixdir / 'share/user-tmpfiles.d'
+-sysusersdir = prefixdir / 'lib/sysusers.d'
+-sysctldir = prefixdir / 'lib/sysctl.d'
+-binfmtdir = prefixdir / 'lib/binfmt.d'
+-modulesloaddir = prefixdir / 'lib/modules-load.d'
++userunitdir = usrprefixdir / 'lib/systemd/user'
++userpresetdir = usrprefixdir / 'lib/systemd/user-preset'
++tmpfilesdir = usrprefixdir / 'lib/tmpfiles.d'
++usertmpfilesdir = usrprefixdir / 'share/user-tmpfiles.d'
++sysusersdir = usrprefixdir / 'lib/sysusers.d'
++sysctldir = usrprefixdir / 'lib/sysctl.d'
++binfmtdir = usrprefixdir / 'lib/binfmt.d'
++modulesloaddir = usrprefixdir / 'lib/modules-load.d'
+ networkdir = prefixdir / 'lib/systemd/network'
+ systemgeneratordir = libexecdir / 'system-generators'
+-usergeneratordir = prefixdir / 'lib/systemd/user-generators'
+-systemenvgeneratordir = prefixdir / 'lib/systemd/system-environment-generators'
+-userenvgeneratordir = prefixdir / 'lib/systemd/user-environment-generators'
++usergeneratordir = usrprefixdir / 'lib/systemd/user-generators'
++systemenvgeneratordir = usrprefixdir / 'lib/systemd/system-environment-generators'
++userenvgeneratordir = usrprefixdir / 'lib/systemd/user-environment-generators'
+ systemshutdowndir = libexecdir / 'system-shutdown'
+ systemsleepdir = libexecdir / 'system-sleep'
+ systemunitdir = prefixdir / 'lib/systemd/system'
+@@ -178,12 +186,12 @@ initrdpresetdir = prefixdir / 'lib/systemd/initrd-preset'
+ udevlibexecdir = prefixdir / 'lib/udev'
+ udevrulesdir = udevlibexecdir / 'rules.d'
+ udevhwdbdir = udevlibexecdir / 'hwdb.d'
+-catalogdir = prefixdir / 'lib/systemd/catalog'
+-kerneldir = prefixdir / 'lib/kernel'
++catalogdir = usrprefixdir / 'lib/systemd/catalog'
++kerneldir = usrprefixdir / 'lib/kernel'
+ kernelinstalldir = kerneldir / 'install.d'
+ factorydir = datadir / 'factory'
+-bootlibdir = prefixdir / 'lib/systemd/boot/efi'
+-testsdir = prefixdir / 'lib/systemd/tests'
++bootlibdir = usrprefixdir / 'lib/systemd/boot/efi'
++testsdir = usrprefixdir / 'lib/systemd/tests'
+ unittestsdir = testsdir / 'unit-tests'
+ testdata_dir = testsdir / 'testdata'
+ systemdstatedir = localstatedir / 'lib/systemd'
+@@ -192,9 +200,9 @@ randomseeddir = localstatedir / 'lib/systemd'
+ profiledir = libexecdir / 'portable' / 'profile'
+ repartdefinitionsdir = libexecdir / 'repart/definitions'
+ ntpservicelistdir = prefixdir / 'lib/systemd/ntp-units.d'
+-credstoredir = prefixdir / 'lib/credstore'
+-pcrlockdir = prefixdir / 'lib/pcrlock.d'
+-mimepackagesdir = prefixdir / 'share/mime/packages'
++credstoredir = usrprefixdir / 'lib/credstore'
++pcrlockdir = usrprefixdir / 'lib/pcrlock.d'
++mimepackagesdir = usrprefixdir / 'share/mime/packages'
+ 
+ configfiledir = get_option('configfiledir')
+ if configfiledir == ''
+@@ -214,7 +222,7 @@ endif
+ 
+ pamconfdir = get_option('pamconfdir')
+ if pamconfdir == ''
+-        pamconfdir = prefixdir / 'lib/pam.d'
++        pamconfdir = usrprefixdir / 'lib/pam.d'
+ endif
+ 
+ sshconfdir = get_option('sshconfdir')
+@@ -270,6 +278,7 @@ conf.set_quoted('PKGSYSCONFDIR',                              pkgsysconfdir)
+ conf.set_quoted('POLKIT_RULES_DIR',                           polkitrulesdir)
+ conf.set_quoted('PREFIX',                                     prefixdir)
+ conf.set_quoted('PREFIX_NOSLASH',                             prefixdir_noslash)
++conf.set_quoted('USR_PREFIX',                                 usrprefixdir)
+ conf.set_quoted('RANDOM_SEED',                                randomseeddir / 'random-seed')
+ conf.set_quoted('RANDOM_SEED_DIR',                            randomseeddir)
+ conf.set_quoted('SSHCONFDIR',                                 sshconfdir)
+diff --git a/src/core/systemd.pc.in b/src/core/systemd.pc.in
+index 862d57d..e0efde0 100644
+--- a/src/core/systemd.pc.in
++++ b/src/core/systemd.pc.in
+@@ -16,22 +16,22 @@
+ # overrode this variable in their build system to support installing units elsewhere.
+ # To stop those builds from silently breaking we keep root_prefix around but have
+ # it as an alias for prefix
++prefix={{USR_PREFIX}}
+ root_prefix={{PREFIX_NOSLASH}}
+ rootprefix=${root_prefix}
+-prefix=${rootprefix}
+ sysconf_dir={{SYSCONF_DIR}}
+ sysconfdir=${sysconf_dir}
+ 
+-systemd_util_dir=${prefix}/lib/systemd
++systemd_util_dir=${rootprefix}/lib/systemd
+ systemdutildir=${systemd_util_dir}
+ 
+-systemd_system_unit_dir=${prefix}/lib/systemd/system
++systemd_system_unit_dir=${rootprefix}/lib/systemd/system
+ systemdsystemunitdir=${systemd_system_unit_dir}
+ 
+-systemd_system_preset_dir=${prefix}/lib/systemd/system-preset
++systemd_system_preset_dir=${rootprefix}/lib/systemd/system-preset
+ systemdsystempresetdir=${systemd_system_preset_dir}
+ 
+-systemd_initrd_preset_dir=${prefix}/lib/systemd/initrd-preset
++systemd_initrd_preset_dir=${rootprefix}/lib/systemd/initrd-preset
+ systemdinitrdpresetdir=${systemd_initrd_preset_dir}
+ 
+ systemd_user_unit_dir=${prefix}/lib/systemd/user
+@@ -52,7 +52,7 @@ systemdsystemunitpath=${systemd_system_unit_path}
+ systemd_user_unit_path=${systemd_user_conf_dir}:/etc/systemd/user:/run/systemd/user:/usr/local/lib/systemd/user:/usr/local/share/systemd/user:${systemd_user_unit_dir}:/usr/lib/systemd/user:/usr/share/systemd/user
+ systemduserunitpath=${systemd_user_unit_path}
+ 
+-systemd_system_generator_dir=${prefix}/lib/systemd/system-generators
++systemd_system_generator_dir=${rootprefix}/lib/systemd/system-generators
+ systemdsystemgeneratordir=${systemd_system_generator_dir}
+ 
+ systemd_user_generator_dir=${prefix}/lib/systemd/user-generators
+@@ -64,10 +64,10 @@ systemdsystemgeneratorpath=${systemd_system_generator_path}
+ systemd_user_generator_path=/run/systemd/user-generators:/etc/systemd/user-generators:/usr/local/lib/systemd/user-generators:${systemd_user_generator_dir}
+ systemdusergeneratorpath=${systemd_user_generator_path}
+ 
+-systemd_sleep_dir=${prefix}/lib/systemd/system-sleep
++systemd_sleep_dir=${rootprefix}/lib/systemd/system-sleep
+ systemdsleepdir=${systemd_sleep_dir}
+ 
+-systemd_shutdown_dir=${prefix}/lib/systemd/system-shutdown
++systemd_shutdown_dir=${rootprefix}/lib/systemd/system-shutdown
+ systemdshutdowndir=${systemd_shutdown_dir}
+ 
+ tmpfiles_dir=${prefix}/lib/tmpfiles.d
+diff --git a/src/libsystemd/libsystemd.pc.in b/src/libsystemd/libsystemd.pc.in
+index 3a43ef6..9faccc8 100644
+--- a/src/libsystemd/libsystemd.pc.in
++++ b/src/libsystemd/libsystemd.pc.in
+@@ -7,8 +7,8 @@
+ #  the Free Software Foundation; either version 2.1 of the License, or
+ #  (at your option) any later version.
+ 
+-prefix={{PREFIX}}
+-exec_prefix={{PREFIX}}
++prefix={{USR_PREFIX}}
++exec_prefix={{USR_PREFIX}}
+ libdir={{LIBDIR}}
+ includedir={{INCLUDE_DIR}}
+ 
+diff --git a/src/libsystemd/sd-path/sd-path.c b/src/libsystemd/sd-path/sd-path.c
+index e009a71..ace5ff7 100644
+--- a/src/libsystemd/sd-path/sd-path.c
++++ b/src/libsystemd/sd-path/sd-path.c
+@@ -299,7 +299,7 @@ static int get_path(uint64_t type, char **buffer, const char **ret) {
+                 return 0;
+ 
+         case SD_PATH_SYSTEMD_USER_PRESET:
+-                *ret = PREFIX_NOSLASH "/lib/systemd/user-preset";
++                *ret = USR_PREFIX "/lib/systemd/user-preset";
+                 return 0;
+ 
+         case SD_PATH_SYSTEMD_INITRD_PRESET:
+@@ -335,19 +335,19 @@ static int get_path(uint64_t type, char **buffer, const char **ret) {
+                 return 0;
+ 
+         case SD_PATH_SYSUSERS:
+-                *ret = PREFIX_NOSLASH "/lib/sysusers.d";
++                *ret = USR_PREFIX "/lib/sysusers.d";
+                 return 0;
+ 
+         case SD_PATH_SYSCTL:
+-                *ret = PREFIX_NOSLASH "/lib/sysctl.d";
++                *ret = USR_PREFIX "/lib/sysctl.d";
+                 return 0;
+ 
+         case SD_PATH_BINFMT:
+-                *ret = PREFIX_NOSLASH "/lib/binfmt.d";
++                *ret = USR_PREFIX "/lib/binfmt.d";
+                 return 0;
+ 
+         case SD_PATH_MODULES_LOAD:
+-                *ret = PREFIX_NOSLASH "/lib/modules-load.d";
++                *ret = USR_PREFIX "/lib/modules-load.d";
+                 return 0;
+ 
+         case SD_PATH_CATALOG:
+diff --git a/src/libudev/libudev.pc.in b/src/libudev/libudev.pc.in
+index 6541bcb..015232b 100644
+--- a/src/libudev/libudev.pc.in
++++ b/src/libudev/libudev.pc.in
+@@ -7,8 +7,8 @@
+ #  the Free Software Foundation; either version 2.1 of the License, or
+ #  (at your option) any later version.
+ 
+-prefix={{PREFIX}}
+-exec_prefix={{PREFIX}}
++prefix={{USR_PREFIX}}
++exec_prefix={{USR_PREFIX}}
+ libdir={{LIBDIR}}
+ includedir={{INCLUDE_DIR}}
+ 
