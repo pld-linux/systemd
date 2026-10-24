@@ -1,0 +1,274 @@
+GHSA-3jgj-3phh-hx5j: unbounded lists in D-Bus/varlink calls to PID 1, resolved
+and userdb let unprivileged users exhaust memory/CPU.
+https://github.com/systemd/systemd/security/advisories/GHSA-3jgj-3phh-hx5j
+From Ubuntu noble 255.4-1ubuntu8.17 (7 of 9 upstream commits; 7671b43cb8 and
+1c534452e9 patch functions 254 does not have); manager.h context ported.
+
+ src/basic/env-util.h                |  2 ++
+ src/core/dbus-manager.c             | 40 ++++++++++++++++++++++++++---
+ src/core/manager.h                  |  6 ++++-
+ src/libsystemd/sd-bus/bus-message.c |  4 ++-
+ src/machine/machine-dbus.c          |  4 +++
+ src/resolve/resolved-link-bus.c     |  7 ++++-
+ src/resolve/resolved-link.h         |  1 +
+ src/shared/json.c                   |  3 ++-
+ src/shared/user-record.c            |  3 ++-
+ 9 files changed, 62 insertions(+), 8 deletions(-)
+
+diff --git a/src/basic/env-util.h b/src/basic/env-util.h
+index c1ea486..a3c1de5 100644
+--- a/src/basic/env-util.h
++++ b/src/basic/env-util.h
+@@ -15,6 +15,8 @@ static inline size_t sc_arg_max(void) {
+         return (size_t) l;
+ }
+ 
++#define ENVIRONMENT_ASSIGNMENTS_MAX 16384U
++
+ bool env_name_is_valid(const char *e);
+ bool env_value_is_valid(const char *e);
+ bool env_assignment_is_valid(const char *e);
+diff --git a/src/core/dbus-manager.c b/src/core/dbus-manager.c
+index 1e2d45a..8f5bfa1 100644
+--- a/src/core/dbus-manager.c
++++ b/src/core/dbus-manager.c
+@@ -967,6 +967,10 @@ static int method_list_units_by_names(sd_bus_message *message, void *userdata, s
+         if (r < 0)
+                 return r;
+ 
++        if (strv_length(units) > MAX(hashmap_size(m->units), (unsigned) MANAGER_MAX_NAMES / 2))
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many unit names requested.");
++
+         r = sd_bus_message_new_method_return(message, &reply);
+         if (r < 0)
+                 return r;
+@@ -1251,9 +1255,13 @@ static int list_units_filtered(sd_bus_message *message, void *userdata, sd_bus_e
+ 
+         /* Anyone can call this method */
+ 
+-        r = mac_selinux_access_check(message, "status", error);
+-        if (r < 0)
+-                return r;
++        if (strv_length(states) > MANAGER_MAX_STATES_PER_CALL)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many states in a single query.");
++
++        if (strv_length(patterns) > MANAGER_MAX_PATTERNS_PER_CALL)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many patterns in a single query.");
+ 
+         r = sd_bus_message_new_method_return(message, &reply);
+         if (r < 0)
+@@ -1267,6 +1275,10 @@ static int list_units_filtered(sd_bus_message *message, void *userdata, sd_bus_e
+                 if (k != u->id)
+                         continue;
+ 
++                _cleanup_(sd_bus_error_free) sd_bus_error unused_error = SD_BUS_ERROR_NULL;
++                r = mac_selinux_unit_access_check(u, message, "status", &unused_error);
++                if (r < 0)
++                        continue; /* silently skip units the caller is not allowed to see */
+                 if (!strv_isempty(states) &&
+                     !strv_contains(states, unit_load_state_to_string(u->load_state)) &&
+                     !strv_contains(states, unit_active_state_to_string(unit_active_state(u))) &&
+@@ -1441,6 +1453,10 @@ static int dump_impl(
+ 
+         assert(message);
+ 
++        if (strv_length(patterns) > MANAGER_MAX_PATTERNS_PER_CALL)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many patterns in a single query.");
++
+         /* 'status' access is the bare minimum always needed for this, as the policy might straight out
+          * forbid a client from querying any information from systemd, regardless of any rate limiting. */
+         r = mac_selinux_access_check(message, "status", error);
+@@ -1954,6 +1970,10 @@ static int method_set_environment(sd_bus_message *message, void *userdata, sd_bu
+         r = sd_bus_message_read_strv(message, &plus);
+         if (r < 0)
+                 return r;
++
++        if (strv_length(plus) > ENVIRONMENT_ASSIGNMENTS_MAX)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many environment assignments in a single query.");
+         if (!strv_env_is_valid(plus))
+                 return sd_bus_error_set(error, SD_BUS_ERROR_INVALID_ARGS, "Invalid environment assignments");
+ 
+@@ -1985,6 +2005,9 @@ static int method_unset_environment(sd_bus_message *message, void *userdata, sd_
+         if (r < 0)
+                 return r;
+ 
++        if (strv_length(minus) > ENVIRONMENT_ASSIGNMENTS_MAX)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many environment variable names in a single query.");
+         if (!strv_env_name_or_assignment_is_valid(minus))
+                 return sd_bus_error_setf(error, SD_BUS_ERROR_INVALID_ARGS,
+                                          "Invalid environment variable names or assignments");
+@@ -2021,6 +2044,9 @@ static int method_unset_and_set_environment(sd_bus_message *message, void *userd
+         if (r < 0)
+                 return r;
+ 
++        if (strv_length(plus) > ENVIRONMENT_ASSIGNMENTS_MAX || strv_length(minus) > ENVIRONMENT_ASSIGNMENTS_MAX)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many environment variable names or assignments in a single query.");
+         if (!strv_env_name_or_assignment_is_valid(minus))
+                 return sd_bus_error_setf(error, SD_BUS_ERROR_INVALID_ARGS,
+                                          "Invalid environment variable names or assignments");
+@@ -2243,6 +2269,14 @@ static int list_unit_files_by_patterns(sd_bus_message *message, void *userdata,
+ 
+         /* Anyone can call this method */
+ 
++        if (strv_length(states) > MANAGER_MAX_STATES_PER_CALL)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many states in a single query.");
++
++        if (strv_length(patterns) > MANAGER_MAX_PATTERNS_PER_CALL)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many patterns in a single query.");
++
+         r = mac_selinux_access_check(message, "status", error);
+         if (r < 0)
+                 return r;
+diff --git a/src/core/manager.h b/src/core/manager.h
+index a6c87dc..5b919b9 100644
+--- a/src/core/manager.h
++++ b/src/core/manager.h
+@@ -20,9 +20,13 @@
+ struct libmnt_monitor;
+ typedef struct Unit Unit;
+ 
+-/* Enforce upper limit how many names we allow */
++/* Enforce upper limit on how many names we allow */
+ #define MANAGER_MAX_NAMES 131072 /* 128K */
+ 
++/* Enforce upper limit on the number of patterns/states requested over IPC */
++#define MANAGER_MAX_PATTERNS_PER_CALL 4096U
++#define MANAGER_MAX_STATES_PER_CALL 256U
++
+ typedef struct Manager Manager;
+ 
+ /* An externally visible state. We don't actually maintain this as state variable, but derive it from various fields
+diff --git a/src/libsystemd/sd-bus/bus-message.c b/src/libsystemd/sd-bus/bus-message.c
+index 7d75b67..f0747e3 100644
+--- a/src/libsystemd/sd-bus/bus-message.c
++++ b/src/libsystemd/sd-bus/bus-message.c
+@@ -4295,6 +4295,7 @@ int bus_message_get_blob(sd_bus_message *m, void **buffer, size_t *sz) {
+ _public_ int sd_bus_message_read_strv_extend(sd_bus_message *m, char ***l) {
+         char type;
+         const char *contents, *s;
++        size_t n;
+         int r;
+ 
+         assert(m);
+@@ -4311,9 +4312,10 @@ _public_ int sd_bus_message_read_strv_extend(sd_bus_message *m, char ***l) {
+         if (r <= 0)
+                 return r;
+ 
++        n = strv_length(*l);
+         /* sd_bus_message_read_basic() does content validation for us. */
+         while ((r = sd_bus_message_read_basic(m, *contents, &s)) > 0) {
+-                r = strv_extend(l, s);
++                r = strv_extend_with_size(l, &n, s);
+                 if (r < 0)
+                         return r;
+         }
+diff --git a/src/machine/machine-dbus.c b/src/machine/machine-dbus.c
+index 5ecb570..7c3a14f 100644
+--- a/src/machine/machine-dbus.c
++++ b/src/machine/machine-dbus.c
+@@ -640,6 +640,10 @@ int bus_machine_method_open_shell(sd_bus_message *message, void *userdata, sd_bu
+         r = sd_bus_message_read_strv(message, &env);
+         if (r < 0)
+                 return r;
++
++        if (strv_length(env) > ENVIRONMENT_ASSIGNMENTS_MAX)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED,
++                                        "Too many environment assignments in a single query.");
+         if (!strv_env_is_valid(env))
+                 return sd_bus_error_set(error, SD_BUS_ERROR_INVALID_ARGS, "Invalid environment assignments");
+ 
+diff --git a/src/resolve/resolved-link-bus.c b/src/resolve/resolved-link-bus.c
+index 4f8f591..02f5e5a 100644
+--- a/src/resolve/resolved-link-bus.c
++++ b/src/resolve/resolved-link-bus.c
+@@ -333,7 +333,7 @@ int bus_link_method_set_domains(sd_bus_message *message, void *userdata, sd_bus_
+         if (r < 0)
+                 return r;
+ 
+-        for (;;) {
++        for (unsigned n_names = 0;; n_names++) {
+                 _cleanup_free_ char *prefixed = NULL;
+                 const char *name;
+                 int route_only;
+@@ -351,6 +351,8 @@ int bus_link_method_set_domains(sd_bus_message *message, void *userdata, sd_bus_
+                         return sd_bus_error_setf(error, SD_BUS_ERROR_INVALID_ARGS, "Invalid search domain %s", name);
+                 if (!route_only && dns_name_is_root(name))
+                         return sd_bus_error_set(error, SD_BUS_ERROR_INVALID_ARGS, "Root domain is not suitable as search domain");
++                if (n_names >= LINK_SEARCH_DOMAINS_MAX)
++                        return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED, "Too many search domains per link");
+ 
+                 if (route_only) {
+                         prefixed = strjoin("~", name);
+@@ -682,6 +684,9 @@ int bus_link_method_set_dnssec_negative_trust_anchors(sd_bus_message *message, v
+         if (r < 0)
+                 return r;
+ 
++        if (strv_length(ntas) > LINK_NEGATIVE_TRUST_ANCHORS_MAX)
++                return sd_bus_error_set(error, SD_BUS_ERROR_LIMITS_EXCEEDED, "Too many negative trust anchors per link");
++
+         STRV_FOREACH(i, ntas) {
+                 r = dns_name_is_valid(*i);
+                 if (r < 0)
+diff --git a/src/resolve/resolved-link.h b/src/resolve/resolved-link.h
+index e2cb2a2..d7cd153 100644
+--- a/src/resolve/resolved-link.h
++++ b/src/resolve/resolved-link.h
+@@ -20,6 +20,7 @@ typedef struct LinkAddress LinkAddress;
+ 
+ #define LINK_SEARCH_DOMAINS_MAX 256
+ #define LINK_DNS_SERVERS_MAX 256
++#define LINK_NEGATIVE_TRUST_ANCHORS_MAX 2048
+ 
+ struct LinkAddress {
+         Link *link;
+diff --git a/src/shared/json.c b/src/shared/json.c
+index d64daaf..b8b4aa8 100644
+--- a/src/shared/json.c
++++ b/src/shared/json.c
+@@ -4610,6 +4610,7 @@ int json_dispatch_strv(const char *name, JsonVariant *variant, JsonDispatchFlags
+         _cleanup_strv_free_ char **l = NULL;
+         char ***s = ASSERT_PTR(userdata);
+         JsonVariant *e;
++        size_t n = 0;
+         int r;
+ 
+         assert(variant);
+@@ -4642,7 +4643,7 @@ int json_dispatch_strv(const char *name, JsonVariant *variant, JsonDispatchFlags
+                 if ((flags & JSON_SAFE) && !string_is_safe(json_variant_string(e)))
+                         return json_log(e, flags, SYNTHETIC_ERRNO(EINVAL), "JSON field '%s' contains unsafe characters, refusing.", strna(name));
+ 
+-                r = strv_extend(&l, json_variant_string(e));
++                r = strv_extend_with_size(&l, &n, json_variant_string(e));
+                 if (r < 0)
+                         return json_log(e, flags, r, "Failed to append array element: %m");
+         }
+diff --git a/src/shared/user-record.c b/src/shared/user-record.c
+index b51d8ad..fad7d09 100644
+--- a/src/shared/user-record.c
++++ b/src/shared/user-record.c
+@@ -620,6 +620,7 @@ int json_dispatch_user_group_list(const char *name, JsonVariant *variant, JsonDi
+         _cleanup_strv_free_ char **l = NULL;
+         char ***list = userdata;
+         JsonVariant *e;
++        size_t s = 0;
+         int r;
+ 
+         if (!json_variant_is_array(variant))
+@@ -633,7 +634,7 @@ int json_dispatch_user_group_list(const char *name, JsonVariant *variant, JsonDi
+                 if (!valid_user_group_name(json_variant_string(e), FLAGS_SET(flags, JSON_RELAX) ? VALID_USER_RELAX : 0))
+                         return json_log(e, flags, SYNTHETIC_ERRNO(EINVAL), "JSON array element is not a valid user/group name: %s", json_variant_string(e));
+ 
+-                r = strv_extend(&l, json_variant_string(e));
++                r = strv_extend_with_size(&l, &s, json_variant_string(e));
+                 if (r < 0)
+                         return json_log(e, flags, r, "Failed to append array element: %m");
+         }

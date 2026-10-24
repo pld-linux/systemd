@@ -33,7 +33,7 @@ Summary(pl.UTF-8):	systemd - zarządca systemu i usług dla Linuksa
 Name:		systemd
 # Verify ChangeLog and NEWS when updating (since there are incompatible/breaking changes very often)
 Version:	254.27
-Release:	3
+Release:	4
 Epoch:		1
 License:	GPL v2+ (udev), LGPL v2.1+ (the rest)
 Group:		Base
@@ -84,6 +84,16 @@ Patch14:	pld-pam-%{name}-user.patch
 Patch15:	%{name}-x32.patch
 Patch16:	rpm-macros.patch
 Patch17:	%{name}-glibc.patch
+Patch18:	%{name}-CVE-2026-29111.patch
+Patch19:	%{name}-CVE-2026-40225.patch
+Patch20:	%{name}-GHSA-m8q3-73v4-wvg7.patch
+Patch21:	%{name}-CVE-2026-40226.patch
+Patch22:	%{name}-CVE-2026-16742.patch
+Patch23:	%{name}-CVE-2026-15059.patch
+Patch24:	%{name}-GHSA-5rm9-cc37-35gq.patch
+Patch25:	%{name}-GHSA-3jgj-3phh-hx5j.patch
+Patch26:	%{name}-CVE-2026-4105.patch
+Patch27:	%{name}-errno-list-kernel7.patch
 URL:		https://www.freedesktop.org/wiki/Software/systemd/
 BuildRequires:	acl-devel
 %{?with_audit:BuildRequires:	audit-libs-devel}
@@ -828,6 +838,16 @@ Makra RPM-a definiujące ścieżki i skryptlety związane z systemd.
 %patch -P15 -p1
 %patch -P16 -p1
 %patch -P17 -p1
+%patch -P18 -p1
+%patch -P19 -p1
+%patch -P20 -p1
+%patch -P21 -p1
+%patch -P22 -p1
+%patch -P23 -p1
+%patch -P24 -p1
+%patch -P25 -p1
+%patch -P26 -p1
+%patch -P27 -p1
 
 cp -p %{SOURCE2} src/systemd_booted.c
 
